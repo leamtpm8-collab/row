@@ -20,6 +20,7 @@ Open any `.html` file directly in your browser — no build step, no install.
 | [finance.html](finance.html) | Finances |
 | [gym.html](gym.html) | Progressive overload gym tracker |
 | [topbar.js](topbar.js) | Shared top bar — auto-injected into pages that `<script src="topbar.js">` |
+| [api/whoop-token.js](api/whoop-token.js) | Vercel serverless function — WHOOP OAuth token exchange/refresh (keeps the client secret server-side) |
 
 Each app stores its own state in browser `localStorage`. No accounts, no server.
 
@@ -47,6 +48,19 @@ create policy "anon read progress-photos"
 create policy "anon delete progress-photos"
   on storage.objects for delete using (bucket_id = 'progress-photos');
 ```
+
+## WHOOP integration setup
+
+The WHOOP card at the top of `health.html` connects via OAuth to WHOOP's API. Token exchange/refresh runs through `api/whoop-token.js`, a Vercel serverless function — this keeps the WHOOP **Client Secret** out of the repo entirely.
+
+1. Create an app at [developer.whoop.com](https://developer.whoop.com), with the redirect URL set to your deployed `index.html` (e.g. `https://your-app.vercel.app/index.html`).
+2. In your Vercel project: **Settings → Environment Variables**, add:
+   - `WHOOP_CLIENT_SECRET` — required. Never put this in any file in the repo.
+   - `WHOOP_CLIENT_ID` / `WHOOP_REDIRECT_URI` — optional; the frontend already sends both explicitly, these only serve as a fallback.
+3. Update the hardcoded `WHOOP_CLIENT_ID` and `WHOOP_REDIRECT_URI` constants near the top of the WHOOP `<script>` block in `health.html` to match your own app (client ID isn't secret, safe to commit).
+4. Redeploy so the new env var takes effect.
+
+Data field names in the fetch/render code follow WHOOP API v2 as of when this was written — if a stat shows `—`, check developer.whoop.com/docs for any field/endpoint renames.
 
 ## Building from scratch
 

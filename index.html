@@ -1320,5 +1320,51 @@ document.addEventListener('DOMContentLoaded', function () {
   });
 });
 </script>
+<script>
+/* ============================================================
+   WHOOP OAuth callback catcher. The redirect URL registered with
+   WHOOP is this page (index.html). If we land here with ?code=...,
+   exchange it for tokens via the /api/whoop-token proxy, stash
+   them, then forward to health.html where the WHOOP card lives.
+   ============================================================ */
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get('code');
+  if (!code) return;
+
+  const state = params.get('state');
+  const savedState = localStorage.getItem('whoop_oauth_state');
+  localStorage.removeItem('whoop_oauth_state');
+  history.replaceState({}, '', window.location.pathname);
+
+  if (!state || state !== savedState) {
+    console.error('WHOOP OAuth state mismatch — aborting token exchange.');
+    return;
+  }
+
+  fetch('/api/whoop-token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      code: code,
+      redirect_uri: window.location.origin + '/index.html'
+    })
+  })
+    .then((r) => r.json())
+    .then((tokens) => {
+      if (tokens && tokens.access_token) {
+        localStorage.setItem('whoop_tokens', JSON.stringify({
+          access_token: tokens.access_token,
+          refresh_token: tokens.refresh_token,
+          expires_at: Date.now() + (tokens.expires_in || 3600) * 1000
+        }));
+      } else {
+        console.error('WHOOP token exchange failed', tokens);
+      }
+    })
+    .catch((e) => console.error('WHOOP token exchange failed', e))
+    .finally(() => { window.location.href = 'health.html'; });
+})();
+</script>
 </body>
 </html>

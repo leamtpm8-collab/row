@@ -841,18 +841,14 @@ main {
       </div>
     </div>
 
-    <!-- Setup overlay: not connected to a real WHOOP OAuth flow yet -->
+    <!-- WHOOP status / disconnect panel -->
     <div id="setupOverlay">
       <div class="setup-card">
-        <h2>Connect your <em>WHOOP</em>.</h2>
-        <div class="sub">This card is a UI shell — the actual WHOOP OAuth + data-fetching logic still needs to be added (it requires a backend proxy, since WHOOP's token endpoint doesn't allow direct browser calls).</div>
-        <label>WHOOP Client ID</label>
-        <input id="cfgClientId" type="text" placeholder="2ac01150-60a5-43f5-96be-26f6c5bcea44" />
-        <label>Backend proxy URL (full URL to your whoop-token endpoint)</label>
-        <input id="cfgProxyUrl" type="text" placeholder="https://your-site.netlify.app/.netlify/functions/whoop-token" />
+        <h2>WHOOP <em>connection</em>.</h2>
+        <div class="sub" id="whoopStatusText">Not connected.</div>
         <div class="actions">
-          <button class="secondary" id="cfgSkipBtn" type="button">Skip for now</button>
-          <button id="cfgSaveBtn" type="button">Save & continue</button>
+          <button class="secondary" id="cfgSkipBtn" type="button">Close</button>
+          <button id="whoopDisconnectBtn2" type="button">Disconnect</button>
         </div>
       </div>
     </div>
@@ -914,42 +910,216 @@ main {
 
 <script>
 /* ============================================================
-   WHOOP settings-overlay wiring only. There is no real WHOOP
-   OAuth/data-fetching logic here yet — Connect just opens the
-   same settings panel as the gear icon so a client ID + proxy
-   URL can be saved for whenever that logic gets added.
+   WHOOP — real OAuth connect + WHOOP API v2 data fetch.
+   Tokens live in localStorage (consistent with the rest of this
+   app — fine for a single-user personal dashboard). The client
+   secret never appears here; token exchange/refresh goes through
+   /api/whoop-token (a Vercel serverless function reading
+   WHOOP_CLIENT_SECRET from an env var).
+
+   NOTE: field/endpoint names below follow WHOOP API v2 as of this
+   writing — double check against developer.whoop.com/docs if
+   anything here comes back empty.
    ============================================================ */
 (function () {
   'use strict';
-  const cfg = {
-    clientId: localStorage.getItem('whoop_cfg_clientId') || '',
-    proxyUrl: localStorage.getItem('whoop_cfg_proxyUrl') || ''
-  };
+  const WHOOP_CLIENT_ID = 'b00aa34c-2182-49c3-bc83-3e4e261dee07';
+  const WHOOP_REDIRECT_URI = 'https://row-wheat.vercel.app/index.html';
+  const WHOOP_SCOPES = 'read:recovery read:cycles read:sleep read:workout read:profile read:body_measurement';
+  const WHOOP_AUTH_URL = 'https://api.prod.whoop.com/oauth/oauth2/auth';
+  const WHOOP_API_BASE = 'https://api.prod.whoop.com/developer/v2';
+  const TOKENS_KEY = 'whoop_tokens';
+
+  const disconnectedEl = document.getElementById('whoopDisconnected');
+  const connectedEl = document.getElementById('whoopConnected');
+  const authStatusEl = document.getElementById('whoopAuthStatus');
   const overlay = document.getElementById('setupOverlay');
-  const openBtn = document.getElementById('openCfgBtn');
-  const connectBtn = document.getElementById('whoopConnectBtn');
-  const skipBtn = document.getElementById('cfgSkipBtn');
-  const saveBtn = document.getElementById('cfgSaveBtn');
-  const idInput = document.getElementById('cfgClientId');
-  const proxyInput = document.getElementById('cfgProxyUrl');
+  const statusTextEl = document.getElementById('whoopStatusText');
 
-  function showOverlay() {
-    idInput.value = cfg.clientId;
-    proxyInput.value = cfg.proxyUrl;
-    overlay.classList.add('is-visible');
+  function getTokens() {
+    try { return JSON.parse(localStorage.getItem(TOKENS_KEY)); } catch (e) { return null; }
   }
-  function hideOverlay() { overlay.classList.remove('is-visible'); }
+  function saveTokens(t) {
+    localStorage.setItem(TOKENS_KEY, JSON.stringify(t));
+  }
+  function clearTokens() {
+    localStorage.removeItem(TOKENS_KEY);
+  }
 
-  openBtn.addEventListener('click', showOverlay);
-  connectBtn.addEventListener('click', showOverlay);
-  skipBtn.addEventListener('click', hideOverlay);
-  saveBtn.addEventListener('click', () => {
-    cfg.clientId = idInput.value.trim();
-    cfg.proxyUrl = proxyInput.value.trim();
-    localStorage.setItem('whoop_cfg_clientId', cfg.clientId);
-    localStorage.setItem('whoop_cfg_proxyUrl', cfg.proxyUrl);
-    hideOverlay();
-  });
+  function startConnect() {
+    const state = Math.random().toString(36).slice(2) + Date.now().toString(36);
+    localStorage.setItem('whoop_oauth_state', state);
+    const params = new URLSearchParams({
+      response_type: 'code',
+      client_id: WHOOP_CLIENT_ID,
+      redirect_uri: WHOOP_REDIRECT_URI,
+      scope: WHOOP_SCOPES,
+      state: state
+    });
+    window.location.href = WHOOP_AUTH_URL + '?' + params.toString();
+  }
+
+  function disconnect() {
+    clearTokens();
+    overlay.classList.remove('is-visible');
+    showDisconnected();
+  }
+
+  async function refreshTokens(tokens) {
+    const res = await fetch('/api/whoop-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: tokens.refresh_token, client_id: WHOOP_CLIENT_ID })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.access_token) throw new Error('refresh failed');
+    const next = {
+      access_token: data.access_token,
+      refresh_token: data.refresh_token || tokens.refresh_token,
+      expires_at: Date.now() + (data.expires_in || 3600) * 1000
+    };
+    saveTokens(next);
+    return next;
+  }
+
+  async function ensureValidTokens() {
+    let tokens = getTokens();
+    if (!tokens || !tokens.access_token) return null;
+    if (tokens.expires_at && tokens.expires_at - 60000 > Date.now()) return tokens;
+    try { return await refreshTokens(tokens); } catch (e) { clearTokens(); return null; }
+  }
+
+  async function whoopGet(path, tokens) {
+    const res = await fetch(WHOOP_API_BASE + path, {
+      headers: { Authorization: 'Bearer ' + tokens.access_token }
+    });
+    if (!res.ok) throw new Error('WHOOP API ' + path + ' failed: ' + res.status);
+    return res.json();
+  }
+
+  function fmtDuration(ms) {
+    const totalMin = Math.round(ms / 60000);
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return h + 'h ' + m + 'm';
+  }
+  function zoneFor(pct) {
+    if (pct == null) return 'z-norm';
+    if (pct >= 67) return 'z-good';
+    if (pct >= 34) return 'z-warn';
+    return 'z-bad';
+  }
+
+  function showDisconnected() {
+    disconnectedEl.style.display = '';
+    connectedEl.style.display = 'none';
+    statusTextEl.textContent = 'Not connected.';
+  }
+  function showConnected() {
+    disconnectedEl.style.display = 'none';
+    connectedEl.style.display = '';
+    statusTextEl.textContent = 'Connected.';
+  }
+
+  async function loadAndRenderWhoop() {
+    const tokens = await ensureValidTokens();
+    if (!tokens) { showDisconnected(); return; }
+    showConnected();
+    document.getElementById('whoopUpdated').textContent = 'loading…';
+    try {
+      const [recoveryRes, sleepRes, cycleRes] = await Promise.all([
+        whoopGet('/recovery?limit=1', tokens),
+        whoopGet('/activity/sleep?limit=1', tokens),
+        whoopGet('/cycle?limit=1', tokens)
+      ]);
+      const recovery = (recoveryRes.records || [])[0];
+      const sleep = (sleepRes.records || [])[0];
+      const cycle = (cycleRes.records || [])[0];
+
+      document.getElementById('whoopCalibrating').style.display =
+        recovery && recovery.score && recovery.score.user_calibrating ? 'flex' : 'none';
+
+      if (recovery && recovery.score) {
+        const score = recovery.score.recovery_score;
+        document.getElementById('whoopRecoveryScore').textContent = score != null ? Math.round(score) : '—';
+        document.getElementById('whoopRecoveryLabel').textContent =
+          score >= 67 ? 'High' : score >= 34 ? 'Medium' : 'Low';
+        const ring = document.getElementById('whoopRecoveryRingFill');
+        const C = 2 * Math.PI * 96;
+        ring.style.strokeDasharray = C;
+        ring.style.strokeDashoffset = score != null ? C * (1 - score / 100) : C;
+        ring.style.stroke = score >= 67 ? '#6BE3A4' : score >= 34 ? '#F2C063' : '#FF8A8A';
+
+        document.getElementById('whoopHrv').textContent = recovery.score.hrv_rmssd_milli != null
+          ? Math.round(recovery.score.hrv_rmssd_milli) : '—';
+        document.getElementById('whoopRhr').textContent = recovery.score.resting_heart_rate != null
+          ? Math.round(recovery.score.resting_heart_rate) : '—';
+        document.getElementById('whoopZoneSleep').className = 'whoop-zone';
+        document.getElementById('whoopZoneHrv').className = 'whoop-zone ' + zoneFor(score);
+        document.getElementById('whoopZoneRhr').className = 'whoop-zone ' + zoneFor(score);
+        document.getElementById('whoopZoneStrain').className = 'whoop-zone';
+
+        if (recovery.score.skin_temp_celsius != null || recovery.score.spo2_percentage != null) {
+          document.getElementById('whoopBio').style.display = 'grid';
+          if (recovery.score.skin_temp_celsius != null) {
+            document.getElementById('whoopSkinTemp').textContent = recovery.score.skin_temp_celsius.toFixed(1) + '°C';
+          }
+          if (recovery.score.spo2_percentage != null) {
+            document.getElementById('whoopSpo2').textContent = recovery.score.spo2_percentage.toFixed(0) + '%';
+          }
+        }
+      }
+
+      if (sleep && sleep.score) {
+        const perf = sleep.score.sleep_performance_percentage;
+        document.getElementById('whoopSleepScore').textContent = perf != null ? Math.round(perf) : '—';
+        document.getElementById('whoopZoneSleep').className = 'whoop-zone ' + zoneFor(perf);
+        const stages = sleep.score.stage_summary || {};
+        const rem = stages.total_rem_sleep_time_milli || 0;
+        const deep = stages.total_slow_wave_sleep_time_milli || 0;
+        const light = stages.total_light_sleep_time_milli || 0;
+        const awake = stages.total_awake_time_milli || 0;
+        const total = rem + deep + light + awake;
+        document.getElementById('whoopSleepDuration').textContent = fmtDuration(rem + deep + light);
+        if (total > 0) {
+          document.getElementById('whoopStages').style.display = '';
+          document.getElementById('whoopStageRem').style.width = (rem / total * 100) + '%';
+          document.getElementById('whoopStageDeep').style.width = (deep / total * 100) + '%';
+          document.getElementById('whoopStageLight').style.width = (light / total * 100) + '%';
+          document.getElementById('whoopStageAwake').style.width = (awake / total * 100) + '%';
+          document.getElementById('whoopStageRemTxt').textContent = fmtDuration(rem);
+          document.getElementById('whoopStageDeepTxt').textContent = fmtDuration(deep);
+          document.getElementById('whoopStageLightTxt').textContent = fmtDuration(light);
+          document.getElementById('whoopStageAwakeTxt').textContent = fmtDuration(awake);
+          document.getElementById('whoopStagesMeta').textContent = fmtDuration(total) + ' total';
+        }
+        if (sleep.score.respiratory_rate != null) {
+          document.getElementById('whoopResp').textContent = sleep.score.respiratory_rate.toFixed(1);
+        }
+      }
+
+      if (cycle && cycle.score) {
+        document.getElementById('whoopStrain').textContent = cycle.score.strain != null
+          ? cycle.score.strain.toFixed(1) : '—';
+      }
+
+      document.getElementById('whoopUpdated').textContent =
+        'Updated ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      console.error('WHOOP data fetch failed', e);
+      document.getElementById('whoopUpdated').textContent = 'Update failed';
+    }
+  }
+
+  document.getElementById('whoopConnectBtn').addEventListener('click', startConnect);
+  document.getElementById('whoopDisconnectBtn').addEventListener('click', disconnect);
+  document.getElementById('whoopDisconnectBtn2').addEventListener('click', disconnect);
+  document.getElementById('whoopRefreshBtn').addEventListener('click', loadAndRenderWhoop);
+  document.getElementById('openCfgBtn').addEventListener('click', () => overlay.classList.add('is-visible'));
+  document.getElementById('cfgSkipBtn').addEventListener('click', () => overlay.classList.remove('is-visible'));
+
+  showDisconnected();
+  loadAndRenderWhoop();
 })();
 </script>
 
