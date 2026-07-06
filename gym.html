@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Progressive Overload Coach</title>
+<title>Trainings-Coach</title>
 <script src="topbar.js" defer></script>
 
 <!-- =============================================================
@@ -19,7 +19,7 @@
      ============================================================= -->
 <script>
 const CONFIG = {
-  appTitle: "Progressive Overload Coach",
+  appTitle: "Trainings-Coach",
 
   // Weight unit shown everywhere. "kg" or "lb".
   units: "kg",
@@ -27,16 +27,16 @@ const CONFIG = {
   // Gyms you train at. Add as many as you want.
   // `id` must be a short unique slug (no spaces). `name` is what people see.
   gyms: [
-    { id: "home",  name: "Home Gym" },
-    { id: "comm",  name: "Commercial Gym" }
+    { id: "home",  name: "Home-Gym" },
+    { id: "comm",  name: "Fitnessstudio" }
   ],
 
   // Training split. Most people use Push/Pull/Legs but you can rename
   // these to "Upper", "Lower", "Full Body", "Day A", anything.
   days: [
-    { id: "push", name: "Push" },
-    { id: "pull", name: "Pull" },
-    { id: "legs", name: "Legs" }
+    { id: "push", name: "Drücken" },
+    { id: "pull", name: "Ziehen" },
+    { id: "legs", name: "Beine" }
   ],
 
   // Split rotation — the order your training days cycle through. Use day
@@ -81,15 +81,15 @@ const CONFIG = {
   // First-run defaults. Once a user logs anything, they edit through
   // the in-app + / gear buttons; this block stays as the seed.
   defaultExercises: [
-    { name: "Bench press",     gym: "comm", day: "push", repMin: 5, repMax: 8,  step: 2.5, startWeight: 60 },
-    { name: "Overhead press",  gym: "comm", day: "push", repMin: 5, repMax: 8,  step: 2.5, startWeight: 35 },
-    { name: "Tricep pushdown", gym: "comm", day: "push", repMin: 8, repMax: 12, step: 2.5, startWeight: 25 },
-    { name: "Pull-ups",        gym: "both", day: "pull", repMin: 5, repMax: 10, step: 1,   startWeight: 0, bw: true },
-    { name: "Barbell row",     gym: "comm", day: "pull", repMin: 6, repMax: 10, step: 2.5, startWeight: 50 },
-    { name: "Bicep curl",      gym: "comm", day: "pull", repMin: 8, repMax: 12, step: 1.25,startWeight: 15 },
-    { name: "Back squat",      gym: "comm", day: "legs", repMin: 5, repMax: 8,  step: 5,   startWeight: 80 },
-    { name: "Romanian deadlift", gym: "comm", day: "legs", repMin: 6, repMax: 10, step: 5, startWeight: 60 },
-    { name: "Leg press",       gym: "comm", day: "legs", repMin: 8, repMax: 12, step: 5,   startWeight: 100 }
+    { name: "Bankdrücken",             gym: "comm", day: "push", repMin: 5, repMax: 8,  step: 2.5, startWeight: 60 },
+    { name: "Schulterdrücken",         gym: "comm", day: "push", repMin: 5, repMax: 8,  step: 2.5, startWeight: 35 },
+    { name: "Trizepsdrücken am Kabel", gym: "comm", day: "push", repMin: 8, repMax: 12, step: 2.5, startWeight: 25 },
+    { name: "Klimmzüge",               gym: "both", day: "pull", repMin: 5, repMax: 10, step: 1,   startWeight: 0, bw: true },
+    { name: "Langhantelrudern",        gym: "comm", day: "pull", repMin: 6, repMax: 10, step: 2.5, startWeight: 50 },
+    { name: "Bizepscurls",             gym: "comm", day: "pull", repMin: 8, repMax: 12, step: 1.25,startWeight: 15 },
+    { name: "Kniebeuge",               gym: "comm", day: "legs", repMin: 5, repMax: 8,  step: 5,   startWeight: 80 },
+    { name: "Rumänisches Kreuzheben",  gym: "comm", day: "legs", repMin: 6, repMax: 10, step: 5, startWeight: 60 },
+    { name: "Beinpresse",              gym: "comm", day: "legs", repMin: 8, repMax: 12, step: 5,   startWeight: 100 }
   ]
 };
 </script>
@@ -1333,18 +1333,18 @@ img, video, canvas, svg { max-width: 100%; }
         <div class="wt-locked-info">
           <span class="wt-locked-check">✓</span>
           <div>
-            <div class="wt-locked-label">LOGGED TODAY</div>
+            <div class="wt-locked-label">HEUTE ERFASST</div>
             <div class="wt-locked-value" id="wtLockedValue">— kg</div>
           </div>
         </div>
-        <button class="wt-edit-btn" id="wtEditBtn">Edit</button>
+        <button class="wt-edit-btn" id="wtEditBtn">Bearbeiten</button>
       </div>
 
       <div class="wt-input-row" id="wtInputRow">
         <div class="wt-input-top">
-          <input type="number" step="0.1" class="wt-input" id="wtInput" placeholder="Enter weight" inputmode="decimal" aria-label="Today's weight">
+          <input type="number" step="0.1" class="wt-input" id="wtInput" placeholder="Gewicht eingeben" inputmode="decimal" aria-label="Heutiges Gewicht">
           <span class="wt-unit-static" id="wtUnitStatic">kg</span>
-          <button class="wt-save-btn" id="wtSaveBtn">Save</button>
+          <button class="wt-save-btn" id="wtSaveBtn">Speichern</button>
         </div>
       </div>
     </div>
@@ -1368,13 +1368,13 @@ img, video, canvas, svg { max-width: 100%; }
         <div class="wt-overlay-title">Progress</div>
       </div>
       <div class="wt-overlay-actions">
-        <button class="wt-overlay-action wt-overlay-primary" id="wtTakePhotoBtn">Take Photo</button>
-        <button class="wt-overlay-action wt-overlay-secondary" id="wtFromLibraryBtn">From Library</button>
+        <button class="wt-overlay-action wt-overlay-primary" id="wtTakePhotoBtn">Foto aufnehmen</button>
+        <button class="wt-overlay-action wt-overlay-secondary" id="wtFromLibraryBtn">Aus Mediathek</button>
       </div>
       <input type="file" id="wtFileCamera" accept="image/*" capture="environment" style="display:none">
       <input type="file" id="wtFileLibrary" accept="image/*" style="display:none">
       <div class="wt-photo-grid" id="wtPhotoGrid">
-        <div class="wt-photo-empty">No photos yet · tap Take Photo to start</div>
+        <div class="wt-photo-empty">Noch keine Fotos · tippe auf „Foto aufnehmen", um zu starten</div>
       </div>
     </div>
   </div>
@@ -1386,9 +1386,9 @@ img, video, canvas, svg { max-width: 100%; }
       <canvas id="wtCamCanvas" style="display:none"></canvas>
     </div>
     <div class="wt-cam-actions">
-      <button class="wt-cam-btn" id="wtCamCancel">Cancel</button>
-      <button class="wt-cam-shutter" id="wtCamShutter" aria-label="Capture"></button>
-      <button class="wt-cam-btn" id="wtCamFlip" aria-label="Flip camera">
+      <button class="wt-cam-btn" id="wtCamCancel">Abbrechen</button>
+      <button class="wt-cam-shutter" id="wtCamShutter" aria-label="Aufnehmen"></button>
+      <button class="wt-cam-btn" id="wtCamFlip" aria-label="Kamera wechseln">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
       </button>
     </div>
@@ -1407,9 +1407,9 @@ img, video, canvas, svg { max-width: 100%; }
         <div class="wt-viewer-weight" id="wtViewerWeight">—</div>
       </div>
       <div class="wt-viewer-actions">
-        <button class="wt-viewer-btn wt-viewer-compare" id="wtViewerCompare">Compare</button>
-        <button class="wt-viewer-btn wt-viewer-close" id="wtViewerClose">Close</button>
-        <button class="wt-viewer-btn wt-viewer-delete" id="wtViewerDelete">Delete</button>
+        <button class="wt-viewer-btn wt-viewer-compare" id="wtViewerCompare">Vergleichen</button>
+        <button class="wt-viewer-btn wt-viewer-close" id="wtViewerClose">Schließen</button>
+        <button class="wt-viewer-btn wt-viewer-delete" id="wtViewerDelete">Löschen</button>
       </div>
     </div>
 
@@ -1420,16 +1420,16 @@ img, video, canvas, svg { max-width: 100%; }
           <img id="wtCmpImgA" alt="">
           <div class="wt-compare-meta-line" id="wtCmpMetaA">—</div>
         </div>
-        <button type="button" class="wt-compare-side wt-compare-other" id="wtCmpSideB" title="Tap to compare to a different photo" aria-label="Compare to a different photo">
+        <button type="button" class="wt-compare-side wt-compare-other" id="wtCmpSideB" title="Antippen, um mit einem anderen Foto zu vergleichen" aria-label="Mit einem anderen Foto vergleichen">
           <img id="wtCmpImgB" alt="">
           <div class="wt-compare-meta-line" id="wtCmpMetaB">—</div>
         </button>
       </div>
       <div class="wt-compare-headline" id="wtCompareHeadline">—</div>
       <div class="wt-viewer-actions">
-        <button class="wt-viewer-btn wt-viewer-back" id="wtCompareBack">← Back</button>
-        <button class="wt-viewer-btn wt-viewer-close" id="wtCompareClose">Close</button>
-        <button class="wt-viewer-btn wt-viewer-delete" id="wtCompareDelete">Delete</button>
+        <button class="wt-viewer-btn wt-viewer-back" id="wtCompareBack">← Zurück</button>
+        <button class="wt-viewer-btn wt-viewer-close" id="wtCompareClose">Schließen</button>
+        <button class="wt-viewer-btn wt-viewer-delete" id="wtCompareDelete">Löschen</button>
       </div>
     </div>
 
@@ -1590,62 +1590,62 @@ img, video, canvas, svg { max-width: 100%; }
 <!-- Add / Edit Exercise Modal -->
 <div class="po-modal-bg" id="exModalBg">
   <div class="po-modal">
-    <h3 id="exModalTitle">Add exercise</h3>
+    <h3 id="exModalTitle">Übung hinzufügen</h3>
     <div class="po-field">
       <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Name</label>
-      <input type="text" id="exName" placeholder="e.g. Incline DB press">
+      <input type="text" id="exName" placeholder="z. B. Schrägbankdrücken KH">
     </div>
     <div class="po-field">
       <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Gym</label>
       <div class="po-modal-seg" id="exGymSeg"></div>
     </div>
     <div class="po-field">
-      <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Day</label>
+      <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Tag</label>
       <div class="po-modal-seg" id="exDaySeg"></div>
     </div>
     <label class="po-bw-toggle">
       <input type="checkbox" id="exBw">
-      Bodyweight (track reps only, no weight)
+      Körpergewicht (nur Wiederholungen, kein Gewicht)
     </label>
     <div class="po-field" id="exStartWeightField">
-      <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Starting weight</label>
+      <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Startgewicht</label>
       <input type="number" id="exStartWeight" step="0.5" placeholder="20" value="20">
     </div>
     <div class="po-log-grid" id="exNumFields">
       <div class="po-field">
-        <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Reps min</label>
+        <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Wdh. min</label>
         <input type="number" id="exRepMin" value="6">
       </div>
       <div class="po-field">
-        <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Reps max</label>
+        <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Wdh. max</label>
         <input type="number" id="exRepMax" value="8">
       </div>
     </div>
     <div class="po-field" id="exStepField">
-      <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Increment</label>
+      <label style="font-size:11px;color:var(--text-3);font-weight:700;letter-spacing:0.04em;text-transform:uppercase">Steigerung</label>
       <input type="number" id="exStep" step="0.5" value="2.5">
     </div>
     <div class="po-modal-actions">
-      <button class="po-btn-secondary" id="exModalCancel">Cancel</button>
-      <button class="po-btn-primary" id="exModalSave">Save</button>
+      <button class="po-btn-secondary" id="exModalCancel">Abbrechen</button>
+      <button class="po-btn-primary" id="exModalSave">Speichern</button>
     </div>
-    <span class="po-delete-link" id="exDelete" style="display:none">Delete this exercise</span>
+    <span class="po-delete-link" id="exDelete" style="display:none">Diese Übung löschen</span>
   </div>
 </div>
 
 <!-- Rotation editor modal -->
 <div class="po-modal-bg" id="rotModalBg">
   <div class="po-modal">
-    <h3>Edit split rotation</h3>
+    <h3>Split-Rotation bearbeiten</h3>
     <p style="font-size:12px;color:var(--text-3);margin:-6px 0 14px;line-height:1.45;">
-      Days cycle in this order, repeating forever. Today is whichever entry is highlighted.
-      Use <strong>Today is →</strong> to jump the cycle to a different starting day.
+      Die Tage laufen in dieser Reihenfolge endlos weiter. Heute ist der jeweils hervorgehobene Eintrag.
+      Nutze <strong>Heute ist →</strong>, um den Zyklus auf einen anderen Starttag zu springen.
     </p>
     <div class="rot-list" id="rotList"></div>
-    <button class="po-add-row-btn" id="rotAddBtn">+ Add day</button>
+    <button class="po-add-row-btn" id="rotAddBtn">+ Tag hinzufügen</button>
     <div class="po-modal-actions">
-      <button class="po-btn-secondary" id="rotCancel">Cancel</button>
-      <button class="po-btn-primary" id="rotSave">Save</button>
+      <button class="po-btn-secondary" id="rotCancel">Abbrechen</button>
+      <button class="po-btn-primary" id="rotSave">Speichern</button>
     </div>
   </div>
 </div>
@@ -1653,10 +1653,10 @@ img, video, canvas, svg { max-width: 100%; }
 <!-- Settings Modal -->
 <div class="po-modal-bg" id="setModalBg">
   <div class="po-modal" style="max-width: 480px;">
-    <h3>Settings</h3>
+    <h3>Einstellungen</h3>
 
     <div class="po-set-section">
-      <h4>Units</h4>
+      <h4>Einheiten</h4>
       <div class="po-modal-seg" id="setUnitsSeg">
         <button data-u="kg">kg</button>
         <button data-u="lb">lb</button>
@@ -1666,27 +1666,27 @@ img, video, canvas, svg { max-width: 100%; }
     <div class="po-set-section">
       <h4>Gyms</h4>
       <div class="po-set-list" id="setGyms"></div>
-      <button class="po-add-row-btn" id="setAddGym">+ Add gym</button>
+      <button class="po-add-row-btn" id="setAddGym">+ Gym hinzufügen</button>
     </div>
 
     <div class="po-set-section">
-      <h4>Days</h4>
+      <h4>Tage</h4>
       <div class="po-set-list" id="setDays"></div>
-      <button class="po-add-row-btn" id="setAddDay">+ Add day</button>
+      <button class="po-add-row-btn" id="setAddDay">+ Tag hinzufügen</button>
     </div>
 
     <div class="po-set-section">
-      <h4>Data</h4>
+      <h4>Daten</h4>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="po-btn-secondary" id="setExport">Export JSON</button>
-        <button class="po-btn-secondary" id="setImport">Import JSON</button>
-        <button class="po-btn-secondary" id="setReset" style="color:var(--bad);border-color:rgba(255,138,138,0.3)">Reset all</button>
+        <button class="po-btn-secondary" id="setExport">JSON exportieren</button>
+        <button class="po-btn-secondary" id="setImport">JSON importieren</button>
+        <button class="po-btn-secondary" id="setReset" style="color:var(--bad);border-color:rgba(255,138,138,0.3)">Alles zurücksetzen</button>
       </div>
       <input type="file" id="setImportFile" accept=".json" style="display:none">
     </div>
 
     <div class="po-modal-actions">
-      <button class="po-btn-primary" id="setModalClose">Done</button>
+      <button class="po-btn-primary" id="setModalClose">Fertig</button>
     </div>
   </div>
 </div>
@@ -1855,17 +1855,17 @@ img, video, canvas, svg { max-width: 100%; }
     const wField = $('weightField');
     const oneRmLbl = $('oneRmLabel');
     const grid = $('logGrid');
-    $('weightLabel').textContent = 'Weight (' + unit() + ')';
+    $('weightLabel').textContent = 'Gewicht (' + unit() + ')';
     if (ex && ex.bw) {
       banner.classList.add('show');
       wField.style.display = 'none';
       grid.classList.add('po-bw-mode');
-      oneRmLbl.textContent = 'Best reps';
+      oneRmLbl.textContent = 'Beste Wdh.';
     } else {
       banner.classList.remove('show');
       wField.style.display = '';
       grid.classList.remove('po-bw-mode');
-      oneRmLbl.textContent = 'Est. 1RM';
+      oneRmLbl.textContent = 'Gesch. 1RM';
     }
   }
   function renderLastSet() {
@@ -1980,7 +1980,7 @@ img, video, canvas, svg { max-width: 100%; }
     }).join('');
     wrap.querySelectorAll('.po-hist-del').forEach(b => {
       b.addEventListener('click', () => {
-        if (!confirm('Delete this log?')) return;
+        if (!confirm('Diesen Eintrag löschen?')) return;
         const realIdx = parseInt(b.dataset.idx, 10);
         const arr = state.logs[state.currentEx] || [];
         // realIdx is index in REVERSED list; map back to original
@@ -2141,13 +2141,13 @@ img, video, canvas, svg { max-width: 100%; }
     const u = state.units;
 
     const eyebrow = $('poTwDateLabel');
-    const dows = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
-    const mons = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    const dows = ['SO','MO','DI','MI','DO','FR','SA'];
+    const mons = ['JAN','FEB','MÄR','APR','MAI','JUN','JUL','AUG','SEP','OKT','NOV','DEZ'];
     const d = new Date();
-    eyebrow.textContent = 'TODAY · ' + dows[d.getDay()] + ', ' + mons[d.getMonth()] + ' ' + d.getDate();
+    eyebrow.textContent = 'HEUTE · ' + dows[d.getDay()] + ', ' + String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') + '.';
 
     $('poTwSetCount').textContent = sum.totalSets;
-    $('poTwTotalVol').textContent = Math.round(sum.totalVol).toLocaleString() + ' ' + u + ' lifted';
+    $('poTwTotalVol').textContent = Math.round(sum.totalVol).toLocaleString('de-DE') + ' ' + u + ' bewegt';
 
     const list = $('poTwList');
     const empty = $('poTwEmpty');
@@ -2278,9 +2278,9 @@ img, video, canvas, svg { max-width: 100%; }
     const ex = getCurrentEx();
     if (!ex) return;
     const reps = parseInt($('repsRow').dataset.value, 10) || 0;
-    if (reps <= 0) { alert('Pick a rep count.'); return; }
+    if (reps <= 0) { alert('Wiederholungszahl auswählen.'); return; }
     const w = ex.bw ? 0 : (parseFloat($('weightInput').value) || 0);
-    if (!ex.bw && w <= 0) { alert('Enter a weight.'); return; }
+    if (!ex.bw && w <= 0) { alert('Gewicht eingeben.'); return; }
     const arr = state.logs[ex.id] || [];
     arr.push({ weight: w, reps: reps, date: new Date().toISOString() });
     state.logs[ex.id] = arr;
@@ -2363,9 +2363,9 @@ img, video, canvas, svg { max-width: 100%; }
   $('exModalCancel').addEventListener('click', () => $('exModalBg').classList.remove('show'));
   $('exModalSave').addEventListener('click', () => {
     const name = $('exName').value.trim();
-    if (!name) { alert('Name is required.'); return; }
-    if (!modalGym) { alert('Pick a gym.'); return; }
-    if (!modalDay) { alert('Pick a day.'); return; }
+    if (!name) { alert('Name ist erforderlich.'); return; }
+    if (!modalGym) { alert('Gym auswählen.'); return; }
+    if (!modalDay) { alert('Tag auswählen.'); return; }
     const isBw = $('exBw').checked;
     const repMin = parseInt($('exRepMin').value, 10) || 6;
     const repMax = parseInt($('exRepMax').value, 10) || 8;
@@ -2392,7 +2392,7 @@ img, video, canvas, svg { max-width: 100%; }
   });
   $('exDelete').addEventListener('click', () => {
     if (!editingExId) return;
-    if (!confirm('Delete this exercise and all its logs?')) return;
+    if (!confirm('Diese Übung und alle Einträge löschen?')) return;
     state.exercises = state.exercises.filter(e => e.id !== editingExId);
     delete state.logs[editingExId];
     if (state.currentEx === editingExId) state.currentEx = null;
@@ -2426,12 +2426,12 @@ img, video, canvas, svg { max-width: 100%; }
       const isToday = (i === rotDraftTodayIdx);
       return '<div class="rot-row ' + (isToday ? 'is-today' : '') + '" data-i="' + i + '">'
         + '<span class="rot-row-num">' + (i + 1) + '</span>'
-        + '<input type="text" value="' + escape(name) + '" placeholder="e.g. Arms" maxlength="30">'
+        + '<input type="text" value="' + escape(name) + '" placeholder="z. B. Arme" maxlength="30">'
         + (isToday
-            ? '<span class="rot-today-tag">TODAY</span>'
-            : '<button type="button" class="rot-today-btn" data-action="today">Today is →</button>')
-        + '<button type="button" class="rot-mini" data-action="up"   aria-label="Move up">↑</button>'
-        + '<button type="button" class="rot-mini" data-action="down" aria-label="Move down">↓</button>'
+            ? '<span class="rot-today-tag">HEUTE</span>'
+            : '<button type="button" class="rot-today-btn" data-action="today">Heute ist →</button>')
+        + '<button type="button" class="rot-mini" data-action="up"   aria-label="Nach oben">↑</button>'
+        + '<button type="button" class="rot-mini" data-action="down" aria-label="Nach unten">↓</button>'
         + '<button type="button" class="rot-mini rot-mini-del" data-action="del" aria-label="Delete">×</button>'
         + '</div>';
     }).join('');
@@ -2457,7 +2457,7 @@ img, video, canvas, svg { max-width: 100%; }
         renderRotList();
       });
       if (delBtn) delBtn.addEventListener('click', () => {
-        if (rotDraft.length <= 1) { alert('Need at least one day in the cycle.'); return; }
+        if (rotDraft.length <= 1) { alert('Mindestens ein Tag im Zyklus erforderlich.'); return; }
         rotDraft.splice(i, 1);
         if (rotDraftTodayIdx >= rotDraft.length) rotDraftTodayIdx = rotDraft.length - 1;
         else if (i < rotDraftTodayIdx) rotDraftTodayIdx--;
@@ -2471,7 +2471,7 @@ img, video, canvas, svg { max-width: 100%; }
   }
 
   $('rotAddBtn').addEventListener('click', () => {
-    rotDraft.push('New day');
+    rotDraft.push('Neuer Tag');
     renderRotList();
     // Focus the newly added input
     setTimeout(() => {
@@ -2487,7 +2487,7 @@ img, video, canvas, svg { max-width: 100%; }
   $('rotSave').addEventListener('click', () => {
     // Trim + drop empty entries
     const cleaned = rotDraft.map(s => (s || '').trim()).filter(Boolean);
-    if (!cleaned.length) { alert('Need at least one day in the cycle.'); return; }
+    if (!cleaned.length) { alert('Mindestens ein Tag im Zyklus erforderlich.'); return; }
     let newTodayIdx = rotDraftTodayIdx;
     if (newTodayIdx >= cleaned.length) newTodayIdx = 0;
     state.splitRotation = cleaned;
@@ -2510,13 +2510,13 @@ img, video, canvas, svg { max-width: 100%; }
     });
     $('setGyms').innerHTML = state.gyms.map((g, i) =>
       '<div class="po-set-row" data-i="' + i + '">'
-      + '<input type="text" value="' + escape(g.name) + '" data-field="name" placeholder="Gym name">'
+      + '<input type="text" value="' + escape(g.name) + '" data-field="name" placeholder="Gym-Name">'
       + '<button class="po-mini-btn" data-action="del" aria-label="Delete">×</button>'
       + '</div>'
     ).join('');
     $('setDays').innerHTML = state.days.map((d, i) =>
       '<div class="po-set-row" data-i="' + i + '">'
-      + '<input type="text" value="' + escape(d.name) + '" data-field="name" placeholder="Day name">'
+      + '<input type="text" value="' + escape(d.name) + '" data-field="name" placeholder="Tag-Name">'
       + '<button class="po-mini-btn" data-action="del" aria-label="Delete">×</button>'
       + '</div>'
     ).join('');
@@ -2527,8 +2527,8 @@ img, video, canvas, svg { max-width: 100%; }
         saveState();
       });
       row.querySelector('[data-action="del"]').addEventListener('click', () => {
-        if (state.gyms.length <= 1) { alert('You need at least one gym.'); return; }
-        if (!confirm('Remove "' + state.gyms[i].name + '"? Exercises tagged to this gym will become invisible until you reassign them.')) return;
+        if (state.gyms.length <= 1) { alert('Du brauchst mindestens ein Gym.'); return; }
+        if (!confirm('"' + state.gyms[i].name + '" entfernen? Übungen, die diesem Gym zugeordnet sind, werden unsichtbar, bis du sie neu zuweist.')) return;
         state.gyms.splice(i, 1);
         if (!state.gyms.find(g => g.id === state.filterGym)) state.filterGym = state.gyms[0].id;
         saveState(); renderSettings(); renderAll();
@@ -2541,8 +2541,8 @@ img, video, canvas, svg { max-width: 100%; }
         saveState();
       });
       row.querySelector('[data-action="del"]').addEventListener('click', () => {
-        if (state.days.length <= 1) { alert('You need at least one day.'); return; }
-        if (!confirm('Remove "' + state.days[i].name + '"?')) return;
+        if (state.days.length <= 1) { alert('Du brauchst mindestens einen Tag.'); return; }
+        if (!confirm('"' + state.days[i].name + '" entfernen?')) return;
         state.days.splice(i, 1);
         if (!state.days.find(d => d.id === state.filterDay)) state.filterDay = state.days[0].id;
         saveState(); renderSettings(); renderAll();
@@ -2595,15 +2595,15 @@ img, video, canvas, svg { max-width: 100%; }
     reader.onload = () => {
       try {
         const parsed = JSON.parse(reader.result);
-        if (!confirm('Replace ALL current data with the imported file? This cannot be undone.')) return;
+        if (!confirm('Alle aktuellen Daten durch die importierte Datei ersetzen? Das kann nicht rückgängig gemacht werden.')) return;
         state = normalize(parsed);
         saveState(); renderSettings(); renderAll();
-      } catch (err) { alert('Import failed: ' + err.message); }
+      } catch (err) { alert('Import fehlgeschlagen: ' + err.message); }
     };
     reader.readAsText(file);
   });
   $('setReset').addEventListener('click', () => {
-    if (!confirm('Delete EVERYTHING (logs, edits, gyms, days)? This cannot be undone.')) return;
+    if (!confirm('ALLES löschen (Einträge, Änderungen, Gyms, Tage)? Das kann nicht rückgängig gemacht werden.')) return;
     localStorage.removeItem(LS_KEY);
     state = loadState();
     $('setModalBg').classList.remove('show');
@@ -2904,7 +2904,7 @@ img, video, canvas, svg { max-width: 100%; }
 
     // Render
     compEl.classList.remove('hidden');
-    $('wtCompWindow').textContent = 'last ' + actualDays + 'd';
+    $('wtCompWindow').textContent = 'letzte ' + actualDays + ' Tage';
     const headlineEl = $('wtCompHeadline');
     headlineEl.textContent = headline;
     headlineEl.className = 'wt-comp-headline ' + headlineCls;
@@ -3019,7 +3019,7 @@ img, video, canvas, svg { max-width: 100%; }
   function photosRender() {
     const grid = $('wtPhotoGrid');
     if (!photos.length) {
-      grid.innerHTML = '<div class="wt-photo-empty">No photos yet · tap Take Photo to start</div>';
+      grid.innerHTML = '<div class="wt-photo-empty">Noch keine Fotos · tippe auf „Foto aufnehmen", um zu starten</div>';
     } else {
       grid.innerHTML = photos.map(p =>
         '<button class="wt-photo-card" data-id="' + p.id + '" type="button">' +
@@ -3059,7 +3059,7 @@ img, video, canvas, svg { max-width: 100%; }
       } catch {}
       if (!photosSave()) {
         photos.shift();
-        alert('Phone storage is full — delete some older progress photos before adding a new one.');
+        alert('Speicher auf dem Handy ist voll — lösche ältere Fortschrittsfotos, bevor du ein neues hinzufügst.');
         return;
       }
     }
@@ -3107,7 +3107,7 @@ img, video, canvas, svg { max-width: 100%; }
         $('wtCamVideo').srcObject = camStream;
       } catch (e2) {
         closeCam();
-        alert('Camera unavailable. Use "From Library" instead.');
+        alert('Kamera nicht verfügbar. Nutze stattdessen "Aus Mediathek".');
         throw e2;
       }
     }
@@ -3164,7 +3164,7 @@ img, video, canvas, svg { max-width: 100%; }
     $('wtViewer').dataset.mode = 'single';
     $('wtViewer').classList.add('is-open');
     pvDeleteConfirm = false;
-    $('wtViewerDelete').textContent = 'Delete';
+    $('wtViewerDelete').textContent = 'Löschen';
     $('wtViewerDelete').classList.remove('is-confirm');
     // Disable Compare button if there's no other photo to compare against
     $('wtViewerCompare').disabled = photos.length < 2;
@@ -3246,11 +3246,11 @@ img, video, canvas, svg { max-width: 100%; }
     if (!activePhotoId) return;
     if (!pvDeleteConfirm) {
       pvDeleteConfirm = true;
-      deleteBtn.textContent = 'Confirm delete?';
+      deleteBtn.textContent = 'Wirklich löschen?';
       deleteBtn.classList.add('is-confirm');
       setTimeout(() => {
         pvDeleteConfirm = false;
-        deleteBtn.textContent = 'Delete';
+        deleteBtn.textContent = 'Löschen';
         deleteBtn.classList.remove('is-confirm');
       }, 3000);
       return;
@@ -3268,7 +3268,7 @@ img, video, canvas, svg { max-width: 100%; }
   $('wtViewerCompare').addEventListener('click', () => {
     if (!activePhotoId) return;
     const otherId = defaultCompareFor(activePhotoId);
-    if (!otherId) { alert('Need at least one other photo to compare.'); return; }
+    if (!otherId) { alert('Mindestens ein weiteres Foto zum Vergleichen erforderlich.'); return; }
     openCompare(activePhotoId, otherId);
   });
   $('wtCompareBack').addEventListener('click', () => {

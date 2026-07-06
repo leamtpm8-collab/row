@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Books</title>
+<title>Bücher</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="sync.js" defer></script>
 <script src="topbar.js" defer></script>
@@ -329,15 +329,15 @@ body::after {
 <div class="page">
 
   <div class="books-head">
-    <h1 class="dash-title">Books</h1>
-    <button id="bookAddBtn" class="book-add-btn" type="button" aria-label="Add book">+</button>
+    <h1 class="dash-title">Bücher</h1>
+    <button id="bookAddBtn" class="book-add-btn" type="button" aria-label="Buch hinzufügen">+</button>
   </div>
 
   <div class="book-filters" id="bookFilters">
-    <button class="book-filter-btn active" data-filter="all">All</button>
-    <button class="book-filter-btn" data-filter="reading">Reading</button>
-    <button class="book-filter-btn" data-filter="read">Read</button>
-    <button class="book-filter-btn" data-filter="dropped">Dropped</button>
+    <button class="book-filter-btn active" data-filter="all">Alle</button>
+    <button class="book-filter-btn" data-filter="reading">Lese ich</button>
+    <button class="book-filter-btn" data-filter="read">Gelesen</button>
+    <button class="book-filter-btn" data-filter="dropped">Abgebrochen</button>
   </div>
 
   <div class="shelf-outer" id="shelfOuter"></div>
@@ -347,27 +347,27 @@ body::after {
 <!-- Add book modal -->
 <div class="book-modal-bg" id="bookModalBg">
   <div class="book-modal">
-    <h3>Add a book</h3>
+    <h3>Buch hinzufügen</h3>
     <div class="book-field">
-      <label>Title</label>
-      <input id="bookTitleInput" type="text" placeholder="Book title" autocomplete="off">
+      <label>Titel</label>
+      <input id="bookTitleInput" type="text" placeholder="Buchtitel" autocomplete="off">
     </div>
     <div class="book-field">
       <label>Status (optional)</label>
       <select id="bookStatusInput">
         <option value="">—</option>
-        <option value="reading">Reading</option>
-        <option value="read">Read</option>
-        <option value="dropped">Dropped</option>
+        <option value="reading">Lese ich</option>
+        <option value="read">Gelesen</option>
+        <option value="dropped">Abgebrochen</option>
       </select>
     </div>
     <div class="book-field">
-      <label>Spine color</label>
+      <label>Buchrücken-Farbe</label>
       <div class="book-color-row" id="bookColorRow"></div>
     </div>
     <div class="book-modal-actions">
-      <button class="book-modal-cancel" id="bookModalCancel" type="button">Cancel</button>
-      <button class="book-modal-save" id="bookModalSave" type="button">Save</button>
+      <button class="book-modal-cancel" id="bookModalCancel" type="button">Abbrechen</button>
+      <button class="book-modal-save" id="bookModalSave" type="button">Speichern</button>
     </div>
   </div>
 </div>
@@ -381,10 +381,10 @@ body::after {
       <span id="bookDetailStatus"></span>
     </div>
     <div class="book-detail-row">
-      <span class="book-detail-label">Color</span>
+      <span class="book-detail-label">Farbe</span>
       <span><span id="bookDetailSwatch" class="book-detail-swatch"></span><span id="bookDetailColorName"></span></span>
     </div>
-    <button class="book-detail-delete" id="bookDetailDelete" type="button">Remove from shelf</button>
+    <button class="book-detail-delete" id="bookDetailDelete" type="button">Aus dem Regal entfernen</button>
   </div>
 </div>
 
@@ -394,15 +394,15 @@ body::after {
   const KEY = 'books_v1';
 
   const COLORS = {
-    black:  { name: 'Black',  light: '#3a3a3c', base: '#1c1c1e', dark: '#0a0a0b' },
-    blue:   { name: 'Blue',   light: '#3b82f6', base: '#1d4ed8', dark: '#1e3a8a' },
-    red:    { name: 'Red',    light: '#ef4444', base: '#b91c1c', dark: '#7f1d1d' },
-    green:  { name: 'Green',  light: '#22c55e', base: '#15803d', dark: '#14532d' },
-    orange: { name: 'Orange', light: '#fb923c', base: '#c2410c', dark: '#7c2d12' },
-    purple: { name: 'Purple', light: '#a78bfa', base: '#6d28d9', dark: '#4c1d95' },
-    brown:  { name: 'Brown',  light: '#a16207', base: '#78350f', dark: '#451a03' }
+    black:  { name: 'Schwarz', light: '#3a3a3c', base: '#1c1c1e', dark: '#0a0a0b' },
+    blue:   { name: 'Blau',    light: '#3b82f6', base: '#1d4ed8', dark: '#1e3a8a' },
+    red:    { name: 'Rot',     light: '#ef4444', base: '#b91c1c', dark: '#7f1d1d' },
+    green:  { name: 'Grün',    light: '#22c55e', base: '#15803d', dark: '#14532d' },
+    orange: { name: 'Orange',  light: '#fb923c', base: '#c2410c', dark: '#7c2d12' },
+    purple: { name: 'Lila',    light: '#a78bfa', base: '#6d28d9', dark: '#4c1d95' },
+    brown:  { name: 'Braun',   light: '#a16207', base: '#78350f', dark: '#451a03' }
   };
-  const STATUS_LABEL = { reading: 'Reading', read: 'Read', dropped: 'Dropped' };
+  const STATUS_LABEL = { reading: 'Lese ich', read: 'Gelesen', dropped: 'Abgebrochen' };
 
   function loadBooks() {
     let list = [];

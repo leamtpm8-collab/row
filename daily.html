@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,7 +7,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Daily Overview</title>
+<title>Tagesausblick</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="sync.js" defer></script>
 <script src="topbar.js" defer></script>
@@ -181,72 +181,72 @@ body::after {
 <body>
 <div class="page">
 
-  <h1 class="dash-title">Daily Overview</h1>
+  <h1 class="dash-title">Tagesausblick</h1>
 
   <div class="daily-grid">
 
     <!-- Weather card -->
     <div class="daily-card">
-      <div class="daily-card-title">🌤️ Weather</div>
+      <div class="daily-card-title">🌤️ Wetter</div>
       <div class="wx-loc-row">
-        <span class="wx-loc-name" id="wxLocName">Locating…</span>
-        <button class="wx-loc-btn" id="wxLocEditBtn" type="button">Change</button>
+        <span class="wx-loc-name" id="wxLocName">Suche Standort…</span>
+        <button class="wx-loc-btn" id="wxLocEditBtn" type="button">Ändern</button>
       </div>
       <div class="wx-loc-edit" id="wxLocEdit">
-        <input id="wxLocInput" type="text" placeholder="e.g. Nottensdorf, Niedersachsen">
-        <button id="wxLocGoBtn" type="button">Go</button>
-        <button id="wxLocGeoBtn" type="button" title="Use my location">📍</button>
+        <input id="wxLocInput" type="text" placeholder="z. B. Nottensdorf, Niedersachsen">
+        <button id="wxLocGoBtn" type="button">Los</button>
+        <button id="wxLocGeoBtn" type="button" title="Meinen Standort verwenden">📍</button>
       </div>
       <div id="wxBody">
-        <div class="wx-status">Loading weather…</div>
+        <div class="wx-status">Wetter wird geladen…</div>
       </div>
     </div>
 
     <!-- Fitness card -->
     <div class="daily-card">
-      <div class="daily-card-title">💪 Fitness Today</div>
+      <div class="daily-card-title">💪 Fitness heute</div>
       <div id="fitBody">
-        <div class="wx-status">Loading…</div>
+        <div class="wx-status">Wird geladen…</div>
       </div>
     </div>
 
     <!-- Day analysis card -->
     <div class="daily-card">
-      <div class="daily-card-title">📅 Day Analysis</div>
+      <div class="daily-card-title">📅 Tagesanalyse</div>
       <div class="an-block">
-        <div class="an-block-h">Yesterday</div>
+        <div class="an-block-h">Gestern</div>
         <div class="an-block-p" id="anYesterday">—</div>
       </div>
       <div class="an-block">
-        <div class="an-block-h">Today's readiness</div>
+        <div class="an-block-h">Bereitschaft heute</div>
         <div class="an-block-p" id="anToday">—</div>
       </div>
     </div>
 
     <!-- Recommendation card -->
     <div class="daily-card">
-      <div class="daily-card-title">🏋️ Training Recommendation</div>
+      <div class="daily-card-title">🏋️ Trainingsempfehlung</div>
       <div class="rec-badge-row">
         <span class="rec-icon" id="recIcon">—</span>
-        <span class="rec-headline" id="recHeadline">Connect WHOOP for a recommendation</span>
+        <span class="rec-headline" id="recHeadline">WHOOP verbinden für eine Empfehlung</span>
       </div>
       <div class="rec-explain" id="recExplain"></div>
     </div>
 
     <!-- Smart suggestions card -->
     <div class="daily-card" style="grid-column: 1 / -1;">
-      <div class="daily-card-title">⏰ Smart Suggestions</div>
+      <div class="daily-card-title">⏰ Intelligente Vorschläge</div>
       <div class="sg-row">
         <span class="sg-icon">🏋️</span>
-        <div><div class="sg-label">Best training time</div><div class="sg-val" id="sgTrain">—</div></div>
+        <div><div class="sg-label">Beste Trainingszeit</div><div class="sg-val" id="sgTrain">—</div></div>
       </div>
       <div class="sg-row">
         <span class="sg-icon">🎯</span>
-        <div><div class="sg-label">Best focus time</div><div class="sg-val" id="sgFocus">—</div></div>
+        <div><div class="sg-label">Beste Fokuszeit</div><div class="sg-val" id="sgFocus">—</div></div>
       </div>
       <div class="sg-row">
         <span class="sg-icon">🌙</span>
-        <div><div class="sg-label">Wind down</div><div class="sg-val" id="sgRelax">—</div></div>
+        <div><div class="sg-label">Entspannen</div><div class="sg-val" id="sgRelax">—</div></div>
       </div>
     </div>
 
@@ -264,15 +264,15 @@ body::after {
   const LOC_KEY = 'daily_location_v1';
   const FALLBACK_LOCATION = { name: 'Nottensdorf, Niedersachsen', lat: 53.5667, lon: 9.6833 };
   const WEATHER_CODES = {
-    0: ['☀️', 'Clear sky'], 1: ['🌤️', 'Mostly clear'], 2: ['⛅', 'Partly cloudy'], 3: ['☁️', 'Overcast'],
-    45: ['🌫️', 'Fog'], 48: ['🌫️', 'Fog'],
-    51: ['🌦️', 'Light drizzle'], 53: ['🌦️', 'Drizzle'], 55: ['🌦️', 'Heavy drizzle'],
-    61: ['🌧️', 'Light rain'], 63: ['🌧️', 'Rain'], 65: ['🌧️', 'Heavy rain'],
-    71: ['🌨️', 'Light snow'], 73: ['🌨️', 'Snow'], 75: ['❄️', 'Heavy snow'],
-    80: ['🌦️', 'Rain showers'], 81: ['🌧️', 'Rain showers'], 82: ['⛈️', 'Violent showers'],
-    95: ['⛈️', 'Thunderstorm'], 96: ['⛈️', 'Thunderstorm w/ hail'], 99: ['⛈️', 'Thunderstorm w/ hail']
+    0: ['☀️', 'Klarer Himmel'], 1: ['🌤️', 'Meist klar'], 2: ['⛅', 'Teilweise bewölkt'], 3: ['☁️', 'Bedeckt'],
+    45: ['🌫️', 'Nebel'], 48: ['🌫️', 'Nebel'],
+    51: ['🌦️', 'Leichter Nieselregen'], 53: ['🌦️', 'Nieselregen'], 55: ['🌦️', 'Starker Nieselregen'],
+    61: ['🌧️', 'Leichter Regen'], 63: ['🌧️', 'Regen'], 65: ['🌧️', 'Starker Regen'],
+    71: ['🌨️', 'Leichter Schnee'], 73: ['🌨️', 'Schnee'], 75: ['❄️', 'Starker Schnee'],
+    80: ['🌦️', 'Regenschauer'], 81: ['🌧️', 'Regenschauer'], 82: ['⛈️', 'Heftige Schauer'],
+    95: ['⛈️', 'Gewitter'], 96: ['⛈️', 'Gewitter mit Hagel'], 99: ['⛈️', 'Gewitter mit Hagel']
   };
-  function weatherInfo(code) { return WEATHER_CODES[code] || ['🌡️', 'Unknown']; }
+  function weatherInfo(code) { return WEATHER_CODES[code] || ['🌡️', 'Unbekannt']; }
 
   function loadLocation() {
     try { const v = JSON.parse(localStorage.getItem(LOC_KEY)); if (v && v.lat != null) return v; } catch (e) {}
@@ -296,12 +296,12 @@ body::after {
   async function geocodeAndSet() {
     const q = wxLocInput.value.trim();
     if (!q) return;
-    wxLocName.textContent = 'Searching…';
+    wxLocName.textContent = 'Suche…';
     try {
       const res = await fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&name=' + encodeURIComponent(q));
       const data = await res.json();
       const hit = data && data.results && data.results[0];
-      if (!hit) { wxLocName.textContent = 'Not found — try again'; return; }
+      if (!hit) { wxLocName.textContent = 'Nicht gefunden — nochmal versuchen'; return; }
       const loc = {
         name: hit.name + (hit.admin1 ? ', ' + hit.admin1 : ''),
         lat: hit.latitude, lon: hit.longitude, mode: 'manual'
@@ -310,22 +310,22 @@ body::after {
       wxLocEdit.classList.remove('show');
       loadWeather(loc);
     } catch (e) {
-      wxLocName.textContent = 'Search failed — try again';
+      wxLocName.textContent = 'Suche fehlgeschlagen — nochmal versuchen';
     }
   }
 
   async function reverseGeocode(lat, lon) {
     try {
-      const res = await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=en');
+      const res = await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=de');
       const data = await res.json();
       const city = data.city || data.locality || data.principalSubdivision;
-      return city ? (city + (data.principalSubdivision && data.principalSubdivision !== city ? ', ' + data.principalSubdivision : '')) : 'Current location';
-    } catch (e) { return 'Current location'; }
+      return city ? (city + (data.principalSubdivision && data.principalSubdivision !== city ? ', ' + data.principalSubdivision : '')) : 'Aktueller Standort';
+    } catch (e) { return 'Aktueller Standort'; }
   }
 
   function detectLocation(forcePrompt) {
     if (!navigator.geolocation) { useFallback(); return; }
-    wxLocName.textContent = 'Locating…';
+    wxLocName.textContent = 'Suche Standort…';
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const lat = pos.coords.latitude, lon = pos.coords.longitude;
@@ -356,7 +356,7 @@ body::after {
 
   async function loadWeather(loc) {
     wxLocName.textContent = loc.name;
-    wxBody.innerHTML = '<div class="wx-status">Loading weather…</div>';
+    wxBody.innerHTML = '<div class="wx-status">Wetter wird geladen…</div>';
     try {
       const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + loc.lat + '&longitude=' + loc.lon +
         '&current=temperature_2m,weather_code&hourly=temperature_2m,precipitation_probability,uv_index,weather_code&timezone=auto&forecast_days=1';
@@ -386,16 +386,16 @@ body::after {
         '<div class="wx-hero">' +
           '<div class="wx-hero-emoji">' + curEmoji + '</div>' +
           '<div><div class="wx-hero-temp">' + Math.round(cur.temperature_2m) + '°C</div><div class="wx-hero-desc">' + curDesc + '</div></div>' +
-          '<div class="wx-uv"><div class="wx-uv-label">UV Index</div><div class="wx-uv-val">' + maxUv.toFixed(1) + '</div></div>' +
+          '<div class="wx-uv"><div class="wx-uv-label">UV-Index</div><div class="wx-uv-val">' + maxUv.toFixed(1) + '</div></div>' +
         '</div>' +
         '<div class="wx-forecast">' +
-          fcCell('Morning', morningIdx) + fcCell('Noon', noonIdx) + fcCell('Evening', eveningIdx) +
+          fcCell('Morgens', morningIdx) + fcCell('Mittags', noonIdx) + fcCell('Abends', eveningIdx) +
         '</div>';
 
       window._dailyWeatherMaxUv = maxUv;
       window._dailyWeatherRainNoon = hourly.precipitation_probability[noonIdx];
     } catch (e) {
-      wxBody.innerHTML = '<div class="wx-status">Couldn\'t load weather — check your connection.</div>';
+      wxBody.innerHTML = '<div class="wx-status">Wetter konnte nicht geladen werden — Verbindung prüfen.</div>';
     }
   }
 
@@ -436,7 +436,7 @@ body::after {
     return r.json();
   }
   function fmtMins(ms) { const m = Math.round(ms / 60000); const h = Math.floor(m / 60); return h + 'h ' + String(m % 60).padStart(2, '0') + 'm'; }
-  function zoneLabel(pct) { if (pct == null) return '—'; if (pct >= 67) return 'High'; if (pct >= 34) return 'Medium'; return 'Low'; }
+  function zoneLabel(pct) { if (pct == null) return '—'; if (pct >= 67) return 'Hoch'; if (pct >= 34) return 'Mittel'; return 'Niedrig'; }
   function zoneColor(pct) { if (pct >= 67) return 'var(--success)'; if (pct >= 34) return 'var(--warning)'; return 'var(--danger)'; }
 
   function yesterdayKey() {
@@ -457,9 +457,9 @@ body::after {
   function renderStepsCell() {
     const steps = loadSteps();
     return '<div class="fit-cell">' +
-      '<div class="fit-cell-label">Steps</div>' +
+      '<div class="fit-cell-label">Schritte</div>' +
       '<input class="fit-steps-edit" id="fitStepsInput" type="number" min="0" placeholder="—" value="' + (steps != null ? steps : '') + '">' +
-      '<div class="fit-cell-sub">yesterday</div>' +
+      '<div class="fit-cell-sub">gestern</div>' +
       '</div>';
   }
 
@@ -469,7 +469,7 @@ body::after {
     if (!tokens || !tokens.access) {
       fitBody.innerHTML =
         '<div class="fit-grid">' + renderStepsCell() + '</div>' +
-        '<div class="fit-connect-note">Connect WHOOP on the <a href="health.html">Health page</a> for live sleep, recovery, HRV and RHR.</div>';
+        '<div class="fit-connect-note">WHOOP auf der <a href="health.html">Gesundheit-Seite</a> verbinden für Live-Schlaf, -Erholung, -HRV und -Ruhepuls.</div>';
       wireStepsInput();
       renderRestOfPage(null);
       return;
@@ -495,13 +495,13 @@ body::after {
 
       fitBody.innerHTML =
         '<div class="fit-grid">' +
-          '<div class="fit-cell"><div class="fit-cell-label">Sleep</div><div class="fit-cell-val">' + sleepDur + '</div><div class="fit-cell-sub">' + sleepSub + '</div></div>' +
-          '<div class="fit-cell"><div class="fit-cell-label">Recovery</div><div class="fit-cell-val">' + (recoveryScore != null ? Math.round(recoveryScore) + '%' : '—') + '</div><div class="fit-cell-sub">' + zoneLabel(recoveryScore) + '</div></div>' +
+          '<div class="fit-cell"><div class="fit-cell-label">Schlaf</div><div class="fit-cell-val">' + sleepDur + '</div><div class="fit-cell-sub">' + sleepSub + '</div></div>' +
+          '<div class="fit-cell"><div class="fit-cell-label">Erholung</div><div class="fit-cell-val">' + (recoveryScore != null ? Math.round(recoveryScore) + '%' : '—') + '</div><div class="fit-cell-sub">' + zoneLabel(recoveryScore) + '</div></div>' +
           renderStepsCell() +
         '</div>' +
         '<div class="fit-score-row">' +
           '<div><div class="fit-score-num" id="fitScoreNum">—</div><div class="fit-score-label" id="fitScoreLabel"></div></div>' +
-          '<div class="fit-score-note">Energy Score</div>' +
+          '<div class="fit-score-note">Energie-Score</div>' +
         '</div>';
 
       wireStepsInput();
@@ -523,7 +523,7 @@ body::after {
 
       renderRestOfPage({ score, recoveryScore, sleepDur, sleepPerf: perf, hrv: r ? r.hrv_rmssd_milli : null, rhr: r ? r.resting_heart_rate : null });
     } catch (e) {
-      fitBody.innerHTML = '<div class="wx-status">Couldn\'t load WHOOP data.</div>';
+      fitBody.innerHTML = '<div class="wx-status">WHOOP-Daten konnten nicht geladen werden.</div>';
       renderRestOfPage(null);
     }
   }
@@ -543,17 +543,17 @@ body::after {
   // ============================================================
   function renderRestOfPage(fit) {
     const steps = loadSteps();
-    const stepsText = steps != null ? steps.toLocaleString() + ' steps' : 'no step count logged';
+    const stepsText = steps != null ? steps.toLocaleString('de-DE') + ' Schritte' : 'kein Schrittzähler erfasst';
 
     // --- Day analysis ---
     document.getElementById('anYesterday').textContent =
-      fit ? stepsText + ' logged, ' + (fit.sleepDur !== '—' ? fit.sleepDur + ' of sleep that night.' : 'sleep not available.')
+      fit ? stepsText + ' erfasst, ' + (fit.sleepDur !== '—' ? fit.sleepDur + ' Schlaf in dieser Nacht.' : 'Schlaf nicht verfügbar.')
           : stepsText + '.';
     document.getElementById('anToday').textContent = fit && fit.score != null
-      ? (fit.score >= 67 ? 'Well recovered — your body is ready for a full day.' :
-         fit.score >= 34 ? 'Moderately ready — pace yourself and listen to your body.' :
-         'Running low — today is a good day to go easy.')
-      : 'Connect WHOOP for a readiness read on today.';
+      ? (fit.score >= 67 ? 'Gut erholt — dein Körper ist bereit für einen vollen Tag.' :
+         fit.score >= 34 ? 'Mäßig bereit — geh es ruhig an und hör auf deinen Körper.' :
+         'Niedrig — heute ist ein guter Tag, um es locker anzugehen.')
+      : 'WHOOP verbinden für eine Bereitschafts-Einschätzung für heute.';
 
     // --- Recommendation ---
     const recIcon = document.getElementById('recIcon');
@@ -561,36 +561,36 @@ body::after {
     const recExplain = document.getElementById('recExplain');
     if (fit && fit.score != null) {
       const bits = [];
-      if (fit.recoveryScore != null) bits.push('recovery is ' + zoneLabel(fit.recoveryScore).toLowerCase() + ' (' + Math.round(fit.recoveryScore) + '%)');
-      if (fit.sleepPerf != null) bits.push('sleep performance was ' + Math.round(fit.sleepPerf) + '%');
-      const reason = bits.length ? bits.join(' and ') + '.' : '';
+      if (fit.recoveryScore != null) bits.push('Erholung ist ' + zoneLabel(fit.recoveryScore).toLowerCase() + ' (' + Math.round(fit.recoveryScore) + '%)');
+      if (fit.sleepPerf != null) bits.push('Schlafleistung war ' + Math.round(fit.sleepPerf) + '%');
+      const reason = bits.length ? bits.join(' und ') + '.' : '';
       if (fit.score >= 67) {
-        recIcon.textContent = '✅'; recHeadline.textContent = 'Training recommended';
-        recExplain.textContent = reason ? 'Good day to push — ' + reason : 'You\'re primed for a solid session.';
+        recIcon.textContent = '✅'; recHeadline.textContent = 'Training empfohlen';
+        recExplain.textContent = reason ? 'Guter Tag, um Gas zu geben — ' + reason : 'Du bist bereit für eine solide Einheit.';
       } else if (fit.score >= 34) {
-        recIcon.textContent = '⚠️'; recHeadline.textContent = 'Light training';
-        recExplain.textContent = reason ? 'Keep it moderate — ' + reason : 'Train, but don\'t chase a new max today.';
+        recIcon.textContent = '⚠️'; recHeadline.textContent = 'Leichtes Training';
+        recExplain.textContent = reason ? 'Halte es moderat — ' + reason : 'Trainiere, aber jage heute keinem neuen Maximum nach.';
       } else {
-        recIcon.textContent = '❌'; recHeadline.textContent = 'Rest recommended';
-        recExplain.textContent = reason ? 'Prioritize recovery — ' + reason : 'Your body could use a lighter day.';
+        recIcon.textContent = '❌'; recHeadline.textContent = 'Pause empfohlen';
+        recExplain.textContent = reason ? 'Priorisiere Erholung — ' + reason : 'Dein Körper könnte einen leichteren Tag gebrauchen.';
       }
     } else {
       recIcon.textContent = '🔗';
-      recHeadline.textContent = 'Connect WHOOP for a recommendation';
-      recExplain.textContent = 'Head to the Health page and tap Connect WHOOP to unlock this.';
+      recHeadline.textContent = 'WHOOP verbinden für eine Empfehlung';
+      recExplain.textContent = 'Gehe zur Gesundheit-Seite und tippe auf "WHOOP verbinden", um dies freizuschalten.';
     }
 
     // --- Smart suggestions ---
     const score = fit ? fit.score : null;
     document.getElementById('sgTrain').textContent = score == null
-      ? 'Depends on how you feel — no data connected yet.'
-      : score >= 67 ? 'Late morning to early afternoon — you\'re primed for it.'
-      : score >= 34 ? 'Late afternoon, keep it moderate.'
-      : 'Skip it or keep to a short walk today.';
+      ? 'Kommt darauf an, wie du dich fühlst — noch keine Daten verbunden.'
+      : score >= 67 ? 'Später Vormittag bis früher Nachmittag — du bist bereit dafür.'
+      : score >= 34 ? 'Später Nachmittag, moderat halten.'
+      : 'Heute auslassen oder bei einem kurzen Spaziergang bleiben.';
     document.getElementById('sgFocus').textContent = score != null && score < 34
-      ? 'Late morning (~10:30–12:00) — give yourself extra time to wake up.'
-      : '09:00–11:00 — typical peak alertness after breakfast.';
-    document.getElementById('sgRelax').textContent = 'After 20:00 — dim screens and ease into sleep mode.';
+      ? 'Später Vormittag (~10:30–12:00 Uhr) — gib dir extra Zeit zum Wachwerden.'
+      : '09:00–11:00 Uhr — typische Hochphase der Wachheit nach dem Frühstück.';
+    document.getElementById('sgRelax').textContent = 'Nach 20:00 Uhr — Bildschirme dimmen und in den Schlafmodus übergehen.';
   }
 
   renderFitness();
