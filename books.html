@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050506">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Books</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --text-primary: #FAFAFA;
+  --text-secondary: #B8B6B0;
+  --text-tertiary: #76746E;
+  --success: #6BE3A4;
+  --warning: #F2C063;
+  --danger: #FF6B6B;
+  --info: #60A5FA;
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: #050506;
+  color: var(--text-secondary);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  padding: max(28px, env(safe-area-inset-top)) 20px 60px;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(circle at 82% 14%, rgba(224, 118, 88, 0.16), transparent 45%),
+    radial-gradient(circle at 18% 90%, rgba(180, 180, 200, 0.06), transparent 50%);
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: -2;
+  animation: drift 36s ease-in-out infinite alternate;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.014) 1px, transparent 1px);
+  background-size: 3px 3px;
+  pointer-events: none;
+  z-index: -1;
+}
+@keyframes drift {
+  0%   { transform: translate3d(0,0,0); }
+  100% { transform: translate3d(-22px, 14px, 0); }
+}
+
+.page { max-width: 1100px; margin: 0 auto; }
+
+.books-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.dash-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  background: linear-gradient(180deg, #FFFFFF 0%, #C7C4BC 120%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+@media (max-width: 480px) { .dash-title { font-size: 22px; } }
+
+.book-add-btn {
+  flex-shrink: 0;
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(255,255,255,0.05);
+  color: var(--text-primary);
+  font-size: 22px; font-weight: 600; line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, transform 0.12s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.book-add-btn:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.20); }
+.book-add-btn:active { transform: scale(0.94); }
+
+/* ===== Filter row ===== */
+.book-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.book-filter-btn {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: var(--text-tertiary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.book-filter-btn:hover { color: var(--text-primary); }
+.book-filter-btn.active {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.22);
+  color: var(--text-primary);
+}
+
+/* ===== Horizontal carousel ===== */
+.book-row-wrap { position: relative; margin: 0 -20px; padding: 0 20px; }
+.book-row {
+  display: flex;
+  gap: 18px;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 30px 6px 40px;
+  scroll-snap-type: x proximity;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.book-row::-webkit-scrollbar { display: none; }
+
+.book-empty {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.book-card {
+  position: relative;
+  flex: 0 0 168px;
+  scroll-snap-align: center;
+  background: rgba(255,255,255,0.045);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 16px;
+  padding: 20px 16px 16px;
+  aspect-ratio: 3 / 4;
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s ease, opacity 0.28s ease, border-color 0.28s ease;
+}
+.book-row:hover .book-card { opacity: 0.55; transform: scale(0.95); }
+.book-card:hover {
+  opacity: 1 !important;
+  transform: scale(1.10) translateY(-8px) !important;
+  z-index: 5;
+  border-color: rgba(255,255,255,0.20);
+  box-shadow: 0 22px 55px rgba(0,0,0,0.6);
+}
+
+.book-card-icon { font-size: 30px; margin-bottom: 14px; }
+.book-card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.3;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+}
+.book-card-spacer { flex: 1; }
+.book-card-status {
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text-tertiary);
+}
+.book-card-status.status-read    { background: rgba(107,227,164,0.14); color: var(--success); }
+.book-card-status.status-reading { background: rgba(96,165,250,0.16);  color: var(--info); }
+.book-card-status.status-dropped { background: rgba(255,107,107,0.14); color: var(--danger); }
+
+.book-card-del {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.35);
+  color: var(--text-secondary);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.book-card:hover .book-card-del { opacity: 1; }
+.book-card-del:hover { background: rgba(255,107,107,0.85); color: #fff; }
+
+/* ===== Add-book modal ===== */
+.book-modal-bg {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.65);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.book-modal-bg.show { display: flex; }
+.book-modal {
+  width: 100%; max-width: 380px;
+  background: #111113;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px;
+  padding: 22px;
+}
+.book-modal h3 { margin: 0 0 16px; font-size: 17px; font-weight: 700; color: var(--text-primary); }
+.book-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.book-field label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+.book-field input, .book-field select {
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.28);
+  color: var(--text-primary);
+  font-family: inherit; font-size: 14px;
+  outline: none;
+}
+.book-field input:focus, .book-field select:focus { border-color: rgba(255,255,255,0.35); }
+.book-modal-actions { display: flex; gap: 8px; margin-top: 18px; }
+.book-modal-actions button {
+  flex: 1;
+  padding: 11px;
+  border-radius: 10px;
+  border: none;
+  font-family: inherit; font-size: 13px; font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.book-modal-cancel { background: rgba(255,255,255,0.06); color: var(--text-secondary); }
+.book-modal-cancel:hover { background: rgba(255,255,255,0.10); }
+.book-modal-save { background: linear-gradient(180deg, #FFFFFF 0%, #E8E5DD 100%); color: #0A0A0B; }
+
+@media (max-width: 480px) {
+  .book-card { flex-basis: 140px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="books-head">
+    <h1 class="dash-title">Books</h1>
+    <button id="bookAddBtn" class="book-add-btn" type="button" aria-label="Add book">+</button>
+  </div>
+
+  <div class="book-filters" id="bookFilters">
+    <button class="book-filter-btn active" data-filter="all">All</button>
+    <button class="book-filter-btn" data-filter="reading">Reading</button>
+    <button class="book-filter-btn" data-filter="read">Read</button>
+    <button class="book-filter-btn" data-filter="dropped">Dropped</button>
+  </div>
+
+  <div class="book-row-wrap">
+    <div class="book-row" id="bookRow"></div>
+  </div>
+
+</div>
+
+<!-- Add book modal -->
+<div class="book-modal-bg" id="bookModalBg">
+  <div class="book-modal">
+    <h3>Add a book</h3>
+    <div class="book-field">
+      <label>Title</label>
+      <input id="bookTitleInput" type="text" placeholder="Book title" autocomplete="off">
+    </div>
+    <div class="book-field">
+      <label>Status (optional)</label>
+      <select id="bookStatusInput">
+        <option value="">—</option>
+        <option value="reading">Reading</option>
+        <option value="read">Read</option>
+        <option value="dropped">Dropped</option>
+      </select>
+    </div>
+    <div class="book-modal-actions">
+      <button class="book-modal-cancel" id="bookModalCancel" type="button">Cancel</button>
+      <button class="book-modal-save" id="bookModalSave" type="button">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  const KEY = 'books_v1';
+
+  function loadBooks() {
+    try { const v = JSON.parse(localStorage.getItem(KEY)); return Array.isArray(v) ? v : []; }
+    catch (e) { return []; }
+  }
+  function saveBooks(list) {
+    try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {}
+  }
+
+  let books = loadBooks();
+  let activeFilter = 'all';
+
+  const rowEl = document.getElementById('bookRow');
+  const modalBg = document.getElementById('bookModalBg');
+  const titleInput = document.getElementById('bookTitleInput');
+  const statusInput = document.getElementById('bookStatusInput');
+  const filtersEl = document.getElementById('bookFilters');
+
+  const STATUS_LABEL = { reading: 'Reading', read: 'Read', dropped: 'Dropped' };
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  function render() {
+    const visible = activeFilter === 'all' ? books : books.filter((b) => b.status === activeFilter);
+    if (!visible.length) {
+      rowEl.innerHTML = '<div class="book-empty">' +
+        (books.length ? 'No books match this filter.' : 'No books yet — tap + to add your first one.') +
+        '</div>';
+      return;
+    }
+    rowEl.innerHTML = visible.map((b) => {
+      const statusHtml = b.status
+        ? '<span class="book-card-status status-' + b.status + '">' + STATUS_LABEL[b.status] + '</span>'
+        : '';
+      return '<div class="book-card" data-id="' + b.id + '">' +
+        '<button class="book-card-del" data-id="' + b.id + '" aria-label="Delete">×</button>' +
+        '<div class="book-card-icon">📖</div>' +
+        '<div class="book-card-title">' + escapeHtml(b.title) + '</div>' +
+        '<div class="book-card-spacer"></div>' +
+        statusHtml +
+        '</div>';
+    }).join('');
+  }
+
+  function openModal() {
+    titleInput.value = '';
+    statusInput.value = '';
+    modalBg.classList.add('show');
+    setTimeout(() => titleInput.focus(), 0);
+  }
+  function closeModal() { modalBg.classList.remove('show'); }
+
+  function addBook() {
+    const title = titleInput.value.trim();
+    if (!title) { titleInput.focus(); return; }
+    books.unshift({
+      id: 'b' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+      title: title,
+      status: statusInput.value || null
+    });
+    saveBooks(books);
+    closeModal();
+    render();
+  }
+
+  function deleteBook(id) {
+    books = books.filter((b) => b.id !== id);
+    saveBooks(books);
+    render();
+  }
+
+  document.getElementById('bookAddBtn').addEventListener('click', openModal);
+  document.getElementById('bookModalCancel').addEventListener('click', closeModal);
+  document.getElementById('bookModalSave').addEventListener('click', addBook);
+  modalBg.addEventListener('click', (e) => { if (e.target === modalBg) closeModal(); });
+  titleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addBook(); });
+
+  rowEl.addEventListener('click', (e) => {
+    const del = e.target.closest('.book-card-del');
+    if (del) { deleteBook(del.dataset.id); }
+  });
+
+  filtersEl.addEventListener('click', (e) => {
+    const btn = e.target.closest('.book-filter-btn');
+    if (!btn) return;
+    activeFilter = btn.dataset.filter;
+    filtersEl.querySelectorAll('.book-filter-btn').forEach((b) => b.classList.toggle('active', b === btn));
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
