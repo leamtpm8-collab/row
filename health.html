@@ -487,7 +487,7 @@ main {
     .whoop-disconnected-sub { font-size: 13px; color: var(--text-tertiary); max-width: 280px; line-height: 1.5; margin-bottom: 18px; }
     .whoop-connect-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 22px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.85); background: linear-gradient(180deg, #FFFFFF 0%, #E8E5DD 100%); color: #0A0A0B; font-family: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; transition: transform 0.12s, box-shadow 0.18s, background 0.18s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 6px 20px rgba(0,0,0,0.45); }
     .whoop-connect-btn:hover { background: linear-gradient(180deg, #FFFFFF 0%, #F2F0EA 100%); transform: translateY(-1px); }
-    .whoop-conn-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+    .whoop-conn-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
     .whoop-conn-actions { display:flex; align-items:center; gap:8px; }
     .whoop-refresh-btn { width:30px; height:30px; border-radius:50%; background:transparent; border:1px solid rgba(255,255,255,0.10); color:var(--text-tertiary); cursor:pointer; display:inline-flex; align-items:center; justify-content:center; transition:color 0.15s, border-color 0.15s, transform 0.4s; }
     .whoop-refresh-btn:hover { color:var(--text-primary); border-color:rgba(255,255,255,0.20); }
@@ -495,12 +495,64 @@ main {
     .whoop-disc-btn { background:transparent; border:1px solid rgba(255,255,255,0.10); color:var(--text-tertiary); padding:6px 12px; border-radius:999px; cursor:pointer; font-family:inherit; font-size:11px; letter-spacing:0.04em; }
     .whoop-disc-btn:hover { color:var(--text-secondary); border-color:rgba(255,255,255,0.20); }
     .whoop-err { background:rgba(255,107,107,0.08); border:1px solid rgba(255,107,107,0.28); color:#FF8A8A; padding:10px 12px; border-radius:10px; font-size:11.5px; font-family:var(--font-mono); margin-bottom:14px; }
-    .whoop-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; }
+
+    .whoop-calibrating { display:flex; align-items:center; gap:8px; padding:9px 14px; margin-bottom:16px; background:rgba(242,192,99,0.08); border:1px solid rgba(242,192,99,0.28); border-radius:10px; color:#F2C063; font-size:11.5px; font-weight:500; }
+    .whoop-cal-dot { width:6px; height:6px; border-radius:50%; background:#F2C063; box-shadow:0 0 8px rgba(242,192,99,0.55); flex-shrink:0; }
+
+    .whoop-ring-wrap { position:relative; width:180px; max-width:70%; margin:4px auto 20px; aspect-ratio:1; }
+    .whoop-ring { width:100%; height:100%; transform:rotate(-90deg); }
+    .whoop-ring-track { fill:none; stroke:rgba(255,255,255,0.06); stroke-width:10; }
+    .whoop-ring-fill { fill:none; stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset 0.8s cubic-bezier(0.22,1,0.36,1), stroke 0.4s; }
+    .whoop-ring-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; pointer-events:none; }
+    .whoop-ring-num { font-size:44px; font-weight:700; letter-spacing:-0.03em; color:var(--text-primary); line-height:1; font-variant-numeric:tabular-nums; }
+    .whoop-ring-unit { font-size:9.5px; font-weight:700; letter-spacing:0.20em; text-transform:uppercase; color:var(--text-tertiary); margin-top:8px; }
+    .whoop-ring-label { font-size:12px; font-weight:600; margin-top:5px; }
+
+    .whoop-stages { margin-bottom:20px; padding-top:18px; border-top:1px solid rgba(255,255,255,0.06); }
+    .whoop-stages-head { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:9px; }
+    .whoop-stages-eyebrow { font-size:10px; font-weight:700; letter-spacing:0.16em; text-transform:uppercase; color:var(--text-tertiary); }
+    .whoop-stages-meta { font-size:11px; color:var(--text-tertiary); font-variant-numeric:tabular-nums; font-family:var(--font-mono); }
+    .whoop-stages-bar { display:flex; height:9px; background:rgba(255,255,255,0.04); border-radius:999px; overflow:hidden; margin-bottom:10px; }
+    .whoop-stage { height:100%; transition:width 0.6s cubic-bezier(0.22,1,0.36,1); }
+    .whoop-stage-rem   { background:#FFFFFF; }
+    .whoop-stage-deep  { background:#B8B6B0; }
+    .whoop-stage-light { background:#76746E; }
+    .whoop-stage-awake { background:#3A3833; }
+    .whoop-stages-legend { display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; }
+    .whoop-stages-leg { display:flex; align-items:center; gap:5px; font-size:10.5px; color:var(--text-secondary); font-weight:500; }
+    .whoop-stages-dot { width:7px; height:7px; border-radius:2px; flex-shrink:0; }
+    .whoop-stages-dot.d-rem   { background:#FFFFFF; }
+    .whoop-stages-dot.d-deep  { background:#B8B6B0; }
+    .whoop-stages-dot.d-light { background:#76746E; }
+    .whoop-stages-dot.d-awake { background:#3A3833; }
+    .whoop-stages-num { margin-left:auto; color:var(--text-primary); font-weight:700; font-variant-numeric:tabular-nums; font-family:var(--font-mono); font-size:10.5px; }
+    @media (max-width: 480px) { .whoop-stages-legend { grid-template-columns:repeat(2, 1fr); } }
+
+    .whoop-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:16px; }
     @media (max-width: 480px) { .whoop-grid { grid-template-columns:repeat(2, 1fr); } }
-    .whoop-cell { background:rgba(255,255,255,0.025); border:1px solid transparent; border-radius:12px; padding:14px 12px; text-align:center; }
+    .whoop-cell { position:relative; background:rgba(255,255,255,0.025); border:1px solid transparent; border-radius:12px; padding:14px 12px; text-align:center; }
     .whoop-cell-label { font-size:10px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:0.14em; font-weight:700; margin-bottom:6px; }
-    .whoop-cell-val { font-size:22px; font-weight:700; color:var(--text-primary); font-variant-numeric:tabular-nums; letter-spacing:-0.03em; line-height:1; }
+    .whoop-cell-val { font-size:20px; font-weight:700; color:var(--text-primary); font-variant-numeric:tabular-nums; letter-spacing:-0.02em; line-height:1; }
     .whoop-cell-sub { font-size:10px; color:var(--text-tertiary); margin-top:5px; font-variant-numeric:tabular-nums; font-family:var(--font-mono); }
+
+    .whoop-zone { position:absolute; top:8px; right:8px; width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.12); }
+    .whoop-zone.z-good { background:#6BE3A4; box-shadow:0 0 6px rgba(107,227,164,0.55); }
+    .whoop-zone.z-warn { background:#F2C063; box-shadow:0 0 6px rgba(242,192,99,0.55); }
+    .whoop-zone.z-bad  { background:#FF6B6B; box-shadow:0 0 6px rgba(255,107,107,0.55); }
+
+    .whoop-legend { display:flex; justify-content:center; flex-wrap:wrap; gap:12px; margin-bottom:16px; padding:9px 12px; background:rgba(255,255,255,0.02); border-radius:999px; }
+    .whoop-legend-item { display:inline-flex; align-items:center; gap:6px; font-size:10px; font-weight:600; color:var(--text-tertiary); }
+    .whoop-legend-item .whoop-zone { position:static; display:inline-block; }
+
+    .whoop-verdict { padding:15px 17px; background:rgba(255,255,255,0.025); border-left:2px solid rgba(255,255,255,0.35); border-radius:0 12px 12px 0; }
+    .whoop-verdict-head { display:flex; align-items:center; gap:10px; margin-bottom:9px; }
+    .whoop-verdict-eyebrow { font-size:10px; color:var(--text-tertiary); text-transform:uppercase; letter-spacing:0.16em; font-weight:700; }
+    .whoop-verdict-badge { font-size:9px; font-weight:800; padding:3px 9px; border-radius:999px; letter-spacing:0.12em; text-transform:uppercase; }
+    .whoop-verdict-badge.z-good { background:rgba(107,227,164,0.16); color:#6BE3A4; }
+    .whoop-verdict-badge.z-warn { background:rgba(242,192,99,0.16); color:#F2C063; }
+    .whoop-verdict-badge.z-bad  { background:rgba(255,107,107,0.16); color:#FF8A8A; }
+    .whoop-verdict-headline { font-size:14px; font-weight:600; color:var(--text-primary); line-height:1.4; margin-bottom:6px; }
+    .whoop-verdict-reasons { font-size:12px; color:var(--text-secondary); line-height:1.6; }
   </style>
   <div class="whoop-section">
     <div class="section-title">Whoop</div>
@@ -520,13 +572,68 @@ main {
           </div>
         </div>
         <div id="whoopErr" class="whoop-err" style="display:none"></div>
+        <div id="whoopCalibrating" class="whoop-calibrating" style="display:none">
+          <span class="whoop-cal-dot"></span>
+          WHOOP is still calibrating — early scores may shift over the next few weeks
+        </div>
+
+        <div class="whoop-ring-wrap">
+          <svg class="whoop-ring" viewBox="0 0 180 180" aria-hidden="true">
+            <circle class="whoop-ring-track" cx="90" cy="90" r="80" />
+            <circle class="whoop-ring-fill" cx="90" cy="90" r="80" id="whoopRecoveryRingFill" />
+          </svg>
+          <div class="whoop-ring-center">
+            <div id="whoopRecovery" class="whoop-ring-num">—</div>
+            <div class="whoop-ring-unit">recovery</div>
+            <div id="whoopRecoverySub" class="whoop-ring-label">—</div>
+          </div>
+        </div>
+
+        <div id="whoopStages" class="whoop-stages" style="display:none">
+          <div class="whoop-stages-head">
+            <span class="whoop-stages-eyebrow">Sleep stages</span>
+            <span class="whoop-stages-meta" id="whoopStagesMeta"></span>
+          </div>
+          <div class="whoop-stages-bar">
+            <div class="whoop-stage whoop-stage-rem"   id="whoopStageRem"   style="width:0%"></div>
+            <div class="whoop-stage whoop-stage-deep"  id="whoopStageDeep"  style="width:0%"></div>
+            <div class="whoop-stage whoop-stage-light" id="whoopStageLight" style="width:0%"></div>
+            <div class="whoop-stage whoop-stage-awake" id="whoopStageAwake" style="width:0%"></div>
+          </div>
+          <div class="whoop-stages-legend">
+            <div class="whoop-stages-leg"><span class="whoop-stages-dot d-rem"></span>REM <span id="whoopStageRemTxt" class="whoop-stages-num">—</span></div>
+            <div class="whoop-stages-leg"><span class="whoop-stages-dot d-deep"></span>Deep <span id="whoopStageDeepTxt" class="whoop-stages-num">—</span></div>
+            <div class="whoop-stages-leg"><span class="whoop-stages-dot d-light"></span>Light <span id="whoopStageLightTxt" class="whoop-stages-num">—</span></div>
+            <div class="whoop-stages-leg"><span class="whoop-stages-dot d-awake"></span>Awake <span id="whoopStageAwakeTxt" class="whoop-stages-num">—</span></div>
+          </div>
+          <div style="text-align:right;margin-top:6px"><span id="whoopSleepSub" class="whoop-cell-sub"></span></div>
+        </div>
+
         <div class="whoop-grid">
-          <div class="whoop-cell"><div class="whoop-cell-label">Recovery</div><div id="whoopRecovery" class="whoop-cell-val">—</div><div id="whoopRecoverySub" class="whoop-cell-sub">—</div></div>
-          <div class="whoop-cell"><div class="whoop-cell-label">Sleep</div><div id="whoopSleep" class="whoop-cell-val">—</div><div id="whoopSleepSub" class="whoop-cell-sub">—</div></div>
-          <div class="whoop-cell"><div class="whoop-cell-label">Strain</div><div id="whoopStrain" class="whoop-cell-val">—</div><div class="whoop-cell-sub">today</div></div>
-          <div class="whoop-cell"><div class="whoop-cell-label">HRV</div><div id="whoopHrv" class="whoop-cell-val">—</div><div class="whoop-cell-sub">ms</div></div>
-          <div class="whoop-cell"><div class="whoop-cell-label">RHR</div><div id="whoopRhr" class="whoop-cell-val">—</div><div class="whoop-cell-sub">bpm</div></div>
-          <div class="whoop-cell"><div class="whoop-cell-label">Resp</div><div id="whoopResp" class="whoop-cell-val">—</div><div class="whoop-cell-sub">rpm</div></div>
+          <div class="whoop-cell"><span class="whoop-zone" id="whoopZoneStrain"></span><div class="whoop-cell-label">Strain</div><div id="whoopStrain" class="whoop-cell-val">—</div><div class="whoop-cell-sub">today</div></div>
+          <div class="whoop-cell"><span class="whoop-zone" id="whoopZoneHrv"></span><div class="whoop-cell-label">HRV</div><div id="whoopHrv" class="whoop-cell-val">—</div><div class="whoop-cell-sub">ms</div></div>
+          <div class="whoop-cell"><span class="whoop-zone" id="whoopZoneRhr"></span><div class="whoop-cell-label">RHR</div><div id="whoopRhr" class="whoop-cell-val">—</div><div class="whoop-cell-sub">bpm</div></div>
+        </div>
+
+        <div id="whoopBio" class="whoop-grid" style="display:none">
+          <div class="whoop-cell"><span class="whoop-zone" id="whoopZoneSkin"></span><div class="whoop-cell-label">Skin temp</div><div id="whoopSkinTemp" class="whoop-cell-val">—</div></div>
+          <div class="whoop-cell"><span class="whoop-zone" id="whoopZoneSpo2"></span><div class="whoop-cell-label">SpO2</div><div id="whoopSpo2" class="whoop-cell-val">—</div></div>
+          <div class="whoop-cell"><span class="whoop-zone" id="whoopZoneResp"></span><div class="whoop-cell-label">Resp</div><div id="whoopResp" class="whoop-cell-val">—</div><div class="whoop-cell-sub">rpm</div></div>
+        </div>
+
+        <div class="whoop-legend">
+          <span class="whoop-legend-item"><span class="whoop-zone z-good"></span>Good</span>
+          <span class="whoop-legend-item"><span class="whoop-zone z-warn"></span>Watch</span>
+          <span class="whoop-legend-item"><span class="whoop-zone z-bad"></span>Low</span>
+        </div>
+
+        <div id="whoopVerdict" class="whoop-verdict" style="display:none">
+          <div class="whoop-verdict-head">
+            <span class="whoop-verdict-eyebrow">Today's call</span>
+            <span id="whoopVerdictBadge" class="whoop-verdict-badge"></span>
+          </div>
+          <div id="whoopVerdictHeadline" class="whoop-verdict-headline"></div>
+          <div id="whoopVerdictReasons" class="whoop-verdict-reasons"></div>
         </div>
       </div>
     </div>
@@ -537,18 +644,22 @@ main {
     const CLIENT_ID = 'b00aa34c-2182-49c3-bc83-3e4e261dee07';
     const REDIRECT  = window.location.origin + '/api/whoop-callback';
     const SCOPES    = 'read:recovery read:sleep read:workout read:cycles read:profile read:body_measurement offline';
+
     function loadTokens() { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } }
     function saveTokens(t) { try { localStorage.setItem(KEY, JSON.stringify(t)); } catch {} }
     function clearTokens() { try { localStorage.removeItem(KEY); } catch {} }
+
     if (location.hash && location.hash.indexOf('whoop_access') !== -1) {
       const h = new URLSearchParams(location.hash.slice(1));
       const access = h.get('whoop_access'), refresh = h.get('whoop_refresh');
-      const expires = Number(h.get('whoop_expires')) || (Date.now() + 3500*1000);
+      const expires = Number(h.get('whoop_expires')) || (Date.now() + 3500 * 1000);
       if (access) { saveTokens({ access, refresh, expires }); history.replaceState(null, '', location.pathname + location.search); }
     }
+
     const dEl = document.getElementById('whoopDisconnected');
     const cEl = document.getElementById('whoopConnected');
     const errEl = document.getElementById('whoopErr');
+
     document.getElementById('whoopConnectBtn').addEventListener('click', () => {
       const url = 'https://api.prod.whoop.com/oauth/oauth2/auth'
         + '?client_id=' + encodeURIComponent(CLIENT_ID)
@@ -563,57 +674,130 @@ main {
       e.currentTarget.classList.add('is-spinning');
       try { await loadData(); } finally { setTimeout(() => e.currentTarget && e.currentTarget.classList.remove('is-spinning'), 600); }
     });
+
     function showErr(m) { errEl.textContent = m || ''; errEl.style.display = m ? 'block' : 'none'; }
+
     async function refreshToken(t) {
       if (!t.refresh) return null;
       try {
-        const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ refresh_token: t.refresh }) });
+        const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: t.refresh }) });
         const j = await r.json();
-        if (j.access_token) { const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in||3500)*1000 }; saveTokens(next); return next; }
+        if (j.access_token) { const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in || 3500) * 1000 }; saveTokens(next); return next; }
       } catch {} return null;
     }
     async function whoopFetch(path, t) {
       const [p, qs] = path.split('?');
       const params = new URLSearchParams(qs || ''); params.set('path', p);
-      const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { 'Authorization': 'Bearer ' + t.access, 'Accept':'application/json' } });
+      const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { 'Authorization': 'Bearer ' + t.access, 'Accept': 'application/json' } });
       if (r.status === 401) { const n = await refreshToken(t); if (n) return whoopFetch(path, n); throw new Error('unauthorized'); }
       if (!r.ok) throw new Error('WHOOP ' + r.status + ': ' + (await r.text()));
       return await r.json();
     }
-    function fmtMins(ms) { const m = Math.round(ms/60000); const h = Math.floor(m/60); return h + 'h ' + String(m%60).padStart(2,'0') + 'm'; }
+
+    function fmtMins(ms) { const m = Math.round(ms / 60000); const h = Math.floor(m / 60); return h + 'h ' + String(m % 60).padStart(2, '0') + 'm'; }
+    function zoneClass(pct) { if (pct == null) return ''; if (pct >= 67) return 'z-good'; if (pct >= 34) return 'z-warn'; return 'z-bad'; }
+    function zoneColor(pct) { if (pct >= 67) return '#6BE3A4'; if (pct >= 34) return '#F2C063'; return '#FF6B6B'; }
+
+    function renderVerdict(score) {
+      const badge = document.getElementById('whoopVerdictBadge');
+      const headline = document.getElementById('whoopVerdictHeadline');
+      const reasons = document.getElementById('whoopVerdictReasons');
+      const cls = zoneClass(score);
+      badge.className = 'whoop-verdict-badge ' + cls;
+      if (cls === 'z-good') {
+        badge.textContent = 'Green';
+        headline.textContent = 'High recovery — a good day to push strain.';
+        reasons.textContent = 'HRV and resting heart rate both look favorable. Your body is primed for a harder session if you want one.';
+      } else if (cls === 'z-warn') {
+        badge.textContent = 'Yellow';
+        headline.textContent = 'Moderate recovery — train at your own discretion.';
+        reasons.textContent = 'Some strain is fine, but this isn\'t the day to chase a new max. Listen to how you feel as the session goes.';
+      } else {
+        badge.textContent = 'Red';
+        headline.textContent = 'Low recovery — consider prioritizing rest today.';
+        reasons.textContent = 'HRV/RHR suggest your body hasn\'t fully bounced back. A lighter day or active recovery will pay off more than pushing through.';
+      }
+      document.getElementById('whoopVerdict').style.display = '';
+    }
+
     async function loadData() {
       let t = loadTokens(); if (!t) return;
       if (t.expires && Date.now() > t.expires - 60000) { const n = await refreshToken(t); if (n) t = n; }
       showErr('');
       try {
         const [rec, sleep, cycle] = await Promise.all([
-          whoopFetch('/recovery?limit=1', t).catch((e)=>{console.error('[whoop] /recovery:', e.message); return null;}),
-          whoopFetch('/activity/sleep?limit=1', t).catch((e)=>{console.error('[whoop] /sleep:', e.message); return null;}),
-          whoopFetch('/cycle?limit=1', t).catch((e)=>{console.error('[whoop] /cycle:', e.message); return null;}),
+          whoopFetch('/recovery?limit=1', t).catch((e) => { console.error('[whoop] /recovery:', e.message); return null; }),
+          whoopFetch('/activity/sleep?limit=1', t).catch((e) => { console.error('[whoop] /sleep:', e.message); return null; }),
+          whoopFetch('/cycle?limit=1', t).catch((e) => { console.error('[whoop] /cycle:', e.message); return null; }),
         ]);
         const r = rec && rec.records && rec.records[0] && rec.records[0].score;
-        if (r) {
-          document.getElementById('whoopRecovery').textContent = Math.round(r.recovery_score||0) + '%';
-          document.getElementById('whoopHrv').textContent = Math.round(r.hrv_rmssd_milli||0);
-          document.getElementById('whoopRhr').textContent = Math.round(r.resting_heart_rate||0);
-          document.getElementById('whoopRecoverySub').textContent = r.recovery_score>=67?'high recovery':r.recovery_score>=34?'moderate':'low';
-        }
         const s = sleep && sleep.records && sleep.records[0];
-        if (s && s.score && s.score.stage_summary) {
-          const ss = s.score.stage_summary;
-          const total = (ss.total_in_bed_time_milli||0) - (ss.total_awake_time_milli||0);
-          document.getElementById('whoopSleep').textContent = fmtMins(total);
-          document.getElementById('whoopSleepSub').textContent = Math.round(s.score.sleep_performance_percentage||0) + '% perf';
-          document.getElementById('whoopResp').textContent = (s.score.respiratory_rate||0).toFixed(1);
-        }
         const c = cycle && cycle.records && cycle.records[0] && cycle.records[0].score;
-        if (c && c.strain != null) document.getElementById('whoopStrain').textContent = c.strain.toFixed(1);
+
+        document.getElementById('whoopCalibrating').style.display = (r && r.user_calibrating) ? 'flex' : 'none';
+
+        if (r) {
+          const score = r.recovery_score;
+          document.getElementById('whoopRecovery').textContent = score != null ? Math.round(score) : '—';
+          document.getElementById('whoopRecoverySub').textContent = score >= 67 ? 'High' : score >= 34 ? 'Medium' : 'Low';
+          document.getElementById('whoopRecoverySub').style.color = zoneColor(score);
+          const ring = document.getElementById('whoopRecoveryRingFill');
+          const C = 2 * Math.PI * 80;
+          ring.style.strokeDasharray = C;
+          ring.style.strokeDashoffset = score != null ? C * (1 - score / 100) : C;
+          ring.style.stroke = zoneColor(score);
+
+          document.getElementById('whoopHrv').textContent = r.hrv_rmssd_milli != null ? Math.round(r.hrv_rmssd_milli) : '—';
+          document.getElementById('whoopRhr').textContent = r.resting_heart_rate != null ? Math.round(r.resting_heart_rate) : '—';
+          document.getElementById('whoopZoneHrv').className = 'whoop-zone ' + zoneClass(score);
+          document.getElementById('whoopZoneRhr').className = 'whoop-zone ' + zoneClass(score);
+
+          if (r.skin_temp_celsius != null || r.spo2_percentage != null) {
+            document.getElementById('whoopBio').style.display = 'grid';
+            if (r.skin_temp_celsius != null) document.getElementById('whoopSkinTemp').textContent = r.skin_temp_celsius.toFixed(1) + '°C';
+            if (r.spo2_percentage != null) {
+              document.getElementById('whoopSpo2').textContent = r.spo2_percentage.toFixed(0) + '%';
+              document.getElementById('whoopZoneSpo2').className = 'whoop-zone ' + zoneClass(r.spo2_percentage);
+            }
+          }
+          renderVerdict(score);
+        }
+
+        if (s && s.score) {
+          const perf = s.score.sleep_performance_percentage;
+          document.getElementById('whoopSleepSub').textContent = (perf != null ? Math.round(perf) + '% performance' : '');
+          const stages = s.score.stage_summary || {};
+          const rem = stages.total_rem_sleep_time_milli || 0;
+          const deep = stages.total_slow_wave_sleep_time_milli || 0;
+          const light = stages.total_light_sleep_time_milli || 0;
+          const awake = stages.total_awake_time_milli || 0;
+          const total = rem + deep + light + awake;
+          if (total > 0) {
+            document.getElementById('whoopStages').style.display = '';
+            document.getElementById('whoopStageRem').style.width = (rem / total * 100) + '%';
+            document.getElementById('whoopStageDeep').style.width = (deep / total * 100) + '%';
+            document.getElementById('whoopStageLight').style.width = (light / total * 100) + '%';
+            document.getElementById('whoopStageAwake').style.width = (awake / total * 100) + '%';
+            document.getElementById('whoopStageRemTxt').textContent = fmtMins(rem);
+            document.getElementById('whoopStageDeepTxt').textContent = fmtMins(deep);
+            document.getElementById('whoopStageLightTxt').textContent = fmtMins(light);
+            document.getElementById('whoopStageAwakeTxt').textContent = fmtMins(awake);
+            document.getElementById('whoopStagesMeta').textContent = fmtMins(total) + ' total';
+          }
+          if (s.score.respiratory_rate != null) document.getElementById('whoopResp').textContent = s.score.respiratory_rate.toFixed(1);
+        }
+
+        if (c && c.strain != null) {
+          document.getElementById('whoopStrain').textContent = c.strain.toFixed(1);
+          document.getElementById('whoopZoneStrain').className = 'whoop-zone ' + (c.strain >= 14 ? 'z-good' : c.strain >= 8 ? 'z-warn' : '');
+        }
       } catch (e) { showErr(e.message || String(e)); }
     }
+
     function render() {
       const t = loadTokens();
-      if (t && t.access) { dEl.style.display='none'; cEl.style.display=''; loadData(); }
-      else { dEl.style.display=''; cEl.style.display='none'; }
+      if (t && t.access) { dEl.style.display = 'none'; cEl.style.display = ''; loadData(); }
+      else { dEl.style.display = ''; cEl.style.display = 'none'; }
     }
     render();
   })();
