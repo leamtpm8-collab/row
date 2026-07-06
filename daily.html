@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#050506">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Daily Overview</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --text-primary: #FAFAFA;
+  --text-secondary: #B8B6B0;
+  --text-tertiary: #76746E;
+  --success: #6BE3A4;
+  --warning: #F2C063;
+  --danger: #FF6B6B;
+  --info: #60A5FA;
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  background: #050506;
+  color: var(--text-secondary);
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+  padding: max(28px, env(safe-area-inset-top)) 20px 60px;
+}
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(circle at 82% 14%, rgba(224, 118, 88, 0.16), transparent 45%),
+    radial-gradient(circle at 18% 90%, rgba(180, 180, 200, 0.06), transparent 50%);
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: -2;
+  animation: drift 36s ease-in-out infinite alternate;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.014) 1px, transparent 1px);
+  background-size: 3px 3px;
+  pointer-events: none;
+  z-index: -1;
+}
+@keyframes drift {
+  0%   { transform: translate3d(0,0,0); }
+  100% { transform: translate3d(-22px, 14px, 0); }
+}
+
+.page { max-width: 1100px; margin: 0 auto; }
+.dash-title {
+  margin: 0 0 20px;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  background: linear-gradient(180deg, #FFFFFF 0%, #C7C4BC 120%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+@media (max-width: 480px) { .dash-title { font-size: 22px; } }
+
+.daily-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+@media (max-width: 720px) { .daily-grid { grid-template-columns: 1fr; } }
+
+.daily-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 18px;
+  padding: 20px 20px 18px;
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+}
+.daily-card-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== Weather card ===== */
+.wx-loc-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+.wx-loc-name { font-size: 12.5px; color: var(--text-secondary); }
+.wx-loc-btn {
+  background: transparent; border: none; color: var(--info);
+  font-family: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer; padding: 2px 4px;
+}
+.wx-loc-btn:hover { text-decoration: underline; }
+.wx-loc-edit { display: none; gap: 6px; margin-bottom: 14px; }
+.wx-loc-edit.show { display: flex; }
+.wx-loc-edit input {
+  flex: 1; padding: 8px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.10);
+  background: rgba(0,0,0,0.28); color: var(--text-primary); font-family: inherit; font-size: 12.5px; outline: none;
+}
+.wx-loc-edit button {
+  padding: 8px 12px; border-radius: 8px; border: none; background: rgba(255,255,255,0.10);
+  color: var(--text-primary); font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+}
+.wx-hero { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+.wx-hero-emoji { font-size: 46px; line-height: 1; }
+.wx-hero-temp { font-size: 40px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; }
+.wx-hero-desc { font-size: 12.5px; color: var(--text-tertiary); margin-top: 4px; }
+.wx-uv {
+  margin-left: auto; text-align: right; flex-shrink: 0;
+}
+.wx-uv-label { font-size: 9.5px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.10em; font-weight: 700; }
+.wx-uv-val { font-size: 18px; font-weight: 700; color: var(--text-primary); }
+.wx-forecast { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.wx-fc-cell { background: rgba(255,255,255,0.025); border-radius: 12px; padding: 10px 8px; text-align: center; }
+.wx-fc-label { font-size: 9.5px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.10em; font-weight: 700; margin-bottom: 6px; }
+.wx-fc-emoji { font-size: 20px; margin-bottom: 4px; }
+.wx-fc-temp { font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.wx-fc-rain { font-size: 10px; color: var(--info); margin-top: 2px; }
+.wx-status { font-size: 12px; color: var(--text-tertiary); font-style: italic; }
+
+/* ===== Fitness card ===== */
+.fit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.fit-cell { background: rgba(255,255,255,0.025); border-radius: 12px; padding: 12px 10px; text-align: center; }
+.fit-cell-label { font-size: 9.5px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.10em; font-weight: 700; margin-bottom: 6px; }
+.fit-cell-val { font-size: 18px; font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.fit-cell-sub { font-size: 9.5px; color: var(--text-tertiary); margin-top: 3px; }
+.fit-steps-edit {
+  width: 60px; background: rgba(0,0,0,0.28); border: 1px solid rgba(255,255,255,0.10); border-radius: 6px;
+  color: var(--text-primary); font-family: inherit; font-size: 13px; text-align: center; padding: 3px; outline: none;
+}
+.fit-score-row { display: flex; align-items: center; gap: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06); }
+.fit-score-num { font-size: 36px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; }
+.fit-score-label { font-size: 13px; font-weight: 700; margin-top: 2px; }
+.fit-score-note { font-size: 11.5px; color: var(--text-tertiary); margin-left: auto; max-width: 180px; text-align: right; }
+.fit-connect-note { font-size: 12px; color: var(--text-tertiary); font-style: italic; }
+.fit-connect-note a { color: var(--info); }
+
+/* ===== Analysis card ===== */
+.an-block { margin-bottom: 14px; }
+.an-block:last-child { margin-bottom: 0; }
+.an-block-h { font-size: 12px; font-weight: 700; color: var(--text-primary); margin-bottom: 6px; }
+.an-block-p { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; }
+
+/* ===== Recommendation card ===== */
+.rec-badge-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.rec-icon { font-size: 28px; }
+.rec-headline { font-size: 15px; font-weight: 700; color: var(--text-primary); }
+.rec-explain { font-size: 12.5px; color: var(--text-secondary); line-height: 1.55; }
+
+/* ===== Suggestions card ===== */
+.sg-row { display: flex; align-items: flex-start; gap: 10px; padding: 9px 0; border-top: 1px solid rgba(255,255,255,0.06); }
+.sg-row:first-child { border-top: none; padding-top: 0; }
+.sg-icon { font-size: 16px; flex-shrink: 0; width: 22px; text-align: center; }
+.sg-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); margin-bottom: 2px; }
+.sg-val { font-size: 12.5px; color: var(--text-primary); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1 class="dash-title">Daily Overview</h1>
+
+  <div class="daily-grid">
+
+    <!-- Weather card -->
+    <div class="daily-card">
+      <div class="daily-card-title">🌤️ Weather</div>
+      <div class="wx-loc-row">
+        <span class="wx-loc-name" id="wxLocName">Locating…</span>
+        <button class="wx-loc-btn" id="wxLocEditBtn" type="button">Change</button>
+      </div>
+      <div class="wx-loc-edit" id="wxLocEdit">
+        <input id="wxLocInput" type="text" placeholder="e.g. Nottensdorf, Niedersachsen">
+        <button id="wxLocGoBtn" type="button">Go</button>
+        <button id="wxLocGeoBtn" type="button" title="Use my location">📍</button>
+      </div>
+      <div id="wxBody">
+        <div class="wx-status">Loading weather…</div>
+      </div>
+    </div>
+
+    <!-- Fitness card -->
+    <div class="daily-card">
+      <div class="daily-card-title">💪 Fitness Today</div>
+      <div id="fitBody">
+        <div class="wx-status">Loading…</div>
+      </div>
+    </div>
+
+    <!-- Day analysis card -->
+    <div class="daily-card">
+      <div class="daily-card-title">📅 Day Analysis</div>
+      <div class="an-block">
+        <div class="an-block-h">Yesterday</div>
+        <div class="an-block-p" id="anYesterday">—</div>
+      </div>
+      <div class="an-block">
+        <div class="an-block-h">Today's readiness</div>
+        <div class="an-block-p" id="anToday">—</div>
+      </div>
+    </div>
+
+    <!-- Recommendation card -->
+    <div class="daily-card">
+      <div class="daily-card-title">🏋️ Training Recommendation</div>
+      <div class="rec-badge-row">
+        <span class="rec-icon" id="recIcon">—</span>
+        <span class="rec-headline" id="recHeadline">Connect WHOOP for a recommendation</span>
+      </div>
+      <div class="rec-explain" id="recExplain"></div>
+    </div>
+
+    <!-- Smart suggestions card -->
+    <div class="daily-card" style="grid-column: 1 / -1;">
+      <div class="daily-card-title">⏰ Smart Suggestions</div>
+      <div class="sg-row">
+        <span class="sg-icon">🏋️</span>
+        <div><div class="sg-label">Best training time</div><div class="sg-val" id="sgTrain">—</div></div>
+      </div>
+      <div class="sg-row">
+        <span class="sg-icon">🎯</span>
+        <div><div class="sg-label">Best focus time</div><div class="sg-val" id="sgFocus">—</div></div>
+      </div>
+      <div class="sg-row">
+        <span class="sg-icon">🌙</span>
+        <div><div class="sg-label">Wind down</div><div class="sg-val" id="sgRelax">—</div></div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ============================================================
+  // Location + weather (Open-Meteo — free, no API key needed)
+  // ============================================================
+  const LOC_KEY = 'daily_location_v1';
+  const FALLBACK_LOCATION = { name: 'Nottensdorf, Niedersachsen', lat: 53.5667, lon: 9.6833 };
+  const WEATHER_CODES = {
+    0: ['☀️', 'Clear sky'], 1: ['🌤️', 'Mostly clear'], 2: ['⛅', 'Partly cloudy'], 3: ['☁️', 'Overcast'],
+    45: ['🌫️', 'Fog'], 48: ['🌫️', 'Fog'],
+    51: ['🌦️', 'Light drizzle'], 53: ['🌦️', 'Drizzle'], 55: ['🌦️', 'Heavy drizzle'],
+    61: ['🌧️', 'Light rain'], 63: ['🌧️', 'Rain'], 65: ['🌧️', 'Heavy rain'],
+    71: ['🌨️', 'Light snow'], 73: ['🌨️', 'Snow'], 75: ['❄️', 'Heavy snow'],
+    80: ['🌦️', 'Rain showers'], 81: ['🌧️', 'Rain showers'], 82: ['⛈️', 'Violent showers'],
+    95: ['⛈️', 'Thunderstorm'], 96: ['⛈️', 'Thunderstorm w/ hail'], 99: ['⛈️', 'Thunderstorm w/ hail']
+  };
+  function weatherInfo(code) { return WEATHER_CODES[code] || ['🌡️', 'Unknown']; }
+
+  function loadLocation() {
+    try { const v = JSON.parse(localStorage.getItem(LOC_KEY)); if (v && v.lat != null) return v; } catch (e) {}
+    return null;
+  }
+  function saveLocation(loc) { try { localStorage.setItem(LOC_KEY, JSON.stringify(loc)); } catch (e) {} }
+
+  const wxLocName = document.getElementById('wxLocName');
+  const wxLocEdit = document.getElementById('wxLocEdit');
+  const wxLocInput = document.getElementById('wxLocInput');
+  const wxBody = document.getElementById('wxBody');
+
+  document.getElementById('wxLocEditBtn').addEventListener('click', () => {
+    wxLocEdit.classList.toggle('show');
+    if (wxLocEdit.classList.contains('show')) wxLocInput.focus();
+  });
+  document.getElementById('wxLocGeoBtn').addEventListener('click', () => { detectLocation(true); });
+  document.getElementById('wxLocGoBtn').addEventListener('click', geocodeAndSet);
+  wxLocInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') geocodeAndSet(); });
+
+  async function geocodeAndSet() {
+    const q = wxLocInput.value.trim();
+    if (!q) return;
+    wxLocName.textContent = 'Searching…';
+    try {
+      const res = await fetch('https://geocoding-api.open-meteo.com/v1/search?count=1&name=' + encodeURIComponent(q));
+      const data = await res.json();
+      const hit = data && data.results && data.results[0];
+      if (!hit) { wxLocName.textContent = 'Not found — try again'; return; }
+      const loc = {
+        name: hit.name + (hit.admin1 ? ', ' + hit.admin1 : ''),
+        lat: hit.latitude, lon: hit.longitude, mode: 'manual'
+      };
+      saveLocation(loc);
+      wxLocEdit.classList.remove('show');
+      loadWeather(loc);
+    } catch (e) {
+      wxLocName.textContent = 'Search failed — try again';
+    }
+  }
+
+  async function reverseGeocode(lat, lon) {
+    try {
+      const res = await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=en');
+      const data = await res.json();
+      const city = data.city || data.locality || data.principalSubdivision;
+      return city ? (city + (data.principalSubdivision && data.principalSubdivision !== city ? ', ' + data.principalSubdivision : '')) : 'Current location';
+    } catch (e) { return 'Current location'; }
+  }
+
+  function detectLocation(forcePrompt) {
+    if (!navigator.geolocation) { useFallback(); return; }
+    wxLocName.textContent = 'Locating…';
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude, lon = pos.coords.longitude;
+        const name = await reverseGeocode(lat, lon);
+        const loc = { name, lat, lon, mode: 'auto' };
+        saveLocation(loc);
+        loadWeather(loc);
+      },
+      () => { useFallback(); },
+      { timeout: 8000, maximumAge: 15 * 60 * 1000 }
+    );
+  }
+  function useFallback() {
+    saveLocation(Object.assign({}, FALLBACK_LOCATION, { mode: 'fallback' }));
+    loadWeather(FALLBACK_LOCATION);
+  }
+
+  function pickHour(hourly, targetHour) {
+    const times = hourly.time;
+    let bestIdx = 0, bestDiff = Infinity;
+    for (let i = 0; i < times.length; i++) {
+      const h = new Date(times[i]).getHours();
+      const diff = Math.abs(h - targetHour);
+      if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
+    }
+    return bestIdx;
+  }
+
+  async function loadWeather(loc) {
+    wxLocName.textContent = loc.name;
+    wxBody.innerHTML = '<div class="wx-status">Loading weather…</div>';
+    try {
+      const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + loc.lat + '&longitude=' + loc.lon +
+        '&current=temperature_2m,weather_code&hourly=temperature_2m,precipitation_probability,uv_index,weather_code&timezone=auto&forecast_days=1';
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('weather fetch failed');
+      const data = await res.json();
+      const cur = data.current;
+      const hourly = data.hourly;
+      const [curEmoji, curDesc] = weatherInfo(cur.weather_code);
+
+      const morningIdx = pickHour(hourly, 9);
+      const noonIdx = pickHour(hourly, 13);
+      const eveningIdx = pickHour(hourly, 19);
+      const maxUv = Math.max.apply(null, hourly.uv_index.slice(0, 24).map((v) => v || 0));
+
+      function fcCell(label, idx) {
+        const [emoji] = weatherInfo(hourly.weather_code[idx]);
+        return '<div class="wx-fc-cell">' +
+          '<div class="wx-fc-label">' + label + '</div>' +
+          '<div class="wx-fc-emoji">' + emoji + '</div>' +
+          '<div class="wx-fc-temp">' + Math.round(hourly.temperature_2m[idx]) + '°</div>' +
+          '<div class="wx-fc-rain">💧 ' + Math.round(hourly.precipitation_probability[idx]) + '%</div>' +
+          '</div>';
+      }
+
+      wxBody.innerHTML =
+        '<div class="wx-hero">' +
+          '<div class="wx-hero-emoji">' + curEmoji + '</div>' +
+          '<div><div class="wx-hero-temp">' + Math.round(cur.temperature_2m) + '°C</div><div class="wx-hero-desc">' + curDesc + '</div></div>' +
+          '<div class="wx-uv"><div class="wx-uv-label">UV Index</div><div class="wx-uv-val">' + maxUv.toFixed(1) + '</div></div>' +
+        '</div>' +
+        '<div class="wx-forecast">' +
+          fcCell('Morning', morningIdx) + fcCell('Noon', noonIdx) + fcCell('Evening', eveningIdx) +
+        '</div>';
+
+      window._dailyWeatherMaxUv = maxUv;
+      window._dailyWeatherRainNoon = hourly.precipitation_probability[noonIdx];
+    } catch (e) {
+      wxBody.innerHTML = '<div class="wx-status">Couldn\'t load weather — check your connection.</div>';
+    }
+  }
+
+  (function initLocation() {
+    const saved = loadLocation();
+    if (saved) { loadWeather(saved); if (saved.mode === 'auto') return; }
+    else { detectLocation(false); return; }
+  })();
+
+  // ============================================================
+  // Fitness: reuse the WHOOP connection from the Health page
+  // ============================================================
+  const WHOOP_KEY = 'whoop_tokens_v1';
+  const STEPS_KEY = 'daily_steps_v1';
+
+  function loadWhoopTokens() { try { return JSON.parse(localStorage.getItem(WHOOP_KEY)); } catch (e) { return null; } }
+  function saveWhoopTokens(t) { try { localStorage.setItem(WHOOP_KEY, JSON.stringify(t)); } catch (e) {} }
+
+  async function refreshWhoopToken(t) {
+    if (!t.refresh) return null;
+    try {
+      const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: t.refresh }) });
+      const j = await r.json();
+      if (j.access_token) {
+        const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in || 3500) * 1000 };
+        saveWhoopTokens(next);
+        return next;
+      }
+    } catch (e) {}
+    return null;
+  }
+  async function whoopFetch(path, t) {
+    const [p, qs] = path.split('?');
+    const params = new URLSearchParams(qs || ''); params.set('path', p);
+    const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { 'Authorization': 'Bearer ' + t.access, 'Accept': 'application/json' } });
+    if (r.status === 401) { const n = await refreshWhoopToken(t); if (n) return whoopFetch(path, n); throw new Error('unauthorized'); }
+    if (!r.ok) throw new Error('WHOOP ' + r.status);
+    return r.json();
+  }
+  function fmtMins(ms) { const m = Math.round(ms / 60000); const h = Math.floor(m / 60); return h + 'h ' + String(m % 60).padStart(2, '0') + 'm'; }
+  function zoneLabel(pct) { if (pct == null) return '—'; if (pct >= 67) return 'High'; if (pct >= 34) return 'Medium'; return 'Low'; }
+  function zoneColor(pct) { if (pct >= 67) return 'var(--success)'; if (pct >= 34) return 'var(--warning)'; return 'var(--danger)'; }
+
+  function yesterdayKey() {
+    const d = new Date(); d.setDate(d.getDate() - 1);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function loadSteps() {
+    try {
+      const v = JSON.parse(localStorage.getItem(STEPS_KEY));
+      if (v && v.date === yesterdayKey()) return v.steps;
+    } catch (e) {}
+    return null;
+  }
+  function saveSteps(n) {
+    try { localStorage.setItem(STEPS_KEY, JSON.stringify({ date: yesterdayKey(), steps: n })); } catch (e) {}
+  }
+
+  function renderStepsCell() {
+    const steps = loadSteps();
+    return '<div class="fit-cell">' +
+      '<div class="fit-cell-label">Steps</div>' +
+      '<input class="fit-steps-edit" id="fitStepsInput" type="number" min="0" placeholder="—" value="' + (steps != null ? steps : '') + '">' +
+      '<div class="fit-cell-sub">yesterday</div>' +
+      '</div>';
+  }
+
+  async function renderFitness() {
+    const fitBody = document.getElementById('fitBody');
+    const tokens = loadWhoopTokens();
+    if (!tokens || !tokens.access) {
+      fitBody.innerHTML =
+        '<div class="fit-grid">' + renderStepsCell() + '</div>' +
+        '<div class="fit-connect-note">Connect WHOOP on the <a href="health.html">Health page</a> for live sleep, recovery, HRV and RHR.</div>';
+      wireStepsInput();
+      renderRestOfPage(null);
+      return;
+    }
+    try {
+      let t = tokens;
+      if (t.expires && Date.now() > t.expires - 60000) { const n = await refreshWhoopToken(t); if (n) t = n; }
+      const [rec, sleep] = await Promise.all([
+        whoopFetch('/recovery?limit=1', t).catch(() => null),
+        whoopFetch('/activity/sleep?limit=1', t).catch(() => null)
+      ]);
+      const r = rec && rec.records && rec.records[0] && rec.records[0].score;
+      const s = sleep && sleep.records && sleep.records[0] && sleep.records[0].score;
+
+      let sleepDur = '—', sleepSub = '';
+      if (s && s.stage_summary) {
+        const ss = s.stage_summary;
+        const total = (ss.total_in_bed_time_milli || 0) - (ss.total_awake_time_milli || 0);
+        sleepDur = fmtMins(total);
+        sleepSub = s.sleep_performance_percentage != null ? Math.round(s.sleep_performance_percentage) + '% perf' : '';
+      }
+      const recoveryScore = r ? r.recovery_score : null;
+
+      fitBody.innerHTML =
+        '<div class="fit-grid">' +
+          '<div class="fit-cell"><div class="fit-cell-label">Sleep</div><div class="fit-cell-val">' + sleepDur + '</div><div class="fit-cell-sub">' + sleepSub + '</div></div>' +
+          '<div class="fit-cell"><div class="fit-cell-label">Recovery</div><div class="fit-cell-val">' + (recoveryScore != null ? Math.round(recoveryScore) + '%' : '—') + '</div><div class="fit-cell-sub">' + zoneLabel(recoveryScore) + '</div></div>' +
+          renderStepsCell() +
+        '</div>' +
+        '<div class="fit-score-row">' +
+          '<div><div class="fit-score-num" id="fitScoreNum">—</div><div class="fit-score-label" id="fitScoreLabel"></div></div>' +
+          '<div class="fit-score-note">Energy Score</div>' +
+        '</div>';
+
+      wireStepsInput();
+
+      // Energy score: blend recovery + sleep performance where available.
+      let score = null;
+      const perf = s ? s.sleep_performance_percentage : null;
+      if (recoveryScore != null && perf != null) score = Math.round(recoveryScore * 0.6 + perf * 0.4);
+      else if (recoveryScore != null) score = Math.round(recoveryScore);
+      else if (perf != null) score = Math.round(perf);
+
+      if (score != null) {
+        document.getElementById('fitScoreNum').textContent = score;
+        document.getElementById('fitScoreNum').style.color = zoneColor(score);
+        const labelEl = document.getElementById('fitScoreLabel');
+        labelEl.textContent = zoneLabel(score);
+        labelEl.style.color = zoneColor(score);
+      }
+
+      renderRestOfPage({ score, recoveryScore, sleepDur, sleepPerf: perf, hrv: r ? r.hrv_rmssd_milli : null, rhr: r ? r.resting_heart_rate : null });
+    } catch (e) {
+      fitBody.innerHTML = '<div class="wx-status">Couldn\'t load WHOOP data.</div>';
+      renderRestOfPage(null);
+    }
+  }
+
+  function wireStepsInput() {
+    const input = document.getElementById('fitStepsInput');
+    if (!input) return;
+    input.addEventListener('change', () => {
+      const n = parseInt(input.value, 10);
+      if (!isNaN(n) && n >= 0) saveSteps(n);
+    });
+  }
+
+  // ============================================================
+  // Day analysis, recommendation, and smart suggestions —
+  // all derived client-side from the fitness data above.
+  // ============================================================
+  function renderRestOfPage(fit) {
+    const steps = loadSteps();
+    const stepsText = steps != null ? steps.toLocaleString() + ' steps' : 'no step count logged';
+
+    // --- Day analysis ---
+    document.getElementById('anYesterday').textContent =
+      fit ? stepsText + ' logged, ' + (fit.sleepDur !== '—' ? fit.sleepDur + ' of sleep that night.' : 'sleep not available.')
+          : stepsText + '.';
+    document.getElementById('anToday').textContent = fit && fit.score != null
+      ? (fit.score >= 67 ? 'Well recovered — your body is ready for a full day.' :
+         fit.score >= 34 ? 'Moderately ready — pace yourself and listen to your body.' :
+         'Running low — today is a good day to go easy.')
+      : 'Connect WHOOP for a readiness read on today.';
+
+    // --- Recommendation ---
+    const recIcon = document.getElementById('recIcon');
+    const recHeadline = document.getElementById('recHeadline');
+    const recExplain = document.getElementById('recExplain');
+    if (fit && fit.score != null) {
+      const bits = [];
+      if (fit.recoveryScore != null) bits.push('recovery is ' + zoneLabel(fit.recoveryScore).toLowerCase() + ' (' + Math.round(fit.recoveryScore) + '%)');
+      if (fit.sleepPerf != null) bits.push('sleep performance was ' + Math.round(fit.sleepPerf) + '%');
+      const reason = bits.length ? bits.join(' and ') + '.' : '';
+      if (fit.score >= 67) {
+        recIcon.textContent = '✅'; recHeadline.textContent = 'Training recommended';
+        recExplain.textContent = reason ? 'Good day to push — ' + reason : 'You\'re primed for a solid session.';
+      } else if (fit.score >= 34) {
+        recIcon.textContent = '⚠️'; recHeadline.textContent = 'Light training';
+        recExplain.textContent = reason ? 'Keep it moderate — ' + reason : 'Train, but don\'t chase a new max today.';
+      } else {
+        recIcon.textContent = '❌'; recHeadline.textContent = 'Rest recommended';
+        recExplain.textContent = reason ? 'Prioritize recovery — ' + reason : 'Your body could use a lighter day.';
+      }
+    } else {
+      recIcon.textContent = '🔗';
+      recHeadline.textContent = 'Connect WHOOP for a recommendation';
+      recExplain.textContent = 'Head to the Health page and tap Connect WHOOP to unlock this.';
+    }
+
+    // --- Smart suggestions ---
+    const score = fit ? fit.score : null;
+    document.getElementById('sgTrain').textContent = score == null
+      ? 'Depends on how you feel — no data connected yet.'
+      : score >= 67 ? 'Late morning to early afternoon — you\'re primed for it.'
+      : score >= 34 ? 'Late afternoon, keep it moderate.'
+      : 'Skip it or keep to a short walk today.';
+    document.getElementById('sgFocus').textContent = score != null && score < 34
+      ? 'Late morning (~10:30–12:00) — give yourself extra time to wake up.'
+      : '09:00–11:00 — typical peak alertness after breakfast.';
+    document.getElementById('sgRelax').textContent = 'After 20:00 — dim screens and ease into sleep mode.';
+  }
+
+  renderFitness();
+})();
+</script>
+</body>
+</html>
