@@ -160,6 +160,9 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
   <a href="finance.html" class="topbar-finance-btn" id="topbarFinance" aria-label="Finanzen">
     <span class="topbar-finance-icon">📊</span>
   </a>
+  <button class="topbar-finance-btn" id="topbarLogout" aria-label="Abmelden" type="button">
+    <span class="topbar-finance-icon">🚪</span>
+  </button>
 </header>`;
 
   const bottombarHtml = `
@@ -332,10 +335,18 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     sync();
   }
 
+  function logout() {
+    fetch('/api/logout', { method: 'POST' }).catch(() => {}).then(() => {
+      window.location.href = '/login.html';
+    });
+  }
+
   function boot() {
     injectStyleAndHTML();
     const btn = document.getElementById('topbarWaterAdd');
     if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); addWater(); });
+    const logoutBtn = document.getElementById('topbarLogout');
+    if (logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); logout(); });
     render();
     lockGestures();
     startModalLock();

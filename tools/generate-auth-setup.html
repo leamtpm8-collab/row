@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Setup: Zugangsdaten generieren</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background:#050506; color:#EDEBE7; max-width:640px; margin:40px auto; padding:0 20px; line-height:1.5; }
+  h1 { font-size:20px; }
+  p.hint { color:#9A9790; font-size:14px; }
+  label { display:block; margin-top:18px; font-size:14px; color:#B8B6B0; }
+  input[type="password"], input[type="text"] { width:100%; padding:10px 12px; margin-top:6px; border-radius:8px; border:1px solid #333; background:#111; color:#FAFAFA; font-size:15px; box-sizing:border-box; }
+  button { margin-top:20px; padding:10px 18px; border:none; border-radius:8px; background:#E07658; color:#fff; font-size:15px; font-weight:700; cursor:pointer; }
+  .out { margin-top:24px; }
+  .row { margin-bottom:14px; }
+  .row-label { font-size:13px; color:#9A9790; margin-bottom:4px; }
+  textarea { width:100%; padding:10px 12px; border-radius:8px; border:1px solid #333; background:#111; color:#6BE3A4; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size:13px; resize:vertical; }
+  .warn { margin-top:24px; padding:12px 14px; border-radius:8px; background:rgba(242,192,99,0.1); border:1px solid rgba(242,192,99,0.3); color:#F2C063; font-size:13px; }
+</style>
+</head>
+<body>
+<h1>Zugangsdaten für den Login generieren</h1>
+<p class="hint">
+  Diese Seite läuft komplett lokal in deinem Browser — nichts wird irgendwohin gesendet.
+  Öffne sie einfach direkt als Datei (Doppelklick / Drag &amp; Drop in den Browser), gib dein
+  gewünschtes Passwort ein, und kopiere die beiden erzeugten Werte in die Vercel-Umgebungsvariablen
+  <code>AUTH_PASSWORD_HASH</code> und <code>AUTH_SECRET</code>.
+</p>
+
+<label for="pw">Dein neues Login-Passwort</label>
+<input type="password" id="pw" autocomplete="new-password">
+
+<button id="go">Werte generieren</button>
+
+<div class="out" id="out" style="display:none">
+  <div class="row">
+    <div class="row-label">AUTH_PASSWORD_HASH</div>
+    <textarea id="hashOut" rows="2" readonly></textarea>
+  </div>
+  <div class="row">
+    <div class="row-label">AUTH_SECRET</div>
+    <textarea id="secretOut" rows="2" readonly></textarea>
+  </div>
+  <div class="warn">
+    In Vercel: Project → Settings → Environment Variables → beide Werte eintragen (Production +
+    Preview) → neu deployen. Danach diese Datei am besten lokal löschen oder das Passwortfeld
+    einfach leer lassen.
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var ITERATIONS = 210000;
+  var KEYLEN_BYTES = 32;
+
+  function bytesToHex(bytes) {
+    return Array.from(bytes).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+  }
+
+  async function deriveHash(password, saltBytes) {
+    var enc = new TextEncoder();
+    var keyMaterial = await crypto.subtle.importKey(
+      'raw', enc.encode(password), { name: 'PBKDF2' }, false, ['deriveBits']
+    );
+    var bits = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt: saltBytes, iterations: ITERATIONS, hash: 'SHA-256' },
+      keyMaterial,
+      KEYLEN_BYTES * 8
+    );
+    return bytesToHex(new Uint8Array(bits));
+  }
+
+  document.getElementById('go').addEventListener('click', async function () {
+    var password = document.getElementById('pw').value;
+    if (!password) { alert('Bitte ein Passwort eingeben.'); return; }
+
+    var salt = crypto.getRandomValues(new Uint8Array(16));
+    var saltHex = bytesToHex(salt);
+    var hashHex = await deriveHash(password, salt);
+    var secret = bytesToHex(crypto.getRandomValues(new Uint8Array(32)));
+
+    document.getElementById('hashOut').value = saltHex + ':' + hashHex;
+    document.getElementById('secretOut').value = secret;
+    document.getElementById('out').style.display = 'block';
+  });
+})();
+</script>
+</body>
+</html>

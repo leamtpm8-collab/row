@@ -106,6 +106,31 @@ body::after {
   color: var(--text-primary);
 }
 .fin-back-btn svg { display: block; }
+.fin-topbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 14px;
+}
+.fin-topbar-row .fin-back-btn { margin: 0; }
+.fin-logout-btn {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 34px; height: 34px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.fin-logout-btn:hover, .fin-logout-btn:active {
+  background: rgba(255,255,255,0.07);
+  color: var(--text-primary);
+}
 
 /* ===== Bottom tab bar ===== */
 .bottom-tabs {
@@ -1576,10 +1601,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 <div class="shell">
 
 <!-- ===== BACK BUTTON ===== -->
-<a href="index.html" class="fin-back-btn" aria-label="Zurück zum Dashboard">
-  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-  <span>Zurück</span>
-</a>
+<div class="fin-topbar-row">
+  <a href="index.html" class="fin-back-btn" aria-label="Zurück zum Dashboard">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    <span>Zurück</span>
+  </a>
+  <button class="fin-logout-btn" id="finLogoutBtn" type="button" aria-label="Abmelden">🚪</button>
+</div>
 
 <!-- ===== FINANCE TICKER (rotating subscription renewals) ===== -->
 <div class="finance-ticker hidden" id="financeTicker">
@@ -3388,6 +3416,16 @@ document.addEventListener('DOMContentLoaded', function () {
     syncedKeys: ['subs', 'wishlist', 'incoming_orders', 'nw_currency', 'nw:activity', 'nw:history'],
     syncedPrefixes: ['nw:'],
     onApplied: function () { window.dispatchEvent(new Event('storage')); }
+  });
+});
+
+document.addEventListener('DOMContentLoaded', function () {
+  var logoutBtn = document.getElementById('finLogoutBtn');
+  if (!logoutBtn) return;
+  logoutBtn.addEventListener('click', function () {
+    fetch('/api/logout', { method: 'POST' }).catch(function () {}).then(function () {
+      window.location.href = '/login.html';
+    });
   });
 });
 </script>
