@@ -103,12 +103,7 @@ body::after {
 .book-add-btn:active { transform: scale(0.94); }
 
 /* ===== Filter row ===== */
-.book-filters {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
+.book-filters { display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap; }
 .book-filter-btn {
   padding: 7px 14px;
   border-radius: 999px;
@@ -130,98 +125,92 @@ body::after {
   color: var(--text-primary);
 }
 
-/* ===== Horizontal carousel ===== */
-.book-row-wrap { position: relative; margin: 0 -20px; padding: 0 20px; }
-.book-row {
-  display: flex;
-  gap: 18px;
-  overflow-x: auto;
-  overflow-y: visible;
-  padding: 30px 6px 40px;
-  scroll-snap-type: x proximity;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+/* ===== The shelf ===== */
+.shelf-outer {
+  background: linear-gradient(180deg, rgba(255,255,255,0.035), rgba(0,0,0,0.12));
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 18px;
+  padding: 34px 24px 20px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
 }
-.book-row::-webkit-scrollbar { display: none; }
-
 .book-empty {
-  padding: 60px 20px;
+  padding: 50px 20px;
   text-align: center;
   color: var(--text-tertiary);
   font-size: 13px;
   font-style: italic;
 }
 
-.book-card {
+.shelf-row {
   position: relative;
-  flex: 0 0 168px;
-  scroll-snap-align: center;
-  background: rgba(255,255,255,0.045);
-  border: 1px solid rgba(255,255,255,0.07);
-  border-radius: 16px;
-  padding: 20px 16px 16px;
-  aspect-ratio: 3 / 4;
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  cursor: default;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-  transition: transform 0.28s cubic-bezier(0.22,1,0.36,1), box-shadow 0.28s ease, opacity 0.28s ease, border-color 0.28s ease;
+  align-items: flex-end;
+  gap: 7px;
+  padding-bottom: 16px;
+  margin-bottom: 30px;
+  flex-wrap: nowrap;
 }
-.book-row:hover .book-card { opacity: 0.55; transform: scale(0.95); }
-.book-card:hover {
-  opacity: 1 !important;
-  transform: scale(1.10) translateY(-8px) !important;
-  z-index: 5;
-  border-color: rgba(255,255,255,0.20);
-  box-shadow: 0 22px 55px rgba(0,0,0,0.6);
-}
-
-.book-card-icon { font-size: 30px; margin-bottom: 14px; }
-.book-card-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--text-primary);
-  line-height: 1.3;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 4;
-  -webkit-box-orient: vertical;
-}
-.book-card-spacer { flex: 1; }
-.book-card-status {
-  align-self: flex-start;
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.06);
-  color: var(--text-tertiary);
-}
-.book-card-status.status-read    { background: rgba(107,227,164,0.14); color: var(--success); }
-.book-card-status.status-reading { background: rgba(96,165,250,0.16);  color: var(--info); }
-.book-card-status.status-dropped { background: rgba(255,107,107,0.14); color: var(--danger); }
-
-.book-card-del {
+.shelf-row:last-child { margin-bottom: 8px; }
+.shelf-plank {
   position: absolute;
-  top: 8px; right: 8px;
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(0,0,0,0.35);
-  color: var(--text-secondary);
-  font-size: 13px;
-  line-height: 1;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0;
-  transition: opacity 0.15s, background 0.15s, color 0.15s;
-  -webkit-tap-highlight-color: transparent;
+  left: -24px; right: -24px; bottom: 0;
+  height: 14px;
+  background: linear-gradient(180deg, #6b4a30 0%, #4a3220 60%, #3a2718 100%);
+  box-shadow: 0 10px 16px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.10);
+  border-radius: 2px;
 }
-.book-card:hover .book-card-del { opacity: 1; }
-.book-card-del:hover { background: rgba(255,107,107,0.85); color: #fff; }
+
+.book-spine {
+  position: relative;
+  flex-shrink: 0;
+  height: 190px;
+  border-radius: 3px 3px 1px 1px;
+  cursor: grab;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 12px;
+  box-shadow:
+    inset 3px 0 0 rgba(255,255,255,0.12),
+    inset -2px 0 4px rgba(0,0,0,0.35),
+    0 6px 10px rgba(0,0,0,0.4);
+  transition: transform 0.25s cubic-bezier(0.22,1,0.36,1), box-shadow 0.25s ease, filter 0.25s ease;
+}
+.book-spine::after {
+  content: '';
+  position: absolute; left: 5px; right: 3px; top: 18px; height: 2px;
+  background: rgba(255,255,255,0.16);
+  box-shadow: 0 22px 0 rgba(255,255,255,0.10);
+  pointer-events: none;
+}
+.book-spine-title {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-size: 11.5px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.92);
+  letter-spacing: 0.01em;
+  max-height: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  pointer-events: none;
+}
+.shelf-outer:hover .book-spine { filter: brightness(0.80); }
+.book-spine:hover {
+  filter: none !important;
+  transform: translateY(-16px) scale(1.07);
+  z-index: 5;
+  box-shadow:
+    inset 3px 0 0 rgba(255,255,255,0.16),
+    inset -2px 0 4px rgba(0,0,0,0.35),
+    0 0 26px var(--spine-glow, rgba(255,255,255,0.3)),
+    0 20px 30px rgba(0,0,0,0.55);
+}
+.book-spine.is-dragging { opacity: 0.35; }
+.book-spine.drag-over { outline: 2px dashed rgba(255,255,255,0.5); outline-offset: 2px; }
 
 /* ===== Add-book modal ===== */
 .book-modal-bg {
@@ -257,6 +246,20 @@ body::after {
   outline: none;
 }
 .book-field input:focus, .book-field select:focus { border-color: rgba(255,255,255,0.35); }
+
+.book-color-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.book-color-swatch {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.12s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.book-color-swatch:hover { transform: scale(1.1); }
+.book-color-swatch.active { border-color: #fff; }
+
 .book-modal-actions { display: flex; gap: 8px; margin-top: 18px; }
 .book-modal-actions button {
   flex: 1;
@@ -271,8 +274,54 @@ body::after {
 .book-modal-cancel:hover { background: rgba(255,255,255,0.10); }
 .book-modal-save { background: linear-gradient(180deg, #FFFFFF 0%, #E8E5DD 100%); color: #0A0A0B; }
 
+/* ===== Detail modal ===== */
+.book-detail-modal h3 {
+  margin: 0 0 4px;
+  writing-mode: initial;
+  transform: none;
+}
+.book-detail-swatch {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.book-detail-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: var(--text-secondary);
+  padding: 10px 0;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.book-detail-row:first-of-type { border-top: none; }
+.book-detail-label {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--text-tertiary);
+  min-width: 60px;
+}
+.book-detail-status {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 999px;
+  background: rgba(255,255,255,0.06); color: var(--text-tertiary);
+}
+.book-detail-status.status-read    { background: rgba(107,227,164,0.14); color: var(--success); }
+.book-detail-status.status-reading { background: rgba(96,165,250,0.16);  color: var(--info); }
+.book-detail-status.status-dropped { background: rgba(255,107,107,0.14); color: var(--danger); }
+.book-detail-delete {
+  width: 100%; margin-top: 18px;
+  padding: 11px; border-radius: 10px; border: 1px solid rgba(255,107,107,0.3);
+  background: rgba(255,107,107,0.08); color: #FF8A8A;
+  font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.book-detail-delete:hover { background: rgba(255,107,107,0.18); }
+
 @media (max-width: 480px) {
-  .book-card { flex-basis: 140px; }
+  .shelf-outer { padding: 28px 16px 16px; }
+  .shelf-row { gap: 5px; }
+  .shelf-plank { left: -16px; right: -16px; }
+  .book-spine { height: 160px; }
+  .book-spine-title { max-height: 122px; font-size: 10.5px; }
 }
 </style>
 </head>
@@ -291,9 +340,7 @@ body::after {
     <button class="book-filter-btn" data-filter="dropped">Dropped</button>
   </div>
 
-  <div class="book-row-wrap">
-    <div class="book-row" id="bookRow"></div>
-  </div>
+  <div class="shelf-outer" id="shelfOuter"></div>
 
 </div>
 
@@ -314,10 +361,30 @@ body::after {
         <option value="dropped">Dropped</option>
       </select>
     </div>
+    <div class="book-field">
+      <label>Spine color</label>
+      <div class="book-color-row" id="bookColorRow"></div>
+    </div>
     <div class="book-modal-actions">
       <button class="book-modal-cancel" id="bookModalCancel" type="button">Cancel</button>
       <button class="book-modal-save" id="bookModalSave" type="button">Save</button>
     </div>
+  </div>
+</div>
+
+<!-- Detail modal -->
+<div class="book-modal-bg" id="bookDetailBg">
+  <div class="book-modal book-detail-modal">
+    <h3 id="bookDetailTitle"></h3>
+    <div class="book-detail-row">
+      <span class="book-detail-label">Status</span>
+      <span id="bookDetailStatus"></span>
+    </div>
+    <div class="book-detail-row">
+      <span class="book-detail-label">Color</span>
+      <span><span id="bookDetailSwatch" class="book-detail-swatch"></span><span id="bookDetailColorName"></span></span>
+    </div>
+    <button class="book-detail-delete" id="bookDetailDelete" type="button">Remove from shelf</button>
   </div>
 </div>
 
@@ -326,9 +393,28 @@ body::after {
   'use strict';
   const KEY = 'books_v1';
 
+  const COLORS = {
+    black:  { name: 'Black',  light: '#3a3a3c', base: '#1c1c1e', dark: '#0a0a0b' },
+    blue:   { name: 'Blue',   light: '#3b82f6', base: '#1d4ed8', dark: '#1e3a8a' },
+    red:    { name: 'Red',    light: '#ef4444', base: '#b91c1c', dark: '#7f1d1d' },
+    green:  { name: 'Green',  light: '#22c55e', base: '#15803d', dark: '#14532d' },
+    orange: { name: 'Orange', light: '#fb923c', base: '#c2410c', dark: '#7c2d12' },
+    purple: { name: 'Purple', light: '#a78bfa', base: '#6d28d9', dark: '#4c1d95' },
+    brown:  { name: 'Brown',  light: '#a16207', base: '#78350f', dark: '#451a03' }
+  };
+  const STATUS_LABEL = { reading: 'Reading', read: 'Read', dropped: 'Dropped' };
+
   function loadBooks() {
-    try { const v = JSON.parse(localStorage.getItem(KEY)); return Array.isArray(v) ? v : []; }
-    catch (e) { return []; }
+    let list = [];
+    try { const v = JSON.parse(localStorage.getItem(KEY)); if (Array.isArray(v)) list = v; } catch (e) {}
+    // Migrate older entries saved before color/width existed.
+    let changed = false;
+    list.forEach((b) => {
+      if (!b.color || !COLORS[b.color]) { b.color = 'black'; changed = true; }
+      if (!b.widthPx) { b.widthPx = 32 + Math.floor(Math.random() * 22); changed = true; }
+    });
+    if (changed) saveBooks(list);
+    return list;
   }
   function saveBooks(list) {
     try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {}
@@ -336,44 +422,92 @@ body::after {
 
   let books = loadBooks();
   let activeFilter = 'all';
+  let selectedColor = 'black';
+  let activeDetailId = null;
+  let dragSrcId = null;
 
-  const rowEl = document.getElementById('bookRow');
+  const shelfEl = document.getElementById('shelfOuter');
   const modalBg = document.getElementById('bookModalBg');
   const titleInput = document.getElementById('bookTitleInput');
   const statusInput = document.getElementById('bookStatusInput');
+  const colorRow = document.getElementById('bookColorRow');
   const filtersEl = document.getElementById('bookFilters');
-
-  const STATUS_LABEL = { reading: 'Reading', read: 'Read', dropped: 'Dropped' };
+  const detailBg = document.getElementById('bookDetailBg');
 
   function escapeHtml(s) {
     return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   }
 
+  // ---------- Color swatch picker (add modal) ----------
+  colorRow.innerHTML = Object.keys(COLORS).map((key) => {
+    const c = COLORS[key];
+    return '<button type="button" class="book-color-swatch' + (key === selectedColor ? ' active' : '') + '" ' +
+      'data-color="' + key + '" style="background:' + c.base + '" aria-label="' + c.name + '"></button>';
+  }).join('');
+  colorRow.addEventListener('click', (e) => {
+    const btn = e.target.closest('.book-color-swatch');
+    if (!btn) return;
+    selectedColor = btn.dataset.color;
+    colorRow.querySelectorAll('.book-color-swatch').forEach((b) => b.classList.toggle('active', b === btn));
+  });
+
+  // ---------- Shelf layout: pack spines into rows that fit the container width ----------
+  function packIntoRows(list, containerWidth) {
+    const gap = 7;
+    const rows = [];
+    let current = [];
+    let currentWidth = 0;
+    list.forEach((b) => {
+      const w = b.widthPx;
+      const addWidth = current.length ? w + gap : w;
+      if (current.length && currentWidth + addWidth > containerWidth) {
+        rows.push(current);
+        current = [b];
+        currentWidth = w;
+      } else {
+        current.push(b);
+        currentWidth += addWidth;
+      }
+    });
+    if (current.length) rows.push(current);
+    return rows;
+  }
+
   function render() {
     const visible = activeFilter === 'all' ? books : books.filter((b) => b.status === activeFilter);
     if (!visible.length) {
-      rowEl.innerHTML = '<div class="book-empty">' +
+      shelfEl.innerHTML = '<div class="book-empty">' +
         (books.length ? 'No books match this filter.' : 'No books yet — tap + to add your first one.') +
         '</div>';
       return;
     }
-    rowEl.innerHTML = visible.map((b) => {
-      const statusHtml = b.status
-        ? '<span class="book-card-status status-' + b.status + '">' + STATUS_LABEL[b.status] + '</span>'
-        : '';
-      return '<div class="book-card" data-id="' + b.id + '">' +
-        '<button class="book-card-del" data-id="' + b.id + '" aria-label="Delete">×</button>' +
-        '<div class="book-card-icon">📖</div>' +
-        '<div class="book-card-title">' + escapeHtml(b.title) + '</div>' +
-        '<div class="book-card-spacer"></div>' +
-        statusHtml +
-        '</div>';
+    const containerWidth = Math.max(200, shelfEl.clientWidth - 48);
+    const rows = packIntoRows(visible, containerWidth);
+    shelfEl.innerHTML = rows.map((row) => {
+      const spines = row.map((b) => {
+        const c = COLORS[b.color] || COLORS.black;
+        return '<div class="book-spine" draggable="true" data-id="' + b.id + '" ' +
+          'style="width:' + b.widthPx + 'px; --spine-glow:' + c.light + '80; ' +
+          'background:linear-gradient(180deg,' + c.light + ' 0%,' + c.base + ' 45%,' + c.dark + ' 100%)">' +
+          '<span class="book-spine-title">' + escapeHtml(b.title) + '</span>' +
+          '</div>';
+      }).join('');
+      return '<div class="shelf-row">' + spines + '<div class="shelf-plank"></div></div>';
     }).join('');
   }
 
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(render, 150);
+  });
+
+  // ---------- Add modal ----------
   function openModal() {
     titleInput.value = '';
     statusInput.value = '';
+    selectedColor = 'black';
+    colorRow.querySelectorAll('.book-color-swatch').forEach((b) => b.classList.toggle('active', b.dataset.color === 'black'));
     modalBg.classList.add('show');
     setTimeout(() => titleInput.focus(), 0);
   }
@@ -385,16 +519,12 @@ body::after {
     books.unshift({
       id: 'b' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
       title: title,
-      status: statusInput.value || null
+      status: statusInput.value || null,
+      color: selectedColor,
+      widthPx: 32 + Math.floor(Math.random() * 22)
     });
     saveBooks(books);
     closeModal();
-    render();
-  }
-
-  function deleteBook(id) {
-    books = books.filter((b) => b.id !== id);
-    saveBooks(books);
     render();
   }
 
@@ -404,9 +534,79 @@ body::after {
   modalBg.addEventListener('click', (e) => { if (e.target === modalBg) closeModal(); });
   titleInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') addBook(); });
 
-  rowEl.addEventListener('click', (e) => {
-    const del = e.target.closest('.book-card-del');
-    if (del) { deleteBook(del.dataset.id); }
+  // ---------- Detail modal ----------
+  function openDetail(id) {
+    const b = books.find((x) => x.id === id);
+    if (!b) return;
+    activeDetailId = id;
+    const c = COLORS[b.color] || COLORS.black;
+    document.getElementById('bookDetailTitle').textContent = b.title;
+    const statusEl = document.getElementById('bookDetailStatus');
+    if (b.status) {
+      statusEl.innerHTML = '<span class="book-detail-status status-' + b.status + '">' + STATUS_LABEL[b.status] + '</span>';
+    } else {
+      statusEl.textContent = '—';
+    }
+    document.getElementById('bookDetailSwatch').style.background = c.base;
+    document.getElementById('bookDetailColorName').textContent = c.name;
+    detailBg.classList.add('show');
+  }
+  function closeDetail() { detailBg.classList.remove('show'); activeDetailId = null; }
+
+  detailBg.addEventListener('click', (e) => { if (e.target === detailBg) closeDetail(); });
+  document.getElementById('bookDetailDelete').addEventListener('click', () => {
+    if (!activeDetailId) return;
+    books = books.filter((b) => b.id !== activeDetailId);
+    saveBooks(books);
+    closeDetail();
+    render();
+  });
+
+  // ---------- Shelf interactions: click to open detail, drag to reorder ----------
+  let dragMoved = false;
+  shelfEl.addEventListener('click', (e) => {
+    const spine = e.target.closest('.book-spine');
+    if (!spine || dragMoved) return;
+    openDetail(spine.dataset.id);
+  });
+
+  shelfEl.addEventListener('dragstart', (e) => {
+    const spine = e.target.closest('.book-spine');
+    if (!spine) return;
+    dragMoved = false;
+    dragSrcId = spine.dataset.id;
+    spine.classList.add('is-dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    try { e.dataTransfer.setData('text/plain', dragSrcId); } catch (err) {}
+  });
+  shelfEl.addEventListener('dragend', (e) => {
+    const spine = e.target.closest('.book-spine');
+    if (spine) spine.classList.remove('is-dragging');
+    shelfEl.querySelectorAll('.book-spine.drag-over').forEach((el) => el.classList.remove('drag-over'));
+    dragSrcId = null;
+  });
+  shelfEl.addEventListener('dragover', (e) => {
+    const spine = e.target.closest('.book-spine');
+    if (!spine || !dragSrcId || spine.dataset.id === dragSrcId) return;
+    e.preventDefault();
+    dragMoved = true;
+    shelfEl.querySelectorAll('.book-spine.drag-over').forEach((el) => el.classList.remove('drag-over'));
+    spine.classList.add('drag-over');
+  });
+  shelfEl.addEventListener('drop', (e) => {
+    const spine = e.target.closest('.book-spine');
+    if (!spine || !dragSrcId) return;
+    e.preventDefault();
+    const targetId = spine.dataset.id;
+    if (targetId === dragSrcId) return;
+    const fromIdx = books.findIndex((b) => b.id === dragSrcId);
+    const toIdx = books.findIndex((b) => b.id === targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+    const [moved] = books.splice(fromIdx, 1);
+    books.splice(toIdx, 0, moved);
+    saveBooks(books);
+    render();
+    setTimeout(() => { dragMoved = false; }, 0);
   });
 
   filtersEl.addEventListener('click', (e) => {
