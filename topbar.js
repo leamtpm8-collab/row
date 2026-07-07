@@ -68,8 +68,15 @@
 .topbar-water-add.flash {
   background: linear-gradient(180deg, rgba(110, 231, 183, 0.75), rgba(110, 231, 183, 0.5));
 }
+.topbar-icons {
+  display: flex; align-items: stretch; gap: 8px;
+  overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+.topbar-icons::-webkit-scrollbar { display: none; }
 .topbar-finance-btn {
   display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
   width: 44px; height: 42px;
   border: 1px solid rgba(255, 255, 255, 0.10);
   background: rgba(255, 255, 255, 0.04);
@@ -81,6 +88,60 @@
 .topbar-finance-icon {
   font-size: 20px; line-height: 1;
   filter: grayscale(100%) brightness(1.4); opacity: 0.85;
+}
+.topbar-quote {
+  padding: 9px 16px 0;
+  font-family: var(--font-serif, Georgia, 'Times New Roman', serif);
+  font-style: italic;
+  font-size: 12.5px;
+  color: var(--text-3, rgba(255,255,255,0.42));
+  text-align: center;
+}
+.cal-modal-bg {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.62); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+  align-items: center; justify-content: center; padding: 20px;
+}
+.cal-modal-bg.show { display: flex; }
+.cal-sheet {
+  width: 100%; max-width: 360px;
+  background: var(--bg-card, #0e0e10);
+  border: 1px solid var(--border, rgba(110,231,183,0.12));
+  border-radius: var(--radius, 22px);
+  padding: 18px;
+}
+.cal-head { display: flex; align-items: center; justify-content: space-between; gap: 4px; margin-bottom: 14px; }
+.cal-nav {
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-1, #FAFAFA); width: 30px; height: 30px; border-radius: 8px;
+  font-size: 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+}
+.cal-nav:hover { border-color: var(--border-strong, rgba(110,231,183,0.3)); }
+.cal-title {
+  font-family: var(--font-serif, Georgia, 'Times New Roman', serif);
+  font-style: italic; font-weight: 700; font-size: 17px;
+  color: var(--text-1, #FAFAFA); flex: 1; text-align: center;
+}
+.cal-weekdays {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;
+  font-family: var(--font-mono, ui-monospace, monospace); font-size: 10px;
+  color: var(--text-3, rgba(255,255,255,0.4)); text-transform: uppercase;
+  text-align: center; margin-bottom: 6px;
+}
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.cal-day {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  border-radius: 9px; font-size: 13px; color: var(--text-1, #FAFAFA);
+  font-variant-numeric: tabular-nums;
+}
+.cal-day.is-other-month { color: var(--text-4, rgba(255,255,255,0.18)); }
+.cal-day.is-today { background: var(--accent, #6ee7b7); color: #06110c; font-weight: 800; }
+.cal-close {
+  width: 100%; margin-top: 16px; padding: 11px;
+  border: 1px solid var(--border, rgba(255,255,255,0.1));
+  background: rgba(255,255,255,0.04); color: var(--text-1, #FAFAFA);
+  border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 .bottombar {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
@@ -157,13 +218,36 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     </a>
     <button class="topbar-water-add" id="topbarWaterAdd" aria-label="Ein Getränk erfassen" type="button">+</button>
   </div>
-  <a href="finance.html" class="topbar-finance-btn" id="topbarFinance" aria-label="Finanzen">
-    <span class="topbar-finance-icon">📊</span>
-  </a>
-  <button class="topbar-finance-btn" id="topbarLogout" aria-label="Abmelden" type="button">
-    <span class="topbar-finance-icon">🚪</span>
-  </button>
-</header>`;
+  <div class="topbar-icons">
+    <a href="finance.html" class="topbar-finance-btn" id="topbarFinance" aria-label="Finanzen">
+      <span class="topbar-finance-icon">📊</span>
+    </a>
+    <a href="index.html" class="topbar-finance-btn" id="topbarHome" aria-label="Zurück zur Übersicht">
+      <span class="topbar-finance-icon">🧭</span>
+    </a>
+    <button class="topbar-finance-btn" id="topbarCalendar" aria-label="Kalender" type="button">
+      <span class="topbar-finance-icon">📅</span>
+    </button>
+    <button class="topbar-finance-btn" id="topbarLogout" aria-label="Abmelden" type="button">
+      <span class="topbar-finance-icon">🚪</span>
+    </button>
+  </div>
+</header>
+<div class="topbar-quote" id="topbarQuote"></div>
+<div class="cal-modal-bg" id="calModalBg">
+  <div class="cal-sheet">
+    <div class="cal-head">
+      <button class="cal-nav" id="calPrevYear" type="button" aria-label="Vorheriges Jahr">«</button>
+      <button class="cal-nav" id="calPrevMonth" type="button" aria-label="Vorheriger Monat">‹</button>
+      <div class="cal-title" id="calTitle">—</div>
+      <button class="cal-nav" id="calNextMonth" type="button" aria-label="Nächster Monat">›</button>
+      <button class="cal-nav" id="calNextYear" type="button" aria-label="Nächstes Jahr">»</button>
+    </div>
+    <div class="cal-weekdays"><span>Mo</span><span>Di</span><span>Mi</span><span>Do</span><span>Fr</span><span>Sa</span><span>So</span></div>
+    <div class="cal-grid" id="calGrid"></div>
+    <button class="cal-close" id="calCloseBtn" type="button">Schließen</button>
+  </div>
+</div>`;
 
   const bottombarHtml = `
 <nav class="bottombar" id="bottombar" role="navigation" aria-label="Hauptbereiche">
@@ -199,6 +283,7 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     if (p.endsWith('activities.html')) return 'fitness';
     if (p.endsWith('start-activity.html')) return 'fitness';
     if (p.endsWith('progress.html')) return 'fitness';
+    if (p.endsWith('fitness-recommendations.html')) return 'fitness';
     if (p.endsWith('main.html')) return 'main';
     return '';
   }
@@ -213,7 +298,9 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     if (shouldShowChrome() && !document.getElementById('topbar') && !document.getElementById('bottombar')) {
       const topWrap = document.createElement('div');
       topWrap.innerHTML = topbarHtml.trim();
-      document.body.insertBefore(topWrap.firstChild, document.body.firstChild);
+      const topNodes = Array.from(topWrap.childNodes);
+      const anchor = document.body.firstChild;
+      topNodes.forEach((node) => document.body.insertBefore(node, anchor));
       const bottomWrap = document.createElement('div');
       bottomWrap.innerHTML = bottombarHtml.trim();
       document.body.appendChild(bottomWrap.firstChild);
@@ -409,7 +496,7 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     }, { passive: false });
   }
   function startModalLock() {
-    const MODAL_SELECTORS = ['.modal-bg', '.po-modal-bg', '.wt-overlay', '.wt-viewer', '.wt-cam'];
+    const MODAL_SELECTORS = ['.modal-bg', '.po-modal-bg', '.wt-overlay', '.wt-viewer', '.wt-cam', '.cal-modal-bg'];
     function anyOpen() {
       for (const sel of MODAL_SELECTORS) {
         const els = document.querySelectorAll(sel);
@@ -437,6 +524,101 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     }
   }
 
+  // -------- Calendar (pure month/year browser, no per-day linkage) --------
+  const MONTH_NAMES = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  let calView = null; // { year, month } — month is 0-11
+
+  function renderCalendar() {
+    const grid = document.getElementById('calGrid');
+    const title = document.getElementById('calTitle');
+    if (!grid || !title || !calView) return;
+    const { year, month } = calView;
+    title.textContent = MONTH_NAMES[month] + ' ' + year;
+
+    const today = new Date();
+    const firstOfMonth = new Date(year, month, 1);
+    // Monday-first offset: JS getDay() is 0=Sunday..6=Saturday.
+    const startOffset = (firstOfMonth.getDay() + 6) % 7;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+    let html = '';
+    for (let i = 0; i < startOffset; i++) {
+      html += '<div class="cal-day is-other-month">' + (daysInPrevMonth - startOffset + i + 1) + '</div>';
+    }
+    for (let d = 1; d <= daysInMonth; d++) {
+      const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+      html += '<div class="cal-day' + (isToday ? ' is-today' : '') + '">' + d + '</div>';
+    }
+    const totalCells = startOffset + daysInMonth;
+    const trailing = (7 - (totalCells % 7)) % 7;
+    for (let d = 1; d <= trailing; d++) {
+      html += '<div class="cal-day is-other-month">' + d + '</div>';
+    }
+    grid.innerHTML = html;
+  }
+  function shiftCalendar(deltaMonths, deltaYears) {
+    if (!calView) return;
+    let { year, month } = calView;
+    if (deltaYears) year += deltaYears;
+    if (deltaMonths) {
+      month += deltaMonths;
+      while (month > 11) { month -= 12; year++; }
+      while (month < 0) { month += 12; year--; }
+    }
+    calView = { year, month };
+    renderCalendar();
+  }
+  function initCalendar() {
+    const openBtn = document.getElementById('topbarCalendar');
+    const bg = document.getElementById('calModalBg');
+    const closeBtn = document.getElementById('calCloseBtn');
+    if (!openBtn || !bg) return;
+    openBtn.addEventListener('click', () => {
+      const now = new Date();
+      calView = { year: now.getFullYear(), month: now.getMonth() };
+      renderCalendar();
+      bg.classList.add('show');
+    });
+    const close = () => bg.classList.remove('show');
+    if (closeBtn) closeBtn.addEventListener('click', close);
+    bg.addEventListener('click', (e) => { if (e.target === bg) close(); });
+    const on = (id, fn) => { const el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+    on('calPrevMonth', () => shiftCalendar(-1, 0));
+    on('calNextMonth', () => shiftCalendar(1, 0));
+    on('calPrevYear', () => shiftCalendar(0, -1));
+    on('calNextYear', () => shiftCalendar(0, 1));
+  }
+
+  // -------- Motivational quote of the day (deterministic, tasteful) --------
+  const MOTIVATION_QUOTES = [
+    'Jeden Tag ein Punkt besser.',
+    'Kleine Fortschritte werden zu großen Ergebnissen.',
+    'Trainiere heute für den Spieler, der du morgen sein willst.',
+    'Disziplin schlägt Motivation — jeden Tag.',
+    'Der nächste Punkt zählt mehr als der letzte.',
+    'Form folgt Wiederholung.',
+    'Ruhe ist Teil des Trainings.',
+    'Konstanz schlägt Intensität.',
+    'Was du heute übst, spielst du morgen automatisch.',
+    'Große Ziele werden in kleinen Sessions erreicht.',
+    'Fokus ist eine Entscheidung, keine Stimmung.',
+    'Der Unterschied liegt in den Details.',
+    'Gute Gewohnheiten schlagen gute Vorsätze.',
+    'Heute zählt — nicht irgendwann.',
+    'Kein perfekter Tag, nur der nächste richtige Schritt.',
+    'Wer die Grundlagen beherrscht, gewinnt die engen Punkte.',
+    'Erholung ist die stille Hälfte des Fortschritts.',
+    'Ein Prozent besser ist immer noch besser.',
+  ];
+  function initQuote() {
+    const el = document.getElementById('topbarQuote');
+    if (!el) return;
+    const d = new Date();
+    const seed = d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate();
+    el.textContent = '"' + MOTIVATION_QUOTES[seed % MOTIVATION_QUOTES.length] + '"';
+  }
+
   function boot() {
     injectStyleAndHTML();
     registerServiceWorker();
@@ -448,6 +630,8 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     lockGestures();
     startModalLock();
     initWhoopSync();
+    initCalendar();
+    initQuote();
     window.addEventListener('storage', render);
     window.addEventListener('focus', render);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
