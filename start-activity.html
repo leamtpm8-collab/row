@@ -87,6 +87,8 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     { key: 'laufen', label: 'Laufen', icon: '🏃' },
     { key: 'fahrrad', label: 'Fahrrad', icon: '🚴' },
     { key: 'spaziergang', label: 'Spaziergang', icon: '🚶' },
+    { key: 'seilspringen', label: 'Seilspringen', icon: '🪢' },
+    { key: 'hiit', label: 'HIIT', icon: '🔥' },
     { key: 'eigene', label: 'Eigene Aktivität', icon: '✨', custom: true },
   ];
 
@@ -195,6 +197,13 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     running = false;
     showPicker();
   });
+
+  if (window.initCloudSync) {
+    window.initCloudSync({
+      appKey: 'fitness',
+      syncedKeys: ['fitness_activities_v1', 'fitness_body_v1', 'fitness_steps_today_v1'],
+    });
+  }
 })();
 </script>
 </body>

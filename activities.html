@@ -114,7 +114,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
   };
   const SPORT_ICONS = {
     'Laufen': '🏃', 'Radfahren': '🚴', 'Tennis': '🎾', 'Gym': '🏋️',
-    'Spaziergang': '🚶', 'HIIT': '🔥', 'Spinning': '🚴', 'Wandern': '🥾', 'Aktivität': '💪',
+    'Spaziergang': '🚶', 'HIIT': '🔥', 'Spinning': '🚴', 'Wandern': '🥾', 'Seilspringen': '🪢', 'Aktivität': '💪',
   };
   function sportName(id) { return SPORT_NAMES[id] || 'Aktivität'; }
   function sportIcon(type) { return SPORT_ICONS[type] || '💪'; }
@@ -309,6 +309,14 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
   }
 
   boot();
+
+  if (window.initCloudSync) {
+    window.initCloudSync({
+      appKey: 'fitness',
+      syncedKeys: ['fitness_activities_v1', 'fitness_body_v1', 'fitness_steps_today_v1'],
+      onApplied: boot,
+    });
+  }
 })();
 </script>
 </body>

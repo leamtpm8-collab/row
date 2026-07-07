@@ -59,8 +59,10 @@ body {
 .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
 .stat-card {
   background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px;
-  padding: 14px 12px; text-align: left;
+  padding: 14px 12px; text-align: left; width: 100%; font-family: inherit; color: inherit; cursor: default;
 }
+button.stat-card { cursor: pointer; }
+button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
 .stat-label { font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
 .stat-val { font-size: 19px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
 .stat-sub { font-size: 11px; color: var(--text-4); margin-top: 2px; }
@@ -244,8 +246,22 @@ body {
     document.getElementById('scoreNum').textContent = score != null ? score + '%' : '—';
   }
 
-  function statCard(label, val, sub) {
-    return '<div class="stat-card"><div class="stat-label">' + label + '</div><div class="stat-val">' + val + '</div><div class="stat-sub">' + (sub || '') + '</div></div>';
+  function statCard(label, val, sub, id) {
+    const tag = id ? 'button type="button" id="' + id + '"' : 'div';
+    const closeTag = id ? 'button' : 'div';
+    return '<' + tag + ' class="stat-card">' +
+      '<div class="stat-label">' + label + '</div><div class="stat-val">' + val + '</div><div class="stat-sub">' + (sub || '') + '</div>' +
+    '</' + closeTag + '>';
+  }
+
+  function editStepsToday() {
+    const current = loadTodaySteps();
+    const input = prompt('Schritte heute?', current != null ? String(current) : '');
+    if (input == null) return;
+    const n = parseInt(input, 10);
+    if (isNaN(n) || n < 0) return;
+    try { localStorage.setItem(STEPS_KEY, JSON.stringify({ date: todayKey(), steps: n })); } catch (e) {}
+    boot();
   }
 
   async function boot() {
@@ -294,7 +310,6 @@ body {
     });
 
     renderRing(score);
-    document.getElementById('scoreRingFill').style.stroke = zoneColor(score);
     document.getElementById('scoreNum').style.color = zoneColor(score);
     if (score != null) {
       document.getElementById('scoreNote').textContent = 'Basierend auf ' +
@@ -303,15 +318,24 @@ body {
     }
 
     document.getElementById('statGrid').innerHTML =
-      statCard('Schritte', steps != null ? steps.toLocaleString('de-DE') : '—', steps != null ? Math.round(steps / TARGETS.steps * 100) + '% Ziel' : 'manuell erfassen') +
+      statCard('Schritte', steps != null ? steps.toLocaleString('de-DE') : '—', steps != null ? Math.round(steps / TARGETS.steps * 100) + '% Ziel · antippen' : 'antippen zum Erfassen', 'stepsCard') +
       statCard('Kalorien', calories != null ? Math.round(calories) : '—', 'aktiv, kcal') +
       statCard('Strain', strain != null ? strain.toFixed(1) : '—', 'WHOOP') +
       statCard('Aktivität', fmtMin(activityMin), activities.length + ' heute') +
       statCard('HF-Zonen', hrZoneMin != null ? fmtMin(hrZoneMin) : '—', 'Zone 1–5') +
       statCard('VO₂max', '—', 'noch nicht verfügbar');
+    document.getElementById('stepsCard').addEventListener('click', editStepsToday);
   }
 
   boot();
+
+  if (window.initCloudSync) {
+    window.initCloudSync({
+      appKey: 'fitness',
+      syncedKeys: ['fitness_activities_v1', 'fitness_body_v1', 'fitness_steps_today_v1'],
+      onApplied: boot,
+    });
+  }
 })();
 </script>
 </body>
