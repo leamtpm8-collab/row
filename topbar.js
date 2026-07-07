@@ -292,7 +292,7 @@ body.has-bottombar .roger-popup, body.has-page-tabs .roger-popup { bottom: calc(
   <a href="main.html" class="bottombar-tab" data-page="main">
     <span class="bottombar-tab-icon">🏠</span><span>Start</span>
   </a>
-  <a href="health.html" class="bottombar-tab" data-page="health">
+  <a href="wellness.html" class="bottombar-tab" data-page="health">
     <span class="bottombar-tab-icon">💊</span><span>Gesundheit</span>
   </a>
   <a href="fitness.html" class="bottombar-tab" data-page="fitness">
@@ -379,6 +379,9 @@ body.has-bottombar .roger-popup, body.has-page-tabs .roger-popup { bottom: calc(
   function currentPageKey() {
     const p = (window.location.pathname || '').toLowerCase();
     if (p.endsWith('health.html')) return 'health';
+    if (p.endsWith('wellness.html')) return 'health';
+    if (p.endsWith('recovery.html')) return 'health';
+    if (p.endsWith('recommendations.html')) return 'health';
     if (p.endsWith('gym.html')) return 'fitness';
     if (p.endsWith('fitness.html')) return 'fitness';
     if (p.endsWith('activities.html')) return 'fitness';

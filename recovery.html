@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Erholungsdaten</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --bg: #0a0a0b; --bg-card: #111113; --bg-card-2: #17171a;
+  --text-1: #ffffff; --text-2: rgba(255,255,255,0.6); --text-3: rgba(255,255,255,0.4); --text-4: rgba(255,255,255,0.25);
+  --border: rgba(255,255,255,0.08); --accent: #ffffff;
+  --good: #6ee7b7; --warn: #fbbf24; --bad: #ff8a8a;
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 40px; }
+.wrap { max-width: 640px; margin: 0 auto; }
+.back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.back-link:hover { color: var(--text-2); }
+.hd { margin-bottom: 18px; }
+.hd h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.trend-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 16px 18px; margin-bottom: 16px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
+.trend-h { font-size: 13px; font-weight: 700; color: var(--text-2); margin-bottom: 10px; }
+.trend-line { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 5px 0; }
+.trend-line .arrow { font-size: 14px; }
+.trend-line.up { color: var(--good); } .trend-line.down { color: var(--bad); } .trend-line.flat { color: var(--text-3); }
+.trend-empty { font-size: 13px; color: var(--text-3); }
+
+.group-h { font-size: 13px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-mono); margin: 20px 0 10px; }
+.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 14px 14px; }
+.stat-label { font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-val { font-size: 19px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.connect-note { text-align: center; color: var(--text-3); font-size: 13px; padding: 40px 0; }
+.connect-note a { color: var(--text-2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="wellness.html" class="back-link">← Gesundheit</a>
+  <div class="hd">
+    <h1>Erholungsdaten</h1>
+    <div class="sub" id="recDateLabel">—</div>
+  </div>
+
+  <div id="recBody"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const WHOOP_KEY = 'whoop_tokens_v1';
+  function loadWhoopTokens() { try { return JSON.parse(localStorage.getItem(WHOOP_KEY)); } catch (e) { return null; } }
+  function saveWhoopTokens(t) { try { localStorage.setItem(WHOOP_KEY, JSON.stringify(t)); } catch (e) {} }
+  async function refreshWhoopToken(t) {
+    if (!t.refresh) return null;
+    try {
+      const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: t.refresh }) });
+      const j = await r.json();
+      if (j.access_token) {
+        const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in || 3500) * 1000 };
+        saveWhoopTokens(next);
+        return next;
+      }
+    } catch (e) {}
+    return null;
+  }
+  async function whoopFetch(path, t) {
+    const [p, qs] = path.split('?');
+    const params = new URLSearchParams(qs || ''); params.set('path', p);
+    const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { Authorization: 'Bearer ' + t.access, Accept: 'application/json' } });
+    if (r.status === 401) { const n = await refreshWhoopToken(t); if (n) return whoopFetch(path, n); throw new Error('unauthorized'); }
+    if (!r.ok) throw new Error('WHOOP ' + r.status);
+    return await r.json();
+  }
+
+  function fmtMins(ms) {
+    if (ms == null) return '—';
+    const m = Math.round(ms / 60000);
+    const h = Math.floor(m / 60);
+    return h + 'h ' + String(m % 60).padStart(2, '0') + 'm';
+  }
+  function fmtClock(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+  function statCard(label, val) {
+    return '<div class="stat-card"><div class="stat-label">' + label + '</div><div class="stat-val">' + val + '</div></div>';
+  }
+  function avg(arr) { const v = arr.filter((x) => x != null); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; }
+
+  function trendLine(label, arrow, cls) {
+    return '<div class="trend-line ' + cls + '"><span class="arrow">' + arrow + '</span><span>' + label + '</span></div>';
+  }
+  function buildTrends(hrvToday, hrvYesterday, rhrToday, rhrWeekAvg, sleepDurToday, sleepDurWeekAvg) {
+    const lines = [];
+    if (hrvToday != null && hrvYesterday != null && Math.abs(hrvToday - hrvYesterday) >= 2) {
+      lines.push(hrvToday > hrvYesterday
+        ? trendLine('HRV höher als gestern.', '↑', 'up')
+        : trendLine('HRV niedriger als gestern.', '↓', 'down'));
+    }
+    if (rhrToday != null && rhrWeekAvg != null && Math.abs(rhrToday - rhrWeekAvg) >= 1) {
+      lines.push(rhrToday < rhrWeekAvg
+        ? trendLine('Ruhepuls niedriger als dein 7-Tage-Schnitt.', '↓', 'up')
+        : trendLine('Ruhepuls höher als dein 7-Tage-Schnitt.', '↑', 'down'));
+    }
+    if (sleepDurToday != null && sleepDurWeekAvg != null && Math.abs(sleepDurToday - sleepDurWeekAvg) >= 20 * 60000) {
+      lines.push(sleepDurToday < sleepDurWeekAvg
+        ? trendLine('Schlafdauer unter deinem Durchschnitt.', '↓', 'down')
+        : trendLine('Schlafdauer über deinem Durchschnitt.', '↑', 'up'));
+    }
+    return lines;
+  }
+
+  async function boot() {
+    const dLabel = document.getElementById('recDateLabel');
+    const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    const mons = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    const now = new Date();
+    dLabel.textContent = days[now.getDay()] + ', ' + now.getDate() + '. ' + mons[now.getMonth()];
+
+    const body = document.getElementById('recBody');
+    const tokens = loadWhoopTokens();
+    if (!tokens || !tokens.access) {
+      body.innerHTML = '<div class="connect-note">WHOOP auf der <a href="health.html">Gesundheit-Seite</a> verbinden, um deine Erholungsdaten zu sehen.</div>';
+      return;
+    }
+
+    try {
+      let t = tokens;
+      if (t.expires && Date.now() > t.expires - 60000) { const n = await refreshWhoopToken(t); if (n) t = n; }
+      const [recHist, sleepHist, cycle] = await Promise.all([
+        whoopFetch('/recovery?limit=8', t).catch(() => null),
+        whoopFetch('/activity/sleep?limit=8', t).catch(() => null),
+        whoopFetch('/cycle?limit=1', t).catch(() => null),
+      ]);
+      const recRecords = (recHist && recHist.records) || [];
+      const sleepRecords = (sleepHist && sleepHist.records) || [];
+      const rToday = recRecords[0] && recRecords[0].score;
+      const rYesterday = recRecords[1] && recRecords[1].score;
+      const sToday = sleepRecords[0];
+      const c = cycle && cycle.records && cycle.records[0] && cycle.records[0].score;
+
+      const rhrWeekAvg = avg(recRecords.slice(1, 8).map((x) => x.score && x.score.resting_heart_rate));
+      const ssToday = sToday && sToday.score && sToday.score.stage_summary;
+      const sleepDurToday = ssToday ? (ssToday.total_in_bed_time_milli || 0) - (ssToday.total_awake_time_milli || 0) : null;
+      const sleepDurWeekAvg = avg(sleepRecords.slice(1, 8).map((x) => {
+        const ss = x.score && x.score.stage_summary;
+        return ss ? (ss.total_in_bed_time_milli || 0) - (ss.total_awake_time_milli || 0) : null;
+      }));
+
+      const trends = buildTrends(
+        rToday ? rToday.hrv_rmssd_milli : null, rYesterday ? rYesterday.hrv_rmssd_milli : null,
+        rToday ? rToday.resting_heart_rate : null, rhrWeekAvg,
+        sleepDurToday, sleepDurWeekAvg
+      );
+
+      let html = '<div class="trend-card"><div class="trend-h">Im Vergleich</div>' +
+        (trends.length ? trends.join('') : '<div class="trend-empty">Noch nicht genug Verlaufsdaten für einen Vergleich.</div>') +
+        '</div>';
+
+      html += '<div class="group-h">Erholung</div><div class="stat-grid">' +
+        statCard('Recovery Score', rToday && rToday.recovery_score != null ? Math.round(rToday.recovery_score) + '%' : '—') +
+        statCard('HRV', rToday && rToday.hrv_rmssd_milli != null ? Math.round(rToday.hrv_rmssd_milli) + ' ms' : '—') +
+        statCard('Ruhepuls', rToday && rToday.resting_heart_rate != null ? Math.round(rToday.resting_heart_rate) + ' bpm' : '—') +
+        statCard('Blutsauerstoff', rToday && rToday.spo2_percentage != null ? rToday.spo2_percentage.toFixed(1) + '%' : '—') +
+      '</div>';
+
+      html += '<div class="group-h">Schlaf</div><div class="stat-grid">' +
+        statCard('Schlafdauer', fmtMins(sleepDurToday)) +
+        statCard('Schlafqualität', sToday && sToday.score && sToday.score.sleep_performance_percentage != null ? Math.round(sToday.score.sleep_performance_percentage) + '%' : '—') +
+        statCard('Einschlafzeit', sToday ? fmtClock(sToday.start) : '—') +
+        statCard('Aufwachzeit', sToday ? fmtClock(sToday.end) : '—') +
+        statCard('Tiefschlaf', ssToday ? fmtMins(ssToday.total_slow_wave_sleep_time_milli) : '—') +
+        statCard('REM-Schlaf', ssToday ? fmtMins(ssToday.total_rem_sleep_time_milli) : '—') +
+        statCard('Atemfrequenz', sToday && sToday.score && sToday.score.respiratory_rate != null ? sToday.score.respiratory_rate.toFixed(1) + '/min' : '—') +
+      '</div>';
+
+      html += '<div class="group-h">Herzfrequenz &amp; Belastung</div><div class="stat-grid">' +
+        statCard('Ø-Herzfrequenz', c && c.average_heart_rate != null ? Math.round(c.average_heart_rate) + ' bpm' : '—') +
+        statCard('Maximale HF', c && c.max_heart_rate != null ? Math.round(c.max_heart_rate) + ' bpm' : '—') +
+        statCard('Strain', c && c.strain != null ? c.strain.toFixed(1) : '—') +
+      '</div>';
+
+      body.innerHTML = html;
+    } catch (e) {
+      body.innerHTML = '<div class="connect-note">WHOOP-Daten aktuell nicht erreichbar.</div>';
+    }
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>

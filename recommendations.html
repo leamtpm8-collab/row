@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Empfehlungen</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --bg: #0a0a0b; --bg-card: #111113; --bg-card-2: #17171a;
+  --text-1: #ffffff; --text-2: rgba(255,255,255,0.6); --text-3: rgba(255,255,255,0.4); --text-4: rgba(255,255,255,0.25);
+  --border: rgba(255,255,255,0.08); --accent: #ffffff;
+  --good: #6ee7b7; --warn: #fbbf24; --bad: #ff8a8a;
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 40px; }
+.wrap { max-width: 640px; margin: 0 auto; }
+.back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.back-link:hover { color: var(--text-2); }
+.hd { margin-bottom: 18px; }
+.hd h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.tip-card {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+  padding: 18px; margin-bottom: 12px; box-shadow: 0 8px 26px rgba(0,0,0,0.3);
+}
+.tip-icon { width: 44px; height: 44px; border-radius: 14px; background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 21px; flex-shrink: 0; }
+.tip-title { font-size: 15px; font-weight: 700; }
+.tip-reason { font-size: 12.5px; color: var(--text-3); margin-top: 3px; }
+.basis-card { margin-top: 22px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 16px 18px; }
+.basis-h { font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-mono); margin-bottom: 8px; }
+.basis-row { font-size: 13px; color: var(--text-2); padding: 3px 0; }
+.connect-note { text-align: center; color: var(--text-3); font-size: 13px; padding: 20px 0 30px; }
+.connect-note a { color: var(--text-2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="wellness.html" class="back-link">← Gesundheit</a>
+  <div class="hd">
+    <h1>Empfehlungen</h1>
+    <div class="sub" id="recoDateLabel">—</div>
+  </div>
+
+  <div id="tipsBody"></div>
+  <div class="basis-card" id="basisCard" style="display:none">
+    <div class="basis-h">Grundlage der heutigen Empfehlungen</div>
+    <div id="basisBody"></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const WHOOP_KEY = 'whoop_tokens_v1';
+  function loadWhoopTokens() { try { return JSON.parse(localStorage.getItem(WHOOP_KEY)); } catch (e) { return null; } }
+  function saveWhoopTokens(t) { try { localStorage.setItem(WHOOP_KEY, JSON.stringify(t)); } catch (e) {} }
+  async function refreshWhoopToken(t) {
+    if (!t.refresh) return null;
+    try {
+      const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: t.refresh }) });
+      const j = await r.json();
+      if (j.access_token) {
+        const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in || 3500) * 1000 };
+        saveWhoopTokens(next);
+        return next;
+      }
+    } catch (e) {}
+    return null;
+  }
+  async function whoopFetch(path, t) {
+    const [p, qs] = path.split('?');
+    const params = new URLSearchParams(qs || ''); params.set('path', p);
+    const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { Authorization: 'Bearer ' + t.access, Accept: 'application/json' } });
+    if (r.status === 401) { const n = await refreshWhoopToken(t); if (n) return whoopFetch(path, n); throw new Error('unauthorized'); }
+    if (!r.ok) throw new Error('WHOOP ' + r.status);
+    return await r.json();
+  }
+  function avg(arr) { const v = arr.filter((x) => x != null); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; }
+  function todayKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  // Mirrors topbar.js's own water-target formula so "behind on hydration"
+  // means the same thing here as it does on the water pill.
+  function waterBehindToday() {
+    let state = null;
+    try { state = JSON.parse(localStorage.getItem('po_water_v1')); } catch (e) {}
+    if (!state) return false;
+    const done = (state.logs || {})[todayKey()] || 0;
+    const p = state.profile || { weightKg: 75 };
+    const wKg = state.weightUnit === 'lb' ? (p.weightKg || 0) / 2.20462 : (p.weightKg || 0);
+    const totalMl = wKg * 35 + ((p.activityHrsPerWeek || 0) / 7) * 500;
+    const unitVol = state.unit === 'glass' ? (state.glassMl || 250) : state.unit === 'oz' ? 30 : state.unit === 'ml' ? 1 : (state.bottleMl || 500);
+    const total = Math.max(1, Math.ceil(totalMl / unitVol));
+    const h = new Date().getHours();
+    return h >= 14 && done < total * 0.5;
+  }
+  function hasActivityToday() {
+    try {
+      const acts = JSON.parse(localStorage.getItem('fitness_activities_v1')) || [];
+      return acts.some((a) => (a.startTime || '').slice(0, 10) === todayKey());
+    } catch (e) { return false; }
+  }
+
+  function tipCard(icon, title, reason) {
+    return '<div class="tip-card"><div class="tip-icon">' + icon + '</div><div><div class="tip-title">' + title + '</div><div class="tip-reason">' + reason + '</div></div></div>';
+  }
+
+  // Fixed-order candidate pool, each gated by a real condition computed
+  // from today's data — selection is deterministic (same data → same
+  // tips), not randomized, so it changes only because the day's actual
+  // recovery/sleep/hydration data changes.
+  function buildTips(ctx) {
+    const candidates = [
+      {
+        id: 'recover', cond: ctx.score != null && ctx.score < 34, icon: '🛌',
+        title: 'Heute lieber regenerieren.', reason: 'Deine Erholung liegt heute bei ' + ctx.score + '% — niedrig.',
+      },
+      {
+        id: 'easy_training', cond: ctx.score != null && ctx.score >= 34 && ctx.score < 67, icon: '🚶',
+        title: 'Heute eine lockere Trainingseinheit wählen.', reason: 'Deine Erholung ist heute durchschnittlich (' + ctx.score + '%).',
+      },
+      {
+        id: 'sleep_early', cond: ctx.sleepDurToday != null && ctx.sleepDurWeekAvg != null && ctx.sleepDurToday < ctx.sleepDurWeekAvg - 20 * 60000, icon: '😴',
+        title: 'Heute früher ins Bett gehen.', reason: 'Deine Schlafdauer lag zuletzt unter deinem 7-Tage-Schnitt.',
+      },
+      {
+        id: 'stress', cond: (ctx.hrvToday != null && ctx.hrvYesterday != null && ctx.hrvToday < ctx.hrvYesterday) || (ctx.score != null && ctx.score < 34), icon: '🧠',
+        title: 'Stress reduzieren.', reason: ctx.hrvToday != null && ctx.hrvYesterday != null && ctx.hrvToday < ctx.hrvYesterday ? 'Deine HRV ist niedriger als gestern.' : 'Deine Erholung ist aktuell niedrig.',
+      },
+      {
+        id: 'stretch', cond: ctx.score != null && ctx.score < 67, icon: '🧘',
+        title: 'Eine kleine Dehneinheit machen.', reason: 'Unterstützt die Regeneration an einem ' + (ctx.score < 34 ? 'niedrigen' : 'durchschnittlichen') + ' Erholungstag.',
+      },
+      {
+        id: 'protein', cond: ctx.strain != null && ctx.strain >= 14 && ctx.score != null && ctx.score >= 67, icon: '🍳',
+        title: 'Auf genügend Eiweiß achten.', reason: 'Dein Strain war zuletzt hoch (' + (ctx.strain != null ? ctx.strain.toFixed(1) : '—') + ') bei guter Erholung.',
+      },
+      {
+        id: 'hydrate', cond: ctx.waterBehind, icon: '💧',
+        title: 'Heute ausreichend trinken.', reason: 'Du liegst heute noch hinter deinem Trinkziel.',
+      },
+      {
+        id: 'walk', cond: !ctx.hasActivity && (ctx.score == null || ctx.score < 67), icon: '🌳',
+        title: 'Einen Spaziergang einbauen.', reason: 'Noch keine Aktivität heute erfasst.',
+      },
+    ];
+    let picked = candidates.filter((c) => c.cond);
+    const fallbackOrder = ['hydrate', 'stretch', 'walk'];
+    for (const id of fallbackOrder) {
+      if (picked.length >= 3) break;
+      const c = candidates.find((x) => x.id === id);
+      if (c && !picked.includes(c)) picked.push(Object.assign({}, c, { reason: 'Guter Standard-Tipp für jeden Tag.' }));
+    }
+    return picked.slice(0, 5);
+  }
+
+  async function boot() {
+    const dLabel = document.getElementById('recoDateLabel');
+    const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    const mons = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    const now = new Date();
+    dLabel.textContent = days[now.getDay()] + ', ' + now.getDate() + '. ' + mons[now.getMonth()];
+
+    const ctx = {
+      score: null, hrvToday: null, hrvYesterday: null, sleepDurToday: null, sleepDurWeekAvg: null,
+      strain: null, waterBehind: waterBehindToday(), hasActivity: hasActivityToday(),
+    };
+
+    const tokens = loadWhoopTokens();
+    if (tokens && tokens.access) {
+      try {
+        let t = tokens;
+        if (t.expires && Date.now() > t.expires - 60000) { const n = await refreshWhoopToken(t); if (n) t = n; }
+        const [recHist, sleepHist, cycle] = await Promise.all([
+          whoopFetch('/recovery?limit=8', t).catch(() => null),
+          whoopFetch('/activity/sleep?limit=8', t).catch(() => null),
+          whoopFetch('/cycle?limit=1', t).catch(() => null),
+        ]);
+        const recRecords = (recHist && recHist.records) || [];
+        const sleepRecords = (sleepHist && sleepHist.records) || [];
+        const rToday = recRecords[0] && recRecords[0].score;
+        const rYesterday = recRecords[1] && recRecords[1].score;
+        const sToday = sleepRecords[0] && sleepRecords[0].score && sleepRecords[0].score.stage_summary;
+        const c = cycle && cycle.records && cycle.records[0] && cycle.records[0].score;
+
+        ctx.score = rToday && rToday.recovery_score != null ? Math.round(rToday.recovery_score) : null;
+        ctx.hrvToday = rToday ? rToday.hrv_rmssd_milli : null;
+        ctx.hrvYesterday = rYesterday ? rYesterday.hrv_rmssd_milli : null;
+        ctx.sleepDurToday = sToday ? (sToday.total_in_bed_time_milli || 0) - (sToday.total_awake_time_milli || 0) : null;
+        ctx.sleepDurWeekAvg = avg(sleepRecords.slice(1, 8).map((x) => {
+          const ss = x.score && x.score.stage_summary;
+          return ss ? (ss.total_in_bed_time_milli || 0) - (ss.total_awake_time_milli || 0) : null;
+        }));
+        ctx.strain = c ? c.strain : null;
+      } catch (e) { /* offline — tips fall back to hydration/activity-based reasoning */ }
+    }
+
+    const tips = buildTips(ctx);
+    document.getElementById('tipsBody').innerHTML = tips.map((t) => tipCard(t.icon, t.title, t.reason)).join('');
+
+    if (ctx.score != null) {
+      document.getElementById('basisCard').style.display = '';
+      document.getElementById('basisBody').innerHTML =
+        '<div class="basis-row">Recovery Score: ' + ctx.score + '%</div>' +
+        (ctx.hrvToday != null ? '<div class="basis-row">HRV: ' + Math.round(ctx.hrvToday) + ' ms</div>' : '') +
+        (ctx.strain != null ? '<div class="basis-row">Strain: ' + ctx.strain.toFixed(1) + '</div>' : '') +
+        (ctx.sleepDurToday != null ? '<div class="basis-row">Schlafdauer heute vs. Schnitt berücksichtigt</div>' : '');
+    } else if (!tokens || !tokens.access) {
+      document.getElementById('tipsBody').insertAdjacentHTML('beforeend', '<div class="connect-note">WHOOP auf der <a href="health.html">Gesundheit-Seite</a> verbinden für individuellere Empfehlungen.</div>');
+    }
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
