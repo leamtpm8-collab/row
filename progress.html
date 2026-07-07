@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Gewicht &amp; Progress</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --bg: #0a0a0b; --bg-card: #111113; --bg-card-2: #17171a;
+  --text-1: #ffffff; --text-2: rgba(255,255,255,0.6); --text-3: rgba(255,255,255,0.4); --text-4: rgba(255,255,255,0.25);
+  --border: rgba(255,255,255,0.08); --accent: #ffffff;
+  --good: #6ee7b7; --warn: #fbbf24; --bad: #ff8a8a;
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 40px; }
+.wrap { max-width: 640px; margin: 0 auto; }
+.back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.back-link:hover { color: var(--text-2); }
+.hd { margin: 0 0 18px; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; padding: 20px; margin-bottom: 14px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
+.card-h { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+
+/* ---- body stats ---- */
+.body-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.body-field label { display: block; font-size: 11px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.body-field input {
+  width: 100%; background: var(--bg-card-2); border: 1px solid var(--border); border-radius: 12px;
+  padding: 11px 12px; color: var(--text-1); font-size: 15px; font-family: inherit; outline: none;
+}
+.body-field input:focus { border-color: rgba(255,255,255,0.3); }
+.weight-locked { display: flex; align-items: center; justify-content: space-between; background: var(--bg-card-2); border-radius: 12px; padding: 11px 12px; }
+.weight-locked-val { font-size: 15px; font-weight: 700; }
+.weight-edit-btn { background: none; border: none; color: var(--text-3); font-size: 12px; font-weight: 700; cursor: pointer; }
+
+/* ---- weight chart ---- */
+.chart-top { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+.chart-num { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.chart-delta { font-size: 13px; font-weight: 700; }
+.chart-delta.up { color: var(--bad); } .chart-delta.down { color: var(--good); }
+.wchart-wrap { position: relative; margin-top: 10px; }
+.wchart { width: 100%; height: 110px; overflow: visible; }
+.wchart-grid { stroke: rgba(255,255,255,0.06); stroke-width: 1; }
+.wchart-area { fill: url(#pgFill); }
+.wchart-line { fill: none; stroke: var(--text-1); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.wchart-avg { fill: none; stroke: rgba(255,255,255,0.3); stroke-width: 1.5; stroke-dasharray: 3 3; }
+.wchart-dot { fill: var(--bg-card); stroke: rgba(255,255,255,0.5); stroke-width: 1.5; }
+.wchart-dot-today { fill: var(--text-1); }
+.chart-meta { font-size: 11.5px; color: var(--text-4); margin-top: 6px; }
+.chart-empty { font-size: 13px; color: var(--text-3); text-align: center; padding: 20px 0; }
+
+/* ---- photos ---- */
+.photo-actions { display: flex; gap: 10px; margin-bottom: 14px; }
+.photo-btn { flex: 1; padding: 12px; border-radius: 14px; border: none; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+.photo-btn.primary { background: var(--text-1); color: #0a0a0b; }
+.photo-btn.secondary { background: var(--bg-card-2); color: var(--text-1); }
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.photo-card { position: relative; aspect-ratio: 3/4; border-radius: 14px; overflow: hidden; border: none; padding: 0; cursor: pointer; background: var(--bg-card-2); }
+.photo-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.photo-meta { position: absolute; left: 0; right: 0; bottom: 0; padding: 6px 7px; background: linear-gradient(0deg, rgba(0,0,0,0.75), transparent); display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; color: #fff; }
+.photo-empty { grid-column: 1 / -1; text-align: center; color: var(--text-3); font-size: 13px; padding: 30px 0; }
+
+/* ---- camera modal ---- */
+.cam-modal, .viewer-modal { position: fixed; inset: 0; background: #000; display: none; flex-direction: column; z-index: 70; }
+.cam-modal.show, .viewer-modal.show { display: flex; }
+.cam-stage { flex: 1; position: relative; overflow: hidden; }
+.cam-video { width: 100%; height: 100%; object-fit: cover; }
+.cam-actions { display: flex; align-items: center; justify-content: space-between; padding: 20px 26px max(20px, env(safe-area-inset-bottom)); }
+.cam-btn { background: rgba(255,255,255,0.12); border: none; color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; }
+.cam-shutter { width: 68px; height: 68px; border-radius: 50%; background: #fff; border: 4px solid rgba(255,255,255,0.4); cursor: pointer; }
+
+.viewer-single, .viewer-compare-view { display: none; flex-direction: column; height: 100%; }
+.viewer-modal[data-mode="single"] .viewer-single { display: flex; }
+.viewer-modal[data-mode="compare"] .viewer-compare-view { display: flex; }
+.viewer-stage { flex: 1; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.viewer-stage img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.viewer-meta { text-align: center; color: #fff; padding: 10px 0; }
+.viewer-date { font-size: 12px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.05em; }
+.viewer-weight { font-size: 18px; font-weight: 800; margin-top: 2px; }
+.viewer-actions { display: flex; gap: 10px; padding: 12px 18px max(18px, env(safe-area-inset-bottom)); }
+.viewer-btn { flex: 1; padding: 13px; border: none; border-radius: 14px; font-size: 13.5px; font-weight: 700; cursor: pointer; background: rgba(255,255,255,0.1); color: #fff; }
+.viewer-btn.delete { background: rgba(255,90,90,0.18); color: #ff8a8a; }
+.viewer-btn.delete.is-confirm { background: #ff5757; color: #2b0a0a; }
+
+.compare-stage { flex: 1; display: flex; }
+.compare-side { flex: 1; position: relative; border: none; padding: 0; cursor: default; background: #000; }
+.compare-side.other { cursor: pointer; }
+.compare-side img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.compare-meta-line { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px; background: linear-gradient(0deg, rgba(0,0,0,0.8), transparent); color: #fff; font-size: 11.5px; font-weight: 700; text-align: center; }
+.compare-headline { text-align: center; color: #fff; font-size: 14px; font-weight: 700; padding: 10px 0; }
+.compare-headline.up { color: var(--bad); } .compare-headline.down { color: var(--good); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="fitness.html" class="back-link">← Fitness</a>
+  <h1 class="hd">Gewicht &amp; Progress</h1>
+
+  <div class="card">
+    <div class="card-h">Körperdaten</div>
+    <div class="body-grid">
+      <div class="body-field">
+        <label>Gewicht (<span id="unitLabel">kg</span>)</label>
+        <div id="weightLocked" class="weight-locked" style="display:none">
+          <span class="weight-locked-val" id="weightLockedVal">—</span>
+          <button class="weight-edit-btn" id="weightEditBtn" type="button">Bearbeiten</button>
+        </div>
+        <input id="weightInput" type="number" step="0.1" inputmode="decimal" placeholder="z. B. 74.5">
+      </div>
+      <div class="body-field">
+        <label>Größe (cm)</label>
+        <input id="heightInput" type="number" inputmode="numeric" placeholder="z. B. 180">
+      </div>
+      <div class="body-field">
+        <label>Körperfett (%)</label>
+        <input id="bodyFatInput" type="number" step="0.1" inputmode="decimal" placeholder="optional">
+      </div>
+      <div class="body-field">
+        <label>Zielgewicht (<span id="unitLabel2">kg</span>)</label>
+        <input id="targetWeightInput" type="number" step="0.1" inputmode="decimal" placeholder="optional">
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="chartCard">
+    <div class="chart-top">
+      <div class="chart-num" id="chartNum">— <span style="font-size:15px;color:var(--text-3);font-weight:600" id="chartUnit">kg</span></div>
+      <div class="chart-delta" id="chartDelta"></div>
+    </div>
+    <div id="chartBody"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">Fortschrittsfotos</div>
+    <div class="photo-actions">
+      <button class="photo-btn primary" id="takePhotoBtn" type="button">Foto aufnehmen</button>
+      <button class="photo-btn secondary" id="fromLibraryBtn" type="button">Aus Mediathek</button>
+    </div>
+    <input type="file" id="fileCamera" accept="image/*" capture="environment" style="display:none">
+    <input type="file" id="fileLibrary" accept="image/*" style="display:none">
+    <div class="photo-grid" id="photoGrid"></div>
+  </div>
+</div>
+
+<div class="cam-modal" id="camModal">
+  <div class="cam-stage">
+    <video class="cam-video" id="camVideo" autoplay playsinline muted></video>
+    <canvas id="camCanvas" style="display:none"></canvas>
+  </div>
+  <div class="cam-actions">
+    <button class="cam-btn" id="camCancel" type="button">Abbrechen</button>
+    <button class="cam-shutter" id="camShutter" type="button" aria-label="Aufnehmen"></button>
+    <button class="cam-btn" id="camFlip" type="button" aria-label="Kamera wechseln">↺</button>
+  </div>
+</div>
+
+<div class="viewer-modal" id="viewerModal" data-mode="single">
+  <div class="viewer-single">
+    <div class="viewer-stage"><img id="viewerImg" alt=""></div>
+    <div class="viewer-meta">
+      <div class="viewer-date" id="viewerDate">—</div>
+      <div class="viewer-weight" id="viewerWeight">—</div>
+    </div>
+    <div class="viewer-actions">
+      <button class="viewer-btn" id="viewerCompareBtn" type="button">Vergleichen</button>
+      <button class="viewer-btn" id="viewerCloseBtn" type="button">Schließen</button>
+      <button class="viewer-btn delete" id="viewerDeleteBtn" type="button">Löschen</button>
+    </div>
+  </div>
+  <div class="viewer-compare-view">
+    <div class="compare-stage">
+      <div class="compare-side" id="cmpSideA"><img id="cmpImgA" alt=""><div class="compare-meta-line" id="cmpMetaA">—</div></div>
+      <button type="button" class="compare-side other" id="cmpSideB" aria-label="Mit anderem Foto vergleichen"><img id="cmpImgB" alt=""><div class="compare-meta-line" id="cmpMetaB">—</div></button>
+    </div>
+    <div class="compare-headline" id="compareHeadline">—</div>
+    <div class="viewer-actions">
+      <button class="viewer-btn" id="compareBackBtn" type="button">← Zurück</button>
+      <button class="viewer-btn" id="compareCloseBtn" type="button">Schließen</button>
+      <button class="viewer-btn delete" id="compareDeleteBtn" type="button">Löschen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ============================================================
+  // Reuses gym.html's exact data: po_coach_weights / po_coach_photos,
+  // plus a new fitness_body_v1 for height/body-fat/target-weight.
+  // gym.html itself is not modified — both pages read/write the same
+  // keys so weight entries and photos stay in sync everywhere.
+  // ============================================================
+  const WT_KEY = 'po_coach_weights';
+  const PHOTO_KEY = 'po_coach_photos';
+  const BODY_KEY = 'fitness_body_v1';
+  const UNIT = 'kg';
+
+  function wtDateKey(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function wtParseKey(key) { const [y, m, d] = key.split('-').map(Number); return new Date(y, m - 1, d); }
+  function wtLoad() {
+    try {
+      const raw = localStorage.getItem(WT_KEY);
+      const arr = raw ? JSON.parse(raw) : [];
+      return Array.isArray(arr) ? arr.sort((a, b) => a.dateKey.localeCompare(b.dateKey)) : [];
+    } catch (e) { return []; }
+  }
+  function wtSave(arr) { try { localStorage.setItem(WT_KEY, JSON.stringify(arr)); } catch (e) {} }
+  let wtEntries = wtLoad();
+
+  function loadBody() {
+    try { return JSON.parse(localStorage.getItem(BODY_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function saveBody(b) { try { localStorage.setItem(BODY_KEY, JSON.stringify(b)); } catch (e) {} }
+
+  function wtSmoothPath(points) {
+    if (!points.length) return '';
+    if (points.length === 1) return 'M ' + points[0].x + ' ' + points[0].y;
+    let d = 'M ' + points[0].x.toFixed(2) + ' ' + points[0].y.toFixed(2);
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1], curr = points[i];
+      const cx = (prev.x + curr.x) / 2;
+      d += ' Q ' + cx.toFixed(2) + ' ' + prev.y.toFixed(2) + ', ' + cx.toFixed(2) + ' ' + ((prev.y + curr.y) / 2).toFixed(2);
+      d += ' T ' + curr.x.toFixed(2) + ' ' + curr.y.toFixed(2);
+    }
+    return d;
+  }
+
+  function renderBodyFields() {
+    const b = loadBody();
+    document.getElementById('heightInput').value = b.heightCm || '';
+    document.getElementById('bodyFatInput').value = b.bodyFatPct || '';
+    document.getElementById('targetWeightInput').value = b.targetWeightKg || '';
+  }
+  ['heightInput', 'bodyFatInput', 'targetWeightInput'].forEach((id) => {
+    document.getElementById(id).addEventListener('change', () => {
+      const b = loadBody();
+      b.heightCm = parseFloat(document.getElementById('heightInput').value) || null;
+      b.bodyFatPct = parseFloat(document.getElementById('bodyFatInput').value) || null;
+      b.targetWeightKg = parseFloat(document.getElementById('targetWeightInput').value) || null;
+      saveBody(b);
+    });
+  });
+
+  function wtSaveEntry(weight) {
+    const key = wtDateKey(new Date());
+    const existing = wtEntries.find((e) => e.dateKey === key);
+    if (existing) existing.weight = weight;
+    else { wtEntries.push({ dateKey: key, weight }); wtEntries.sort((a, b) => a.dateKey.localeCompare(b.dateKey)); }
+    wtSave(wtEntries);
+    renderWeight();
+  }
+
+  function renderWeight() {
+    const last = wtEntries[wtEntries.length - 1] || null;
+    const todayKey = wtDateKey(new Date());
+    const todayEntry = wtEntries.find((e) => e.dateKey === todayKey);
+    document.getElementById('chartNum').innerHTML = (last ? last.weight.toFixed(1) : '—') + ' <span style="font-size:15px;color:var(--text-3);font-weight:600">' + UNIT + '</span>';
+
+    const lockedEl = document.getElementById('weightLocked');
+    const inputEl = document.getElementById('weightInput');
+    if (todayEntry) {
+      document.getElementById('weightLockedVal').textContent = todayEntry.weight.toFixed(1) + ' ' + UNIT;
+      lockedEl.style.display = 'flex';
+      inputEl.style.display = 'none';
+    } else {
+      lockedEl.style.display = 'none';
+      inputEl.style.display = '';
+      if (last && !inputEl.value) inputEl.value = last.weight.toFixed(1);
+    }
+
+    if (wtEntries.length >= 2) renderChart(); else renderChartEmpty();
+  }
+
+  function renderChartEmpty() {
+    document.getElementById('chartBody').innerHTML = '<div class="chart-empty">Trag mindestens 2 Gewichtswerte ein, um deinen Verlauf zu sehen.</div>';
+    document.getElementById('chartDelta').textContent = '';
+  }
+
+  function renderChart() {
+    const recent = wtEntries.slice(-30);
+    const weights = recent.map((e) => e.weight);
+    const min = Math.min.apply(null, weights), max = Math.max.apply(null, weights);
+    const pad = Math.max((max - min) * 0.15, 0.5);
+    const yMin = min - pad, yMax = max + pad;
+    const xLeft = 4, xRight = 316, yTop = 6, yBot = 100;
+    const xRange = xRight - xLeft, yRange = yBot - yTop;
+    const xFor = (i) => (recent.length === 1 ? xRight : xLeft + (i / (recent.length - 1)) * xRange);
+    const yFor = (w) => yBot - ((w - yMin) / (yMax - yMin)) * yRange;
+    const points = recent.map((e, i) => ({ x: xFor(i), y: yFor(e.weight) }));
+    const linePath = wtSmoothPath(points);
+    const areaPath = linePath + ' L ' + points[points.length - 1].x.toFixed(2) + ' ' + yBot + ' L ' + points[0].x.toFixed(2) + ' ' + yBot + ' Z';
+    const avgPoints = recent.map((_, i) => {
+      const start = Math.max(0, i - 6);
+      const win = recent.slice(start, i + 1);
+      const avg = win.reduce((s, p) => s + p.weight, 0) / win.length;
+      return { x: xFor(i), y: yFor(avg) };
+    });
+    const avgPath = wtSmoothPath(avgPoints);
+    let dots = '';
+    points.forEach((p, i) => {
+      const cls = i === points.length - 1 ? 'wchart-dot wchart-dot-today' : 'wchart-dot';
+      const r = i === points.length - 1 ? 4.5 : 3;
+      dots += '<circle class="' + cls + '" cx="' + p.x.toFixed(2) + '" cy="' + p.y.toFixed(2) + '" r="' + r + '"/>';
+    });
+    document.getElementById('chartBody').innerHTML =
+      '<div class="wchart-wrap"><svg class="wchart" viewBox="0 0 320 106" preserveAspectRatio="none">' +
+        '<defs><linearGradient id="pgFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#fff" stop-opacity="0.16"/><stop offset="100%" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>' +
+        '<line class="wchart-grid" x1="0" y1="6" x2="320" y2="6"/><line class="wchart-grid" x1="0" y1="53" x2="320" y2="53"/><line class="wchart-grid" x1="0" y1="100" x2="320" y2="100"/>' +
+        '<path class="wchart-avg" d="' + avgPath + '"/>' +
+        '<path class="wchart-area" d="' + areaPath + '"/>' +
+        '<path class="wchart-line" d="' + linePath + '"/>' +
+        dots +
+      '</svg></div>' +
+      '<div class="chart-meta">' + wtEntries.length + ' Einträge · letzte ' + recent.length + ' Tage</div>';
+
+    const last = wtEntries[wtEntries.length - 1];
+    const lastDate = wtParseKey(last.dateKey);
+    const cutoff = new Date(lastDate); cutoff.setDate(cutoff.getDate() - 7);
+    const baseline = wtEntries.find((e) => wtParseKey(e.dateKey) >= cutoff) || wtEntries[0];
+    const diff = last.weight - baseline.weight;
+    const deltaEl = document.getElementById('chartDelta');
+    if (Math.abs(diff) < 0.05) { deltaEl.textContent = ''; return; }
+    const arrow = diff > 0 ? '↑' : '↓';
+    const sign = diff > 0 ? '+' : '−';
+    deltaEl.textContent = arrow + ' ' + sign + Math.abs(diff).toFixed(1) + ' ' + UNIT + ' · 7 Tage';
+    deltaEl.className = 'chart-delta ' + (diff > 0 ? 'up' : 'down');
+  }
+
+  document.getElementById('weightEditBtn').addEventListener('click', () => {
+    document.getElementById('weightLocked').style.display = 'none';
+    const inputEl = document.getElementById('weightInput');
+    inputEl.style.display = '';
+    const todayEntry = wtEntries.find((e) => e.dateKey === wtDateKey(new Date()));
+    if (todayEntry) inputEl.value = todayEntry.weight.toFixed(1);
+    inputEl.focus(); inputEl.select();
+  });
+  document.getElementById('weightInput').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const v = parseFloat(e.target.value);
+    if (!isNaN(v) && v > 0) wtSaveEntry(v);
+  });
+  document.getElementById('weightInput').addEventListener('blur', (e) => {
+    const v = parseFloat(e.target.value);
+    if (!isNaN(v) && v > 0) wtSaveEntry(v);
+  });
+
+  // ============================================================
+  // PROGRESS PHOTOS — ported from gym.html verbatim (same storage
+  // shape, compression, compare logic) so photos stay identical
+  // whether opened from here or from gym.html's own tracker.
+  // ============================================================
+  let photos = [];
+  try { const raw = localStorage.getItem(PHOTO_KEY); if (raw) photos = JSON.parse(raw); } catch (e) { photos = []; }
+
+  function photosSave() { try { localStorage.setItem(PHOTO_KEY, JSON.stringify(photos)); return true; } catch (e) { return false; } }
+  function compressPhotoDataUrl(dataUrl, maxDim, quality) {
+    maxDim = maxDim || 1080; quality = quality == null ? 0.75 : quality;
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        let w = img.naturalWidth || img.width, h = img.naturalHeight || img.height;
+        if (w > maxDim || h > maxDim) {
+          if (w >= h) { h = Math.round(h * (maxDim / w)); w = maxDim; } else { w = Math.round(w * (maxDim / h)); h = maxDim; }
+        }
+        const c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        try { resolve(c.toDataURL('image/jpeg', quality)); } catch (e) { resolve(dataUrl); }
+      };
+      img.onerror = () => resolve(dataUrl);
+      img.src = dataUrl;
+    });
+  }
+  async function uploadPhotoToStorage(dataUrl) {
+    if (!pgSupa) return null;
+    try {
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+      const filename = 'photo_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10) + '.jpg';
+      const { error } = await pgSupa.storage.from('progress-photos').upload(filename, blob, { contentType: 'image/jpeg', upsert: false });
+      if (error) return null;
+      const { data } = pgSupa.storage.from('progress-photos').getPublicUrl(filename);
+      return data ? data.publicUrl : null;
+    } catch (e) { return null; }
+  }
+  function photoFmtDate(key) {
+    const d = wtParseKey(key);
+    const mons = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    return mons[d.getMonth()] + ' ' + d.getDate();
+  }
+  function photoCurrentWeight() {
+    const last = wtEntries[wtEntries.length - 1];
+    return last ? (last.weight.toFixed(1) + ' ' + UNIT) : '—';
+  }
+  function photosRender() {
+    const grid = document.getElementById('photoGrid');
+    if (!photos.length) {
+      grid.innerHTML = '<div class="photo-empty">Noch keine Fotos · tippe auf „Foto aufnehmen"</div>';
+      return;
+    }
+    grid.innerHTML = photos.map((p) =>
+      '<button class="photo-card" data-id="' + p.id + '" type="button">' +
+        '<img src="' + (p.url || p.dataUrl) + '" alt="">' +
+        '<div class="photo-meta"><span>' + photoFmtDate(p.dateKey) + '</span><span>' + (p.weight || '—') + '</span></div>' +
+      '</button>'
+    ).join('');
+    grid.querySelectorAll('.photo-card').forEach((card) => card.addEventListener('click', () => openPhoto(card.dataset.id)));
+  }
+  async function photosAdd(dataUrl) {
+    let compressed = dataUrl;
+    try { compressed = await compressPhotoDataUrl(dataUrl); } catch (e) {}
+    const id = 'p' + Date.now() + '_' + Math.floor(Math.random() * 999);
+    const entry = { id, dataUrl: compressed, dateKey: wtDateKey(new Date()), weight: photoCurrentWeight() };
+    photos.unshift(entry);
+    if (!photosSave()) {
+      try { entry.dataUrl = await compressPhotoDataUrl(dataUrl, 800, 0.6); } catch (e) {}
+      if (!photosSave()) { photos.shift(); alert('Speicher ist voll — lösche ältere Fortschrittsfotos, bevor du ein neues hinzufügst.'); return; }
+    }
+    photosRender();
+    uploadPhotoToStorage(entry.dataUrl).then((url) => {
+      if (!url) return;
+      const e = photos.find((p) => p.id === id);
+      if (!e) return;
+      e.url = url; delete e.dataUrl;
+      photosSave(); photosRender();
+    });
+  }
+  function fileToPhoto(file) {
+    const r = new FileReader();
+    r.onload = (e) => photosAdd(e.target.result);
+    r.readAsDataURL(file);
+  }
+
+  let camStream = null, camFacing = 'environment';
+  async function openCam() {
+    document.getElementById('camModal').classList.add('show');
+    try {
+      camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: camFacing } }, audio: false });
+      document.getElementById('camVideo').srcObject = camStream;
+    } catch (e) {
+      try {
+        camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        document.getElementById('camVideo').srcObject = camStream;
+      } catch (e2) { closeCam(); alert('Kamera nicht verfügbar. Nutze stattdessen "Aus Mediathek".'); throw e2; }
+    }
+  }
+  function closeCam() {
+    if (camStream) { camStream.getTracks().forEach((t) => t.stop()); camStream = null; }
+    document.getElementById('camVideo').srcObject = null;
+    document.getElementById('camModal').classList.remove('show');
+  }
+  document.getElementById('takePhotoBtn').addEventListener('click', async () => {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) { try { await openCam(); return; } catch (e) {} }
+    document.getElementById('fileCamera').click();
+  });
+  document.getElementById('fileCamera').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) fileToPhoto(f); e.target.value = ''; });
+  document.getElementById('fromLibraryBtn').addEventListener('click', () => document.getElementById('fileLibrary').click());
+  document.getElementById('fileLibrary').addEventListener('change', (e) => { const f = e.target.files && e.target.files[0]; if (f) fileToPhoto(f); e.target.value = ''; });
+  document.getElementById('camCancel').addEventListener('click', closeCam);
+  document.getElementById('camFlip').addEventListener('click', async () => {
+    camFacing = camFacing === 'environment' ? 'user' : 'environment';
+    if (camStream) camStream.getTracks().forEach((t) => t.stop());
+    try { await openCam(); } catch (e) {}
+  });
+  document.getElementById('camShutter').addEventListener('click', () => {
+    const video = document.getElementById('camVideo'), canvas = document.getElementById('camCanvas');
+    if (!video.videoWidth) return;
+    canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    closeCam();
+    photosAdd(dataUrl);
+  });
+
+  let activePhotoId = null, comparePhotoId = null, pvDeleteConfirm = false;
+  function openPhoto(id) {
+    const p = photos.find((x) => x.id === id);
+    if (!p) return;
+    activePhotoId = id;
+    document.getElementById('viewerImg').src = p.url || p.dataUrl;
+    document.getElementById('viewerDate').textContent = photoFmtDate(p.dateKey).toUpperCase();
+    document.getElementById('viewerWeight').textContent = p.weight || '—';
+    document.getElementById('viewerModal').dataset.mode = 'single';
+    document.getElementById('viewerModal').classList.add('show');
+    pvDeleteConfirm = false;
+    document.getElementById('viewerDeleteBtn').textContent = 'Löschen';
+    document.getElementById('viewerDeleteBtn').classList.remove('is-confirm');
+    document.getElementById('viewerCompareBtn').disabled = photos.length < 2;
+    document.getElementById('viewerCompareBtn').style.opacity = photos.length < 2 ? '0.4' : '';
+  }
+  function closePhoto() {
+    document.getElementById('viewerModal').classList.remove('show');
+    document.getElementById('viewerModal').dataset.mode = 'single';
+    activePhotoId = null; comparePhotoId = null;
+  }
+  function parseWeightStr(w) { if (!w) return null; const m = String(w).match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : null; }
+  function fmtDelta(diff, units) {
+    if (diff == null) return '';
+    if (Math.abs(diff) < 0.05) return '· keine Änderung';
+    const sign = diff > 0 ? '+' : '−';
+    return '· ' + sign + Math.abs(diff).toFixed(1) + ' ' + units;
+  }
+  function defaultCompareFor(activeId) {
+    const idx = photos.findIndex((p) => p.id === activeId);
+    if (idx === -1) return null;
+    if (photos[idx + 1]) return photos[idx + 1].id;
+    if (photos[idx - 1]) return photos[idx - 1].id;
+    return null;
+  }
+  function openCompare(activeId, otherId) {
+    const A = photos.find((p) => p.id === activeId), B = photos.find((p) => p.id === otherId);
+    if (!A || !B) return;
+    activePhotoId = activeId; comparePhotoId = otherId;
+    document.getElementById('cmpImgA').src = A.url || A.dataUrl;
+    document.getElementById('cmpImgB').src = B.url || B.dataUrl;
+    document.getElementById('cmpMetaA').textContent = photoFmtDate(A.dateKey) + ' · ' + (A.weight || '—');
+    document.getElementById('cmpMetaB').textContent = photoFmtDate(B.dateKey) + ' · ' + (B.weight || '—');
+    const wA = parseWeightStr(A.weight), wB = parseWeightStr(B.weight);
+    const headEl = document.getElementById('compareHeadline');
+    let cls = '', headline = photoFmtDate(A.dateKey) + ' → ' + photoFmtDate(B.dateKey);
+    if (wA != null && wB != null) {
+      const diff = wA - wB;
+      headline += ' ' + fmtDelta(diff, UNIT);
+      cls = Math.abs(diff) < 0.05 ? '' : (diff > 0 ? 'up' : 'down');
+    }
+    headEl.textContent = headline;
+    headEl.className = 'compare-headline ' + cls;
+    document.getElementById('viewerModal').dataset.mode = 'compare';
+    document.getElementById('viewerModal').classList.add('show');
+    pvDeleteConfirm = false;
+    document.getElementById('compareDeleteBtn').textContent = 'Löschen';
+    document.getElementById('compareDeleteBtn').classList.remove('is-confirm');
+  }
+  function cycleCompareTarget() {
+    if (!activePhotoId) return;
+    const others = photos.filter((p) => p.id !== activePhotoId);
+    if (!others.length) return;
+    const curIdx = others.findIndex((p) => p.id === comparePhotoId);
+    const nextIdx = (curIdx + 1) % others.length;
+    openCompare(activePhotoId, others[nextIdx].id);
+  }
+  function deleteActivePhoto(deleteBtn) {
+    if (!activePhotoId) return;
+    if (!pvDeleteConfirm) {
+      pvDeleteConfirm = true;
+      deleteBtn.textContent = 'Wirklich löschen?';
+      deleteBtn.classList.add('is-confirm');
+      setTimeout(() => { pvDeleteConfirm = false; deleteBtn.textContent = 'Löschen'; deleteBtn.classList.remove('is-confirm'); }, 3000);
+      return;
+    }
+    photos = photos.filter((p) => p.id !== activePhotoId);
+    photosSave(); photosRender(); closePhoto();
+  }
+  document.getElementById('viewerCloseBtn').addEventListener('click', closePhoto);
+  document.getElementById('compareCloseBtn').addEventListener('click', closePhoto);
+  document.getElementById('viewerDeleteBtn').addEventListener('click', () => deleteActivePhoto(document.getElementById('viewerDeleteBtn')));
+  document.getElementById('compareDeleteBtn').addEventListener('click', () => deleteActivePhoto(document.getElementById('compareDeleteBtn')));
+  document.getElementById('viewerCompareBtn').addEventListener('click', () => {
+    if (!activePhotoId) return;
+    const otherId = defaultCompareFor(activePhotoId);
+    if (!otherId) { alert('Mindestens ein weiteres Foto zum Vergleichen erforderlich.'); return; }
+    openCompare(activePhotoId, otherId);
+  });
+  document.getElementById('compareBackBtn').addEventListener('click', () => {
+    if (activePhotoId) document.getElementById('viewerModal').dataset.mode = 'single'; else closePhoto();
+  });
+  document.getElementById('cmpSideB').addEventListener('click', cycleCompareTarget);
+
+  // ============================================================
+  // Cloud sync — po_coach_weights/po_coach_photos use the same
+  // bespoke Supabase app_state sync as gym.html (generic sync.js's
+  // remote-wins-wholesale apply would corrupt the mid-upload photo
+  // merge below), so this block mirrors gym.html's exactly. New
+  // fitness_body_v1 rides the generic initCloudSync instead.
+  // ============================================================
+  const SUPABASE_URL = 'https://pwklhcijhzlsggwrpcfn.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_JOCItyLAFHHpUM5ogSX2vw_miQ9_ig9';
+  const APP_KEY = 'po-coach';
+  const PG_SYNCED_KEYS = ['po_coach_weights', 'po_coach_photos'];
+  let pgSupa = null, pgPushTimer = null, pgSuppressSync = false, pgLastSyncedJson = null;
+
+  function pgCollectState() {
+    const out = {};
+    PG_SYNCED_KEYS.forEach((k) => {
+      const v = localStorage.getItem(k);
+      if (v == null) return;
+      try {
+        let parsed = JSON.parse(v);
+        if (k === 'po_coach_photos' && Array.isArray(parsed)) parsed = parsed.filter((p) => p && p.url);
+        out[k] = parsed;
+      } catch (e) { out[k] = v; }
+    });
+    return out;
+  }
+  function pgIsUserEditing() {
+    const el = document.activeElement;
+    return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable);
+  }
+  function pgApplyRemoteState(remote) {
+    if (!remote || typeof remote !== 'object') return;
+    pgSuppressSync = true;
+    try {
+      if (Array.isArray(remote.po_coach_photos)) {
+        const localOnly = photos.filter((p) => !p.url && !remote.po_coach_photos.some((r) => r.id === p.id));
+        photos = remote.po_coach_photos.concat(localOnly);
+        localStorage.setItem('po_coach_photos', JSON.stringify(photos));
+      }
+      if (Array.isArray(remote.po_coach_weights)) {
+        wtEntries = remote.po_coach_weights.slice().sort((a, b) => a.dateKey.localeCompare(b.dateKey));
+        localStorage.setItem('po_coach_weights', JSON.stringify(wtEntries));
+      }
+    } finally { pgSuppressSync = false; }
+    renderWeight(); photosRender();
+  }
+  async function pgPushNow() {
+    if (!pgSupa) return;
+    const state = pgCollectState();
+    const json = JSON.stringify(state);
+    if (json === pgLastSyncedJson) return;
+    try {
+      const { error } = await pgSupa.from('app_state').upsert({ key: APP_KEY, data: state, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+      if (!error) pgLastSyncedJson = json;
+    } catch (e) {}
+  }
+  function pgSchedulePush() { clearTimeout(pgPushTimer); pgPushTimer = setTimeout(pgPushNow, 250); }
+
+  const origSet = localStorage.setItem.bind(localStorage);
+  localStorage.setItem = function (k, v) {
+    origSet(k, v);
+    try { if (!pgSuppressSync && PG_SYNCED_KEYS.indexOf(k) !== -1) pgSchedulePush(); } catch (e) {}
+  };
+
+  (async function initSupa() {
+    if (!window.supabase || SUPABASE_URL.indexOf('PASTE-') === 0) return;
+    pgSupa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    try {
+      const { data, error } = await pgSupa.from('app_state').select('data').eq('key', APP_KEY).maybeSingle();
+      if (!error && data && data.data) {
+        pgLastSyncedJson = JSON.stringify(data.data);
+        if (!pgIsUserEditing()) pgApplyRemoteState(data.data);
+      }
+    } catch (e) {}
+    pgSupa.channel('app_state_' + APP_KEY)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_state', filter: 'key=eq.' + APP_KEY }, (payload) => {
+        if (!payload.new || !payload.new.data) return;
+        const incoming = JSON.stringify(payload.new.data);
+        if (incoming === pgLastSyncedJson) return;
+        pgLastSyncedJson = incoming;
+        if (!pgIsUserEditing()) pgApplyRemoteState(payload.new.data);
+      })
+      .subscribe();
+  })();
+  window.addEventListener('beforeunload', () => {
+    const state = pgCollectState();
+    const json = JSON.stringify(state);
+    if (json === pgLastSyncedJson) return;
+    try {
+      fetch(SUPABASE_URL + '/rest/v1/app_state?on_conflict=key', {
+        method: 'POST',
+        headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
+        body: JSON.stringify({ key: APP_KEY, data: state, updated_at: new Date().toISOString() }),
+        keepalive: true,
+      }).catch(() => {});
+    } catch (e) {}
+  });
+
+  // Boot
+  renderBodyFields();
+  renderWeight();
+  photosRender();
+
+  if (window.initCloudSync) {
+    window.initCloudSync({
+      appKey: 'fitness',
+      syncedKeys: ['fitness_body_v1'],
+      onApplied: renderBodyFields,
+    });
+  }
+})();
+</script>
+</body>
+</html>

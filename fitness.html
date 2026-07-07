@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Fitness</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --bg: #0a0a0b;
+  --bg-card: #111113;
+  --bg-card-2: #17171a;
+  --text-1: #ffffff;
+  --text-2: rgba(255,255,255,0.6);
+  --text-3: rgba(255,255,255,0.4);
+  --text-4: rgba(255,255,255,0.25);
+  --border: rgba(255,255,255,0.08);
+  --accent: #ffffff;
+  --good: #6ee7b7;
+  --warn: #fbbf24;
+  --bad: #ff8a8a;
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+body {
+  color: var(--text-1); font-family: var(--font);
+  -webkit-font-smoothing: antialiased; min-height: 100vh;
+  padding: max(24px, env(safe-area-inset-top)) 18px 40px;
+}
+.wrap { max-width: 640px; margin: 0 auto; }
+.hd { margin-bottom: 22px; }
+.hd h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* ---- score ring ---- */
+.score-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 26px;
+  padding: 28px 20px 24px; display: flex; flex-direction: column; align-items: center;
+  box-shadow: 0 10px 34px rgba(0,0,0,0.4); margin-bottom: 16px;
+}
+.score-ring-wrap { position: relative; width: 190px; height: 190px; margin-bottom: 6px; }
+.score-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.score-ring-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 12; }
+.score-ring-fill { fill: none; stroke: var(--accent); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.22,1,0.36,1); }
+.score-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.score-num { font-size: 46px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.score-label { font-size: 12px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.score-note { font-size: 13px; color: var(--text-2); text-align: center; max-width: 320px; margin-top: 8px; }
+
+/* ---- today stat cards ---- */
+.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+.stat-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px;
+  padding: 14px 12px; text-align: left;
+}
+.stat-label { font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-val { font-size: 19px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.stat-sub { font-size: 11px; color: var(--text-4); margin-top: 2px; }
+@media (max-width: 420px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* ---- three big tiles ---- */
+.tile-stack { display: flex; flex-direction: column; gap: 12px; }
+.tile {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px;
+  padding: 20px; text-decoration: none; color: inherit;
+  box-shadow: 0 8px 26px rgba(0,0,0,0.35);
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+.tile:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.18); }
+.tile-icon {
+  width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0;
+  background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 26px;
+}
+.tile-body { flex: 1; min-width: 0; }
+.tile-title { font-size: 16.5px; font-weight: 700; }
+.tile-sub { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
+.tile-arrow { font-size: 18px; color: var(--text-3); flex-shrink: 0; }
+
+.whoop-hint { margin-top: 18px; font-size: 12.5px; color: var(--text-3); text-align: center; }
+.whoop-hint a { color: var(--text-2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hd">
+    <h1>Fitness</h1>
+    <div class="sub" id="fitDateLabel">—</div>
+  </div>
+
+  <div class="score-card">
+    <div class="score-ring-wrap">
+      <svg class="score-ring" viewBox="0 0 190 190">
+        <circle class="score-ring-track" cx="95" cy="95" r="82"></circle>
+        <circle class="score-ring-fill" id="scoreRingFill" cx="95" cy="95" r="82"></circle>
+      </svg>
+      <div class="score-ring-center">
+        <div class="score-num" id="scoreNum">—</div>
+        <div class="score-label">Fitness Score</div>
+      </div>
+    </div>
+    <div class="score-note" id="scoreNote">Verbinde WHOOP oder trag deine Schritte ein, um deinen Score zu berechnen.</div>
+  </div>
+
+  <div class="stat-grid" id="statGrid"></div>
+
+  <div class="tile-stack">
+    <a href="activities.html" class="tile">
+      <div class="tile-icon">🏃</div>
+      <div class="tile-body">
+        <div class="tile-title">Aktivitäten</div>
+        <div class="tile-sub">Heutige Einheiten &amp; Herzfrequenzzonen</div>
+      </div>
+      <div class="tile-arrow">→</div>
+    </a>
+    <a href="start-activity.html" class="tile">
+      <div class="tile-icon">▶️</div>
+      <div class="tile-body">
+        <div class="tile-title">Aktivität starten</div>
+        <div class="tile-sub">Gym, Tennis, Laufen, Fahrrad &amp; mehr</div>
+      </div>
+      <div class="tile-arrow">→</div>
+    </a>
+    <a href="progress.html" class="tile">
+      <div class="tile-icon">📈</div>
+      <div class="tile-body">
+        <div class="tile-title">Gewicht &amp; Progress</div>
+        <div class="tile-sub">Körperdaten &amp; Fortschrittsfotos</div>
+      </div>
+      <div class="tile-arrow">→</div>
+    </a>
+  </div>
+
+  <div class="whoop-hint" id="whoopHint"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // ============================================================
+  // WHOOP (optional — same connection as health.html)
+  // ============================================================
+  const WHOOP_KEY = 'whoop_tokens_v1';
+  function loadWhoopTokens() { try { return JSON.parse(localStorage.getItem(WHOOP_KEY)); } catch (e) { return null; } }
+  function saveWhoopTokens(t) { try { localStorage.setItem(WHOOP_KEY, JSON.stringify(t)); } catch (e) {} }
+  async function refreshWhoopToken(t) {
+    if (!t.refresh) return null;
+    try {
+      const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: t.refresh }) });
+      const j = await r.json();
+      if (j.access_token) {
+        const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in || 3500) * 1000 };
+        saveWhoopTokens(next);
+        return next;
+      }
+    } catch (e) {}
+    return null;
+  }
+  async function whoopFetch(path, t) {
+    const [p, qs] = path.split('?');
+    const params = new URLSearchParams(qs || ''); params.set('path', p);
+    const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { 'Authorization': 'Bearer ' + t.access, 'Accept': 'application/json' } });
+    if (r.status === 401) { const n = await refreshWhoopToken(t); if (n) return whoopFetch(path, n); throw new Error('unauthorized'); }
+    if (!r.ok) throw new Error('WHOOP ' + r.status);
+    return await r.json();
+  }
+
+  // ============================================================
+  // Local data
+  // ============================================================
+  const STEPS_KEY = 'fitness_steps_today_v1';
+  const ACTIVITIES_KEY = 'fitness_activities_v1';
+
+  function todayKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function loadTodaySteps() {
+    try {
+      const v = JSON.parse(localStorage.getItem(STEPS_KEY));
+      if (v && v.date === todayKey()) return v.steps;
+    } catch (e) {}
+    return null;
+  }
+  function loadActivities() {
+    try {
+      const arr = JSON.parse(localStorage.getItem(ACTIVITIES_KEY));
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+  function todaysActivities() {
+    const key = todayKey();
+    return loadActivities().filter((a) => (a.startTime || '').slice(0, 10) === key);
+  }
+  function fmtMin(mins) {
+    if (!mins) return '0min';
+    const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+    return h > 0 ? h + 'h ' + m + 'min' : m + 'min';
+  }
+
+  // ============================================================
+  // Fitness Score — weighted composite, renormalized over whatever
+  // data is actually available today (steps, WHOOP calories/strain,
+  // HR-zone minutes, logged activity). Mirrors the "redistribute
+  // weight when a component is missing" approach used in daily.html's
+  // Energy Score.
+  // ============================================================
+  const WEIGHTS = { steps: 0.25, calories: 0.20, strain: 0.25, activity: 0.15, hrZone: 0.15 };
+  const TARGETS = { steps: 10000, calories: 600, strain: 21, activityMin: 45, hrZoneMin: 30 };
+
+  function computeScore(inputs) {
+    let weightedSum = 0, weightTotal = 0;
+    for (const key of Object.keys(inputs)) {
+      const v = inputs[key];
+      if (v == null) continue;
+      weightedSum += Math.min(v, 1) * WEIGHTS[key];
+      weightTotal += WEIGHTS[key];
+    }
+    if (weightTotal === 0) return null;
+    return Math.round((weightedSum / weightTotal) * 100);
+  }
+
+  function zoneColor(score) {
+    if (score == null) return 'rgba(255,255,255,0.5)';
+    if (score >= 67) return 'var(--good)';
+    if (score >= 34) return 'var(--warn)';
+    return 'var(--bad)';
+  }
+
+  function renderRing(score) {
+    const fill = document.getElementById('scoreRingFill');
+    const C = 2 * Math.PI * 82;
+    fill.style.strokeDasharray = C;
+    fill.style.strokeDashoffset = score != null ? C * (1 - score / 100) : C;
+    document.getElementById('scoreNum').textContent = score != null ? score + '%' : '—';
+  }
+
+  function statCard(label, val, sub) {
+    return '<div class="stat-card"><div class="stat-label">' + label + '</div><div class="stat-val">' + val + '</div><div class="stat-sub">' + (sub || '') + '</div></div>';
+  }
+
+  async function boot() {
+    const dLabel = document.getElementById('fitDateLabel');
+    const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    const mons = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    const now = new Date();
+    dLabel.textContent = days[now.getDay()] + ', ' + now.getDate() + '. ' + mons[now.getMonth()];
+
+    const steps = loadTodaySteps();
+    const activities = todaysActivities();
+    const activityMin = activities.reduce((s, a) => s + (a.durationMin || 0), 0);
+
+    let calories = null, strain = null, hrZoneMin = null;
+    const tokens = loadWhoopTokens();
+    if (tokens && tokens.access) {
+      document.getElementById('whoopHint').innerHTML = '';
+      try {
+        let t = tokens;
+        if (t.expires && Date.now() > t.expires - 60000) { const n = await refreshWhoopToken(t); if (n) t = n; }
+        const cycle = await whoopFetch('/cycle?limit=1', t).catch(() => null);
+        const c = cycle && cycle.records && cycle.records[0] && cycle.records[0].score;
+        if (c) {
+          strain = c.strain;
+          if (c.kilojoule != null) calories = c.kilojoule * 0.239006;
+        }
+      } catch (e) { /* offline / expired — score just falls back to local data */ }
+    } else {
+      document.getElementById('whoopHint').innerHTML = 'WHOOP auf der <a href="health.html">Gesundheit-Seite</a> verbinden für Kalorien, Strain &amp; Herzfrequenzzonen.';
+    }
+
+    const whoopActivitiesToday = activities.filter((a) => a.source === 'whoop' && a.zoneMin);
+    if (whoopActivitiesToday.length) {
+      hrZoneMin = whoopActivitiesToday.reduce((s, a) => {
+        const z = a.zoneMin || {};
+        return s + (z[1] || 0) + (z[2] || 0) + (z[3] || 0) + (z[4] || 0) + (z[5] || 0);
+      }, 0);
+    }
+
+    const score = computeScore({
+      steps: steps != null ? steps / TARGETS.steps : null,
+      calories: calories != null ? calories / TARGETS.calories : null,
+      strain: strain != null ? strain / TARGETS.strain : null,
+      activity: activities.length ? Math.min(activityMin / TARGETS.activityMin, 1) : (activities.length ? 0 : null),
+      hrZone: hrZoneMin != null ? hrZoneMin / TARGETS.hrZoneMin : null,
+    });
+
+    renderRing(score);
+    document.getElementById('scoreRingFill').style.stroke = zoneColor(score);
+    document.getElementById('scoreNum').style.color = zoneColor(score);
+    if (score != null) {
+      document.getElementById('scoreNote').textContent = 'Basierend auf ' +
+        [steps != null ? 'Schritten' : null, calories != null ? 'Kalorien' : null, strain != null ? 'Strain' : null, hrZoneMin != null ? 'Herzfrequenzzonen' : null, activities.length ? 'Aktivitäten' : null]
+          .filter(Boolean).join(', ') + ' von heute.';
+    }
+
+    document.getElementById('statGrid').innerHTML =
+      statCard('Schritte', steps != null ? steps.toLocaleString('de-DE') : '—', steps != null ? Math.round(steps / TARGETS.steps * 100) + '% Ziel' : 'manuell erfassen') +
+      statCard('Kalorien', calories != null ? Math.round(calories) : '—', 'aktiv, kcal') +
+      statCard('Strain', strain != null ? strain.toFixed(1) : '—', 'WHOOP') +
+      statCard('Aktivität', fmtMin(activityMin), activities.length + ' heute') +
+      statCard('HF-Zonen', hrZoneMin != null ? fmtMin(hrZoneMin) : '—', 'Zone 1–5') +
+      statCard('VO₂max', '—', 'noch nicht verfügbar');
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Aktivitäten</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --bg: #0a0a0b; --bg-card: #111113; --bg-card-2: #17171a;
+  --text-1: #ffffff; --text-2: rgba(255,255,255,0.6); --text-3: rgba(255,255,255,0.4); --text-4: rgba(255,255,255,0.25);
+  --border: rgba(255,255,255,0.08); --accent: #ffffff;
+  --good: #6ee7b7; --warn: #fbbf24; --bad: #ff8a8a;
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 40px; }
+.wrap { max-width: 640px; margin: 0 auto; }
+.back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.back-link:hover { color: var(--text-2); }
+.hd { margin-bottom: 18px; }
+.hd h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.act-card {
+  width: 100%; display: flex; align-items: center; gap: 14px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+  padding: 16px; margin-bottom: 10px; cursor: pointer; text-align: left;
+  color: inherit; font-family: inherit; box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.act-card:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.18); }
+.act-icon { width: 46px; height: 46px; border-radius: 14px; background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+.act-body { flex: 1; min-width: 0; }
+.act-title { font-size: 15.5px; font-weight: 700; }
+.act-meta { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
+.act-arrow { color: var(--text-3); flex-shrink: 0; }
+.act-empty { text-align: center; color: var(--text-3); font-size: 14px; padding: 40px 0; }
+
+.zones-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; padding: 20px; margin-top: 22px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
+.zones-h { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
+.zone-row { display: grid; grid-template-columns: 78px 1fr 56px; align-items: center; gap: 10px; padding: 7px 0; }
+.zone-title { font-size: 13px; font-weight: 700; }
+.zone-bpm { font-size: 10.5px; color: var(--text-4); font-family: var(--font-mono); }
+.zone-bar-track { height: 10px; border-radius: 999px; background: rgba(255,255,255,0.06); overflow: hidden; }
+.zone-bar-fill { height: 100%; border-radius: 999px; width: 0%; transition: width 1s cubic-bezier(0.22,1,0.36,1); }
+.zone-time { font-size: 12.5px; color: var(--text-2); font-variant-numeric: tabular-nums; text-align: right; }
+.zones-empty { font-size: 13px; color: var(--text-3); text-align: center; padding: 10px 0; }
+
+.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(6px); display: none; align-items: flex-end; justify-content: center; z-index: 60; }
+.modal-bg.show { display: flex; }
+.detail-modal { width: 100%; max-width: 480px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 26px 26px 0 0; padding: 24px 22px max(24px, env(safe-area-inset-bottom)); max-height: 85vh; overflow-y: auto; }
+.detail-h { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.detail-icon { width: 52px; height: 52px; border-radius: 16px; background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 26px; }
+.detail-title { font-size: 19px; font-weight: 800; }
+.detail-sub { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
+.detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.detail-cell { background: var(--bg-card-2); border-radius: 14px; padding: 12px; }
+.detail-cell-label { font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
+.detail-cell-val { font-size: 17px; font-weight: 700; margin-top: 5px; font-variant-numeric: tabular-nums; }
+.detail-close { width: 100%; margin-top: 18px; padding: 13px; border: none; border-radius: 14px; background: var(--bg-card-2); color: var(--text-1); font-weight: 700; font-size: 14px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="fitness.html" class="back-link">← Fitness</a>
+  <div class="hd">
+    <h1>Aktivitäten</h1>
+    <div class="sub" id="actDateLabel">—</div>
+  </div>
+
+  <div id="actList"></div>
+
+  <div class="zones-card">
+    <div class="zones-h">Herzfrequenzzonen</div>
+    <div id="zonesBody"></div>
+  </div>
+</div>
+
+<div class="modal-bg" id="detailModalBg">
+  <div class="detail-modal" id="detailModal"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const ACTIVITIES_KEY = 'fitness_activities_v1';
+  const WHOOP_KEY = 'whoop_tokens_v1';
+
+  const ZONES = [
+    { n: 5, label: 'Zone 5', bpm: '186+ BPM', color: '#ff5757' },
+    { n: 4, label: 'Zone 4', bpm: '172–185 BPM', color: '#ff8a4d' },
+    { n: 3, label: 'Zone 3', bpm: '159–171 BPM', color: '#fbbf24' },
+    { n: 2, label: 'Zone 2', bpm: '145–158 BPM', color: '#6ee7b7' },
+    { n: 1, label: 'Zone 1', bpm: '116–144 BPM', color: '#7dd3fc' },
+    { n: 0, label: 'Zone 0', bpm: '< 116 BPM', color: 'rgba(255,255,255,0.3)' },
+  ];
+
+  // Best-effort WHOOP sport_id → German label. Only the types this app
+  // cares about are mapped confidently; anything else falls back to a
+  // generic label rather than guessing wrong.
+  const SPORT_NAMES = {
+    0: 'Laufen', 1: 'Radfahren', 34: 'Tennis', 45: 'Gym', 48: 'Gym',
+    63: 'Spaziergang', 96: 'HIIT', 97: 'Spinning', 52: 'Wandern',
+  };
+  const SPORT_ICONS = {
+    'Laufen': '🏃', 'Radfahren': '🚴', 'Tennis': '🎾', 'Gym': '🏋️',
+    'Spaziergang': '🚶', 'HIIT': '🔥', 'Spinning': '🚴', 'Wandern': '🥾', 'Aktivität': '💪',
+  };
+  function sportName(id) { return SPORT_NAMES[id] || 'Aktivität'; }
+  function sportIcon(type) { return SPORT_ICONS[type] || '💪'; }
+
+  function loadWhoopTokens() { try { return JSON.parse(localStorage.getItem(WHOOP_KEY)); } catch (e) { return null; } }
+  function saveWhoopTokens(t) { try { localStorage.setItem(WHOOP_KEY, JSON.stringify(t)); } catch (e) {} }
+  async function refreshWhoopToken(t) {
+    if (!t.refresh) return null;
+    try {
+      const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: t.refresh }) });
+      const j = await r.json();
+      if (j.access_token) {
+        const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in || 3500) * 1000 };
+        saveWhoopTokens(next);
+        return next;
+      }
+    } catch (e) {}
+    return null;
+  }
+  async function whoopFetch(path, t) {
+    const [p, qs] = path.split('?');
+    const params = new URLSearchParams(qs || ''); params.set('path', p);
+    const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { 'Authorization': 'Bearer ' + t.access, 'Accept': 'application/json' } });
+    if (r.status === 401) { const n = await refreshWhoopToken(t); if (n) return whoopFetch(path, n); throw new Error('unauthorized'); }
+    if (!r.ok) throw new Error('WHOOP ' + r.status);
+    return await r.json();
+  }
+
+  function loadActivities() {
+    try {
+      const arr = JSON.parse(localStorage.getItem(ACTIVITIES_KEY));
+      return Array.isArray(arr) ? arr : [];
+    } catch (e) { return []; }
+  }
+  function saveActivities(arr) { try { localStorage.setItem(ACTIVITIES_KEY, JSON.stringify(arr)); } catch (e) {} }
+
+  async function syncWhoopWorkouts() {
+    const tokens = loadWhoopTokens();
+    if (!tokens || !tokens.access) return;
+    try {
+      let t = tokens;
+      if (t.expires && Date.now() > t.expires - 60000) { const n = await refreshWhoopToken(t); if (n) t = n; }
+      const res = await whoopFetch('/activity/workout?limit=10', t);
+      const records = (res && res.records) || [];
+      const activities = loadActivities();
+      let changed = false;
+      records.forEach((rec) => {
+        const whoopId = 'whoop_' + rec.id;
+        if (activities.some((a) => a.id === whoopId)) return;
+        const score = rec.score || {};
+        const zd = score.zone_durations || {};
+        const toMin = (ms) => (ms != null ? Math.round(ms / 60000) : null);
+        activities.push({
+          id: whoopId,
+          type: sportName(rec.sport_id),
+          startTime: rec.start,
+          endTime: rec.end,
+          durationMin: rec.start && rec.end ? Math.round((new Date(rec.end) - new Date(rec.start)) / 60000) : null,
+          strain: score.strain != null ? score.strain : null,
+          calories: score.kilojoule != null ? Math.round(score.kilojoule * 0.239006) : null,
+          steps: null,
+          maxHR: score.max_heart_rate != null ? score.max_heart_rate : null,
+          avgHR: score.average_heart_rate != null ? score.average_heart_rate : null,
+          zoneMin: {
+            0: toMin(zd.zone_zero_milli), 1: toMin(zd.zone_one_milli), 2: toMin(zd.zone_two_milli),
+            3: toMin(zd.zone_three_milli), 4: toMin(zd.zone_four_milli), 5: toMin(zd.zone_five_milli),
+          },
+          source: 'whoop',
+        });
+        changed = true;
+      });
+      if (changed) saveActivities(activities);
+    } catch (e) { /* not connected / offline — manual entries still render */ }
+  }
+
+  function dateKeyOf(iso) { return (iso || '').slice(0, 10); }
+  function todayKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function pickDisplayDate(activities) {
+    if (!activities.length) return null;
+    const tk = todayKey();
+    if (activities.some((a) => dateKeyOf(a.startTime) === tk)) return tk;
+    const dates = activities.map((a) => dateKeyOf(a.startTime)).filter(Boolean).sort();
+    return dates.length ? dates[dates.length - 1] : null;
+  }
+  function fmtTime(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+  function fmtDuration(mins) {
+    if (mins == null) return '—';
+    const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+    return h > 0 ? h + 'h ' + m + 'min' : m + 'min';
+  }
+  function fmtDateLabel(key) {
+    const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    const mons = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    const [y, m, d] = key.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    return (key === todayKey() ? 'Heute · ' : '') + days[date.getDay()] + ', ' + date.getDate() + '. ' + mons[date.getMonth()];
+  }
+
+  function renderList(dayActivities) {
+    const list = document.getElementById('actList');
+    if (!dayActivities.length) {
+      list.innerHTML = '<div class="act-empty">Noch keine Aktivitäten geloggt. Starte eine über „Aktivität starten".</div>';
+      return;
+    }
+    list.innerHTML = dayActivities.map((a) => {
+      const bits = [fmtTime(a.startTime), fmtDuration(a.durationMin)];
+      if (a.strain != null) bits.push('Strain ' + a.strain.toFixed(1));
+      if (a.calories != null) bits.push(a.calories + ' kcal');
+      return '<button class="act-card" data-id="' + a.id + '" type="button">' +
+        '<div class="act-icon">' + sportIcon(a.type) + '</div>' +
+        '<div class="act-body"><div class="act-title">' + a.type + '</div><div class="act-meta">' + bits.join(' · ') + '</div></div>' +
+        '<div class="act-arrow">→</div>' +
+      '</button>';
+    }).join('');
+    list.querySelectorAll('.act-card').forEach((card) => {
+      card.addEventListener('click', () => openDetail(card.dataset.id, dayActivities));
+    });
+  }
+
+  function detailCell(label, val) {
+    return '<div class="detail-cell"><div class="detail-cell-label">' + label + '</div><div class="detail-cell-val">' + val + '</div></div>';
+  }
+  function openDetail(id, dayActivities) {
+    const a = dayActivities.find((x) => x.id === id);
+    if (!a) return;
+    document.getElementById('detailModal').innerHTML =
+      '<div class="detail-h"><div class="detail-icon">' + sportIcon(a.type) + '</div>' +
+        '<div><div class="detail-title">' + a.type + '</div><div class="detail-sub">' + fmtTime(a.startTime) + ' – ' + fmtTime(a.endTime) + '</div></div></div>' +
+      '<div class="detail-grid">' +
+        detailCell('Dauer', fmtDuration(a.durationMin)) +
+        detailCell('Strain', a.strain != null ? a.strain.toFixed(1) : '—') +
+        detailCell('Kalorien', a.calories != null ? a.calories + ' kcal' : '—') +
+        detailCell('Schritte', a.steps != null ? a.steps.toLocaleString('de-DE') : '—') +
+        detailCell('Max. Herzfrequenz', a.maxHR != null ? a.maxHR + ' bpm' : '—') +
+        detailCell('Ø Herzfrequenz', a.avgHR != null ? a.avgHR + ' bpm' : '—') +
+      '</div>' +
+      '<button class="detail-close" id="detailCloseBtn" type="button">Schließen</button>';
+    document.getElementById('detailCloseBtn').addEventListener('click', closeDetail);
+    document.getElementById('detailModalBg').classList.add('show');
+  }
+  function closeDetail() { document.getElementById('detailModalBg').classList.remove('show'); }
+  document.getElementById('detailModalBg').addEventListener('click', (e) => {
+    if (e.target.id === 'detailModalBg') closeDetail();
+  });
+
+  function renderZones(dayActivities) {
+    const totals = { 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+    let hasAny = false;
+    dayActivities.forEach((a) => {
+      if (!a.zoneMin) return;
+      ZONES.forEach((z) => {
+        const v = a.zoneMin[z.n];
+        if (v != null) { totals[z.n] += v; hasAny = true; }
+      });
+    });
+    const body = document.getElementById('zonesBody');
+    if (!hasAny) {
+      body.innerHTML = '<div class="zones-empty">Keine Herzfrequenzdaten für diesen Tag (benötigt eine WHOOP-Aktivität).</div>';
+      return;
+    }
+    const maxVal = Math.max.apply(null, Object.values(totals)) || 1;
+    body.innerHTML = ZONES.map((z) => {
+      const mins = totals[z.n];
+      const pct = Math.round((mins / maxVal) * 100);
+      return '<div class="zone-row">' +
+        '<div><div class="zone-title">' + z.label + '</div><div class="zone-bpm">' + z.bpm + '</div></div>' +
+        '<div class="zone-bar-track"><div class="zone-bar-fill" style="background:' + z.color + '" data-pct="' + pct + '"></div></div>' +
+        '<div class="zone-time">' + fmtDuration(mins) + '</div>' +
+      '</div>';
+    }).join('');
+    // Animate in on next frame so the CSS transition actually plays.
+    requestAnimationFrame(() => {
+      body.querySelectorAll('.zone-bar-fill').forEach((el) => { el.style.width = el.dataset.pct + '%'; });
+    });
+  }
+
+  async function boot() {
+    await syncWhoopWorkouts();
+    const all = loadActivities();
+    const dayKey = pickDisplayDate(all);
+    document.getElementById('actDateLabel').textContent = dayKey ? fmtDateLabel(dayKey) : 'Noch keine Aktivitäten';
+    const dayActivities = dayKey ? all.filter((a) => dateKeyOf(a.startTime) === dayKey).sort((a, b) => (b.startTime || '').localeCompare(a.startTime || '')) : [];
+    renderList(dayActivities);
+    renderZones(dayActivities);
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>

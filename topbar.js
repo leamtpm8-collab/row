@@ -212,7 +212,7 @@ body.has-bottombar .roger-fab, body.has-page-tabs .roger-fab { bottom: calc(84px
   <a href="health.html" class="bottombar-tab" data-page="health">
     <span class="bottombar-tab-icon">💊</span><span>Gesundheit</span>
   </a>
-  <a href="gym.html" class="bottombar-tab" data-page="fitness">
+  <a href="fitness.html" class="bottombar-tab" data-page="fitness">
     <span class="bottombar-tab-icon">💪</span><span>Fitness</span>
   </a>
 </nav>`;
@@ -255,6 +255,10 @@ body.has-bottombar .roger-fab, body.has-page-tabs .roger-fab { bottom: calc(84px
     const p = (window.location.pathname || '').toLowerCase();
     if (p.endsWith('health.html')) return 'health';
     if (p.endsWith('gym.html')) return 'fitness';
+    if (p.endsWith('fitness.html')) return 'fitness';
+    if (p.endsWith('activities.html')) return 'fitness';
+    if (p.endsWith('start-activity.html')) return 'fitness';
+    if (p.endsWith('progress.html')) return 'fitness';
     if (p.endsWith('main.html')) return 'main';
     return '';
   }
