@@ -146,6 +146,45 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     overflow-y: auto !important; overscroll-behavior: contain;
   }
 }
+.roger-fab {
+  position: fixed; right: 18px; bottom: calc(20px + env(safe-area-inset-bottom));
+  z-index: 55; width: 58px; height: 58px; padding: 0; border: none; background: transparent;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.45));
+  transition: bottom 0.2s ease;
+}
+body.has-bottombar .roger-fab, body.has-page-tabs .roger-fab { bottom: calc(84px + env(safe-area-inset-bottom)); }
+.roger-fab-ballwrap {
+  position: relative; width: 100%; height: 100%; display: block;
+  animation: rogerFabFloat 4.2s ease-in-out infinite;
+  transform-origin: 50% 60%; will-change: transform;
+}
+.roger-fab-ball { width: 100%; height: 100%; display: block; }
+.roger-fab-face {
+  position: absolute; top: 28%; left: 50%; width: 56%; height: 24%;
+  transform: translateX(-50%); display: flex; justify-content: space-between;
+  pointer-events: none;
+}
+.roger-fab-eye {
+  position: relative; width: 44%; aspect-ratio: 1 / 1;
+  background: #fdfff0; border-radius: 50%;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.1s ease;
+}
+.roger-fab-eye.blink { transform: scaleY(0.12); }
+.roger-fab-pupil { width: 48%; height: 48%; background: #182408; border-radius: 50%; position: relative; }
+.roger-fab-pupil::after {
+  content: ''; position: absolute; top: 14%; left: 18%;
+  width: 32%; height: 32%; background: rgba(255, 255, 255, 0.9); border-radius: 50%;
+}
+@keyframes rogerFabFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-4px) rotate(-3deg); }
+}
+@media (max-width: 480px) {
+  .roger-fab { width: 52px; height: 52px; right: 14px; }
+}
 `;
 
   const topbarHtml = `
@@ -178,9 +217,35 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
   </a>
 </nav>`;
 
+  const rogerFabHtml = `
+<button class="roger-fab" id="rogerFab" type="button" aria-label="Roger öffnen — KI-Assistent">
+  <span class="roger-fab-ballwrap">
+    <svg class="roger-fab-ball" viewBox="0 0 200 200" aria-hidden="true">
+      <defs>
+        <radialGradient id="rogerFabShade" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stop-color="#eaff7a"/>
+          <stop offset="55%" stop-color="#c6e937"/>
+          <stop offset="100%" stop-color="#9dbf1f"/>
+        </radialGradient>
+      </defs>
+      <circle cx="100" cy="100" r="94" fill="url(#rogerFabShade)"/>
+      <path d="M 10 66 C 55 6, 145 6, 190 66" stroke="#fdfff0" stroke-width="10" fill="none" stroke-linecap="round"/>
+      <path d="M 10 134 C 55 194, 145 194, 190 134" stroke="#fdfff0" stroke-width="10" fill="none" stroke-linecap="round"/>
+    </svg>
+    <span class="roger-fab-face">
+      <span class="roger-fab-eye" id="rogerFabEyeL"><span class="roger-fab-pupil" id="rogerFabPupilL"></span></span>
+      <span class="roger-fab-eye" id="rogerFabEyeR"><span class="roger-fab-pupil" id="rogerFabPupilR"></span></span>
+    </span>
+  </span>
+</button>`;
+
   function isFinancePage() {
     const p = (window.location.pathname || '').toLowerCase();
     return p.endsWith('/finance.html') || p.endsWith('finance.html');
+  }
+  function isRogerPage() {
+    const p = (window.location.pathname || '').toLowerCase();
+    return p.endsWith('/roger.html') || p.endsWith('roger.html');
   }
   function isEmbedded() {
     try { return window.self !== window.top; } catch (e) { return true; }
@@ -195,23 +260,105 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
   }
 
   function injectStyleAndHTML() {
-    if (document.getElementById('topbar') || document.getElementById('bottombar')) return;
-    if (!shouldShowChrome()) return;
-    const style = document.createElement('style');
-    style.id = 'topbar-style';
-    style.textContent = css;
-    document.head.appendChild(style);
-    const topWrap = document.createElement('div');
-    topWrap.innerHTML = topbarHtml.trim();
-    document.body.insertBefore(topWrap.firstChild, document.body.firstChild);
-    const bottomWrap = document.createElement('div');
-    bottomWrap.innerHTML = bottombarHtml.trim();
-    document.body.appendChild(bottomWrap.firstChild);
-    const active = currentPageKey();
-    document.querySelectorAll('.bottombar-tab').forEach((t) => {
-      t.classList.toggle('active', t.getAttribute('data-page') === active);
-    });
-    document.body.classList.add('has-bottombar');
+    if (!document.getElementById('topbar-style')) {
+      const style = document.createElement('style');
+      style.id = 'topbar-style';
+      style.textContent = css;
+      document.head.appendChild(style);
+    }
+    if (shouldShowChrome() && !document.getElementById('topbar') && !document.getElementById('bottombar')) {
+      const topWrap = document.createElement('div');
+      topWrap.innerHTML = topbarHtml.trim();
+      document.body.insertBefore(topWrap.firstChild, document.body.firstChild);
+      const bottomWrap = document.createElement('div');
+      bottomWrap.innerHTML = bottombarHtml.trim();
+      document.body.appendChild(bottomWrap.firstChild);
+      const active = currentPageKey();
+      document.querySelectorAll('.bottombar-tab').forEach((t) => {
+        t.classList.toggle('active', t.getAttribute('data-page') === active);
+      });
+      document.body.classList.add('has-bottombar');
+    }
+    if (!isRogerPage() && !isEmbedded() && !document.getElementById('rogerFab')) {
+      const fabWrap = document.createElement('div');
+      fabWrap.innerHTML = rogerFabHtml.trim();
+      document.body.appendChild(fabWrap.firstChild);
+      if (isFinancePage()) document.body.classList.add('has-page-tabs');
+    }
+  }
+
+  function initRogerFab() {
+    const fab = document.getElementById('rogerFab');
+    if (!fab) return;
+    const eyeL = document.getElementById('rogerFabEyeL');
+    const eyeR = document.getElementById('rogerFabEyeR');
+    const pupilL = document.getElementById('rogerFabPupilL');
+    const pupilR = document.getElementById('rogerFabPupilR');
+
+    const MAX_PUPIL_OFFSET = 2.6;
+    const MAX_TILT_DEG = 10;
+    const EASE = 0.16;
+
+    let hovering = false;
+    let targetTilt = 0, curTilt = 0;
+    let targetPupilX = 0, targetPupilY = 0, curPupilX = 0, curPupilY = 0;
+    let idlePupilTarget = { x: 0, y: 0 };
+
+    function scheduleIdleLook() {
+      const delay = 1600 + Math.random() * 2400;
+      setTimeout(() => {
+        if (!hovering) {
+          idlePupilTarget = {
+            x: (Math.random() * 2 - 1) * MAX_PUPIL_OFFSET * 0.6,
+            y: (Math.random() * 2 - 1) * MAX_PUPIL_OFFSET * 0.5,
+          };
+        }
+        scheduleIdleLook();
+      }, delay);
+    }
+    function blinkOnce() {
+      eyeL.classList.add('blink'); eyeR.classList.add('blink');
+      setTimeout(() => { eyeL.classList.remove('blink'); eyeR.classList.remove('blink'); }, 140);
+    }
+    function scheduleBlink() {
+      const delay = 2400 + Math.random() * 3800;
+      setTimeout(() => { blinkOnce(); scheduleBlink(); }, delay);
+    }
+    function onPointerMove(e) {
+      const rect = fab.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = e.clientX - cx, dy = e.clientY - cy;
+      const dist = Math.max(Math.hypot(dx, dy), 1);
+      const nx = dx / dist, ny = dy / dist;
+      targetPupilX = nx * MAX_PUPIL_OFFSET;
+      targetPupilY = ny * MAX_PUPIL_OFFSET;
+      targetTilt = nx * MAX_TILT_DEG;
+    }
+    function onEnter() { hovering = true; }
+    function onLeave() { hovering = false; targetTilt = 0; }
+    function onClick() { window.location.href = 'roger.html'; }
+
+    function tick() {
+      curTilt += (targetTilt - curTilt) * EASE;
+      fab.style.transform = 'rotate(' + curTilt.toFixed(2) + 'deg)';
+      const px = hovering ? targetPupilX : idlePupilTarget.x;
+      const py = hovering ? targetPupilY : idlePupilTarget.y;
+      curPupilX += (px - curPupilX) * EASE;
+      curPupilY += (py - curPupilY) * EASE;
+      const t = 'translate(' + curPupilX.toFixed(2) + 'px,' + curPupilY.toFixed(2) + 'px)';
+      pupilL.style.transform = t;
+      pupilR.style.transform = t;
+      requestAnimationFrame(tick);
+    }
+
+    fab.addEventListener('mouseenter', onEnter);
+    fab.addEventListener('mousemove', onPointerMove);
+    fab.addEventListener('mouseleave', onLeave);
+    fab.addEventListener('click', onClick);
+    scheduleIdleLook();
+    scheduleBlink();
+    requestAnimationFrame(tick);
   }
 
   function calendarDateKey() {
@@ -347,6 +494,7 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); addWater(); });
     const logoutBtn = document.getElementById('topbarLogout');
     if (logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); logout(); });
+    initRogerFab();
     render();
     lockGestures();
     startModalLock();
