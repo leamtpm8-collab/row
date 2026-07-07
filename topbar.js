@@ -29,8 +29,8 @@
 .topbar-water-pill {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 9px 14px;
-  background: rgba(125, 211, 252, 0.08);
-  border: 1px solid rgba(125, 211, 252, 0.16);
+  background: rgba(110, 231, 183, 0.08);
+  border: 1px solid rgba(110, 231, 183, 0.18);
   border-right: none;
   border-radius: 12px 0 0 12px;
   text-decoration: none; color: #FAFAFA;
@@ -38,7 +38,7 @@
 }
 .topbar-water-pill .topbar-pill-dot {
   width: 8px; height: 8px; border-radius: 50%;
-  background: #7DD3FC; flex-shrink: 0;
+  background: var(--accent, #6ee7b7); flex-shrink: 0;
 }
 .topbar-water-pill.warn .topbar-pill-dot { background: #fbbf24; }
 .topbar-water-pill.miss .topbar-pill-dot {
@@ -56,8 +56,8 @@
 }
 .topbar-water-add {
   width: 44px;
-  border: 1px solid rgba(125, 211, 252, 0.16);
-  background: linear-gradient(180deg, rgba(125, 211, 252, 0.28), rgba(110, 231, 183, 0.28));
+  border: 1px solid rgba(110, 231, 183, 0.18);
+  background: linear-gradient(180deg, rgba(110, 231, 183, 0.34), rgba(110, 231, 183, 0.18));
   color: #FFFFFF; font-family: inherit;
   font-size: 20px; font-weight: 700; line-height: 1;
   cursor: pointer; border-radius: 0 12px 12px 0;
@@ -66,7 +66,7 @@
 }
 .topbar-water-add:active { transform: scale(0.94); }
 .topbar-water-add.flash {
-  background: linear-gradient(180deg, rgba(125, 211, 252, 0.7), rgba(110, 231, 183, 0.7));
+  background: linear-gradient(180deg, rgba(110, 231, 183, 0.75), rgba(110, 231, 183, 0.5));
 }
 .topbar-finance-btn {
   display: inline-flex; align-items: center; justify-content: center;
@@ -105,7 +105,7 @@
 }
 .bottombar-tab.active { color: #FAFAFA; }
 .bottombar-tab.active .bottombar-tab-icon {
-  filter: grayscale(100%) brightness(1.6); opacity: 1;
+  filter: grayscale(100%) brightness(1.6) drop-shadow(0 0 6px var(--accent-glow, rgba(110,231,183,0.6))); opacity: 1;
 }
 .bottombar-tab:active .bottombar-tab-icon { transform: scale(0.92); }
 body.has-bottombar {

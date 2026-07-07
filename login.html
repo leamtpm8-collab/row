@@ -14,19 +14,13 @@
 <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <title>Anmelden — Maëls Übersicht</title>
+<link rel="stylesheet" href="theme.css">
 <style>
-:root {
-  --text-primary: #FAFAFA;
-  --text-secondary: #B8B6B0;
-  --text-tertiary: #76746E;
-  --danger: #FF6B6B;
-  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
 * { box-sizing: border-box; }
 html, body {
   margin: 0; padding: 0; height: 100%;
-  background: #050506;
-  color: var(--text-secondary);
+  background: var(--bg);
+  color: var(--text-2);
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;
 }
@@ -40,59 +34,55 @@ body::before {
   content: '';
   position: fixed; inset: 0;
   background:
-    radial-gradient(circle at 82% 14%, rgba(224, 118, 88, 0.16), transparent 45%),
+    radial-gradient(circle at 82% 14%, rgba(110, 231, 183, 0.16), transparent 45%),
     radial-gradient(circle at 18% 90%, rgba(180, 180, 200, 0.06), transparent 50%);
   filter: blur(40px);
   pointer-events: none;
   z-index: -1;
 }
 .card {
+  position: relative;
+  overflow: hidden;
   width: 100%; max-width: 360px;
   padding: 32px 28px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(24px) saturate(1.2);
-  -webkit-backdrop-filter: blur(24px) saturate(1.2);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  border-radius: var(--radius);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
 }
+/* keeps real content above the absolutely-positioned .rw-motif background layer */
+.card-content { position: relative; z-index: 2; }
 h1 {
   margin: 0 0 24px;
   font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  background: linear-gradient(180deg, #FFFFFF 0%, #C7C4BC 120%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  letter-spacing: -0.01em;
 }
-label { display: block; font-size: 13px; color: var(--text-tertiary); margin-bottom: 6px; }
+label { display: block; font-size: 13px; color: var(--text-3); margin-bottom: 6px; }
 input[type="password"] {
   width: 100%;
   padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.10);
   background: rgba(255, 255, 255, 0.03);
-  color: var(--text-primary);
+  color: var(--text-1);
   font-family: var(--font);
   font-size: 15px;
   outline: none;
 }
-input[type="password"]:focus { border-color: rgba(224, 118, 88, 0.6); }
+input[type="password"]:focus { border-color: var(--accent-glow); }
 .remember {
   display: flex; align-items: center; gap: 8px;
   margin: 16px 0 20px;
-  font-size: 14px; color: var(--text-secondary);
+  font-size: 14px; color: var(--text-2);
   user-select: none;
 }
-.remember input { width: 16px; height: 16px; accent-color: #E07658; }
+.remember input { width: 16px; height: 16px; accent-color: var(--accent); }
 button.submit {
   width: 100%;
   padding: 12px 14px;
   border: none; border-radius: 12px;
-  background: linear-gradient(180deg, rgba(224, 118, 88, 0.85), rgba(224, 118, 88, 0.65));
-  color: #FFFFFF; font-family: var(--font); font-size: 15px; font-weight: 700;
+  background: linear-gradient(180deg, var(--accent), #4ED4A0);
+  color: #04201A; font-family: var(--font); font-size: 15px; font-weight: 700;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: transform 0.1s ease, opacity 0.15s ease;
@@ -102,14 +92,16 @@ button.submit:disabled { opacity: 0.6; cursor: default; }
 .error {
   margin-top: 14px;
   font-size: 13px;
-  color: var(--danger);
+  color: var(--bad);
   min-height: 16px;
 }
 </style>
 </head>
 <body>
 <div class="card">
-  <h1>Anmelden</h1>
+  <div class="rw-motif motif-dots" style="--dot-x:80%;--dot-y:20%"></div>
+  <div class="card-content">
+  <h1 class="rw-title">Anmelden</h1>
   <form id="loginForm" autocomplete="on">
     <label for="password">Passwort</label>
     <input type="password" id="password" name="password" autocomplete="current-password" autofocus required>
@@ -120,6 +112,7 @@ button.submit:disabled { opacity: 0.6; cursor: default; }
     <button type="submit" class="submit" id="submitBtn">Anmelden</button>
     <div class="error" id="error"></div>
   </form>
+  </div>
 </div>
 <script>
 (function () {

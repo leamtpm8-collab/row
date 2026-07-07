@@ -17,14 +17,11 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="sync.js" defer></script>
 <script src="topbar.js" defer></script>
+<link rel="stylesheet" href="theme.css">
 <style>
 :root {
-  --bg: #0a0a0b; --bg-card: #111113; --bg-card-2: #17171a;
-  --text-1: #ffffff; --text-2: rgba(255,255,255,0.6); --text-3: rgba(255,255,255,0.4); --text-4: rgba(255,255,255,0.25);
-  --border: rgba(255,255,255,0.08); --accent: #ffffff;
-  --good: #6ee7b7; --warn: #fbbf24; --bad: #ff8a8a;
-  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* --good is used for the "start" timer button; alias to the brand accent. */
+  --good: var(--accent);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: var(--bg); }
@@ -50,7 +47,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 
 .timer-view { display: none; flex-direction: column; align-items: center; text-align: center; }
 .timer-view.show { display: flex; }
-.timer-type { font-size: 15px; color: var(--text-2); font-weight: 600; margin-bottom: 6px; }
+.timer-type { font-family: var(--font-serif); font-style: italic; font-size: 18px; color: var(--text-2); font-weight: 700; margin-bottom: 6px; }
 .timer-clock { font-size: 56px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; margin: 18px 0 28px; }
 .timer-actions { display: flex; gap: 12px; width: 100%; max-width: 320px; }
 .timer-btn { flex: 1; padding: 16px; border: none; border-radius: 18px; font-size: 15px; font-weight: 700; cursor: pointer; }
@@ -66,7 +63,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 <div class="wrap">
   <a href="fitness.html" class="back-link">← Fitness</a>
   <div class="hd" id="pickerHd">
-    <h1>Aktivität starten</h1>
+    <h1 class="rw-title">Aktivität starten</h1>
     <div class="sub">Was steht heute an?</div>
   </div>
 

@@ -17,15 +17,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="sync.js" defer></script>
 <script src="topbar.js" defer></script>
+<link rel="stylesheet" href="theme.css">
 <style>
-:root {
-  --bg: #0a0a0b; --bg-card: #111113; --bg-card-2: #17171a;
-  --text-1: #ffffff; --text-2: rgba(255,255,255,0.6); --text-3: rgba(255,255,255,0.4); --text-4: rgba(255,255,255,0.25);
-  --border: rgba(255,255,255,0.08); --accent: #ffffff;
-  --good: #6ee7b7; --warn: #fbbf24; --bad: #ff8a8a; --blue: #7dd3fc;
-  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-}
+:root { --good: var(--accent); --blue: #7dd3fc; }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: var(--bg); }
 body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 48px; }
@@ -109,8 +103,8 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
   <a href="wellness.html" class="back-link">← Gesundheit</a>
   <div class="hd">
     <div>
-      <h1>Ernährung</h1>
-      <div class="sub" id="nutDateLabel">—</div>
+      <h1 class="rw-title">Ernährung</h1>
+      <div class="sub rw-eyebrow" id="nutDateLabel">—</div>
     </div>
     <button class="settings-btn" id="nutSettingsBtn">⚙</button>
   </div>

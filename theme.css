@@ -1,0 +1,234 @@
+/* =============================================================
+   Shared design system — monochrome-green "Rowan" reference style.
+   Linked from every page's <head>. Purely visual: tokens, card
+   component, and a small motif library. No page logic lives here.
+   ============================================================= */
+
+:root {
+  --bg: #050506;
+  --bg-card: #0a0d0b;
+  --bg-card-2: #10140f;
+  --border: rgba(110, 231, 183, 0.10);
+  --border-strong: rgba(110, 231, 183, 0.28);
+
+  --text-1: #f3f6f4;
+  --text-2: rgba(240, 245, 242, 0.62);
+  --text-3: rgba(240, 245, 242, 0.40);
+  --text-4: rgba(240, 245, 242, 0.24);
+
+  --accent: #6ee7b7;
+  --accent-soft: #a7f3d0;
+  --accent-glow: rgba(110, 231, 183, 0.45);
+  --accent-dim: rgba(110, 231, 183, 0.14);
+
+  --warn: #fbbf24;
+  --bad: #ff8a8a;
+
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-serif: Georgia, 'Times New Roman', serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --radius: 22px;
+  --shadow-card: 0 12px 38px rgba(0, 0, 0, 0.45);
+}
+
+/* ---------- base ---------- */
+.rw-title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--text-1);
+}
+.rw-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+}
+
+/* ---------- card ---------- */
+.rw-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+a.rw-card:hover, a.rw-card:focus-visible {
+  transform: translateY(-2px);
+  border-color: var(--border-strong);
+  box-shadow: 0 16px 46px rgba(0, 0, 0, 0.55);
+}
+.rw-card-num {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--text-4);
+  letter-spacing: 0.1em;
+  z-index: 2;
+}
+.rw-card-icon {
+  position: absolute;
+  top: 18px; right: 18px;
+  font-size: 20px;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.9;
+  filter: drop-shadow(0 0 8px var(--accent-glow));
+  z-index: 2;
+}
+.rw-card-spacer { flex: 1; min-height: 28px; }
+.rw-card-title {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--text-1);
+  z-index: 2;
+  margin-bottom: 4px;
+}
+.rw-card-sub {
+  font-size: 12.5px;
+  color: var(--text-3);
+  z-index: 2;
+}
+.rw-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  z-index: 2;
+}
+.rw-card-arrow {
+  color: var(--accent);
+  font-size: 16px;
+  font-weight: 700;
+  transition: transform 0.2s ease;
+  z-index: 2;
+}
+a.rw-card:hover .rw-card-arrow { transform: translateX(4px); }
+
+/* ---------- generic stat / info cards (non-link) ---------- */
+.rw-stat {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 14px 14px;
+}
+.rw-stat-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.rw-stat-val {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- motif layer (absolute background illustration, z-index 1, behind text) ---------- */
+.rw-motif { position: absolute; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+
+/* orb — pulsing glow sphere (Gesundheit / Fuel-like) */
+.rw-motif.motif-orb::before {
+  content: '';
+  position: absolute; width: 74px; height: 74px; border-radius: 50%;
+  top: 50%; right: 8%; transform: translateY(-50%);
+  background: radial-gradient(circle at 35% 32%, rgba(255,255,255,0.95), var(--accent) 42%, transparent 74%);
+  box-shadow: 0 0 46px 12px var(--accent-glow);
+  animation: rwOrbPulse 3.6s ease-in-out infinite;
+}
+.rw-motif.motif-orb::after {
+  content: '';
+  position: absolute; width: 4px; height: 4px; border-radius: 50%;
+  top: 30%; right: 26%;
+  background: var(--accent-soft); box-shadow: 0 0 8px 2px var(--accent-glow);
+  animation: rwOrbPulse 2.4s ease-in-out infinite 0.6s;
+}
+@keyframes rwOrbPulse { 0%,100% { transform: translateY(-50%) scale(1); opacity: 0.85; } 50% { transform: translateY(-50%) scale(1.1); opacity: 1; } }
+
+/* dotted field with one pulsing point (Peak Tracker) */
+.rw-motif.motif-dots {
+  background-image: radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1px);
+  background-size: 15px 15px;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 35%, black 85%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, black 35%, black 85%, transparent);
+}
+.rw-motif.motif-dots::after {
+  content: '';
+  position: absolute; width: 8px; height: 8px; border-radius: 50%;
+  left: var(--dot-x, 62%); top: var(--dot-y, 46%);
+  background: var(--accent); box-shadow: 0 0 16px 5px var(--accent-glow);
+  animation: rwDotPulse 2.2s ease-in-out infinite;
+}
+@keyframes rwDotPulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.55; } }
+
+/* radar — concentric breathing rings (Erholung / Mind) */
+.rw-motif.motif-radar {
+  display: flex; align-items: center; justify-content: flex-end; padding-right: 14%;
+}
+.rw-motif.motif-radar::before, .rw-motif.motif-radar::after {
+  content: '';
+  position: absolute; right: 14%; top: 50%; transform: translate(50%, -50%);
+  border: 1px solid var(--border-strong); border-radius: 50%;
+}
+.rw-motif.motif-radar::before { width: 70px; height: 70px; animation: rwRadarBreathe 4s ease-in-out infinite; }
+.rw-motif.motif-radar::after { width: 40px; height: 40px; animation: rwRadarBreathe 4s ease-in-out infinite 0.4s; }
+@keyframes rwRadarBreathe { 0%,100% { opacity: 0.35; } 50% { opacity: 0.9; } }
+
+/* rising sparkline (Fitness / Train) */
+.rw-motif.motif-spark svg { position: absolute; right: -4%; top: 20%; width: 60%; height: 55%; opacity: 0.9; }
+.rw-motif.motif-spark path { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 6px var(--accent-glow)); }
+
+/* wave — droplet glow (Wasser) */
+.rw-motif.motif-wave svg { position: absolute; right: -6%; bottom: -10%; width: 70%; height: 80%; opacity: 0.85; }
+.rw-motif.motif-wave path { fill: none; stroke: var(--accent); stroke-width: 2; opacity: 0.8; filter: drop-shadow(0 0 6px var(--accent-glow)); }
+
+/* bars — subtle chart glimpse (Finanzen) */
+.rw-motif.motif-bars { display: flex; align-items: flex-end; justify-content: flex-end; gap: 5px; padding: 14px 16% 14px 0; }
+.rw-motif.motif-bars span { display: block; width: 6px; border-radius: 3px 3px 0 0; background: linear-gradient(180deg, var(--accent-soft), var(--accent-dim)); box-shadow: 0 0 10px 1px var(--accent-glow); }
+.rw-motif.motif-bars span:nth-child(1) { height: 30%; }
+.rw-motif.motif-bars span:nth-child(2) { height: 52%; }
+.rw-motif.motif-bars span:nth-child(3) { height: 40%; }
+.rw-motif.motif-bars span:nth-child(4) { height: 70%; }
+
+/* page-lines (Bücher) */
+.rw-motif.motif-lines { display: flex; flex-direction: column; justify-content: center; gap: 7px; padding: 0 12% 0 0; align-items: flex-end; }
+.rw-motif.motif-lines span { display: block; height: 2px; border-radius: 2px; background: var(--accent-dim); }
+.rw-motif.motif-lines span:nth-child(1) { width: 54%; background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
+.rw-motif.motif-lines span:nth-child(2) { width: 38%; }
+.rw-motif.motif-lines span:nth-child(3) { width: 46%; }
+
+/* ---------- shared bento grid (landing pages) ---------- */
+.rw-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: 168px;
+  gap: 14px;
+  grid-auto-flow: dense;
+}
+.rw-grid .rw-card.big  { grid-column: span 2; grid-row: span 2; }
+.rw-grid .rw-card.wide { grid-column: span 2; grid-row: span 1; }
+@media (max-width: 720px) {
+  .rw-grid { grid-template-columns: repeat(2, 1fr); }
+  .rw-grid .rw-card.big { grid-row: span 1; }
+}
+@media (max-width: 440px) {
+  .rw-grid { grid-template-columns: 1fr; }
+  .rw-grid .rw-card.big, .rw-grid .rw-card.wide { grid-column: span 1; }
+}

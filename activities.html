@@ -17,15 +17,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="sync.js" defer></script>
 <script src="topbar.js" defer></script>
+<link rel="stylesheet" href="theme.css">
 <style>
-:root {
-  --bg: #0a0a0b; --bg-card: #111113; --bg-card-2: #17171a;
-  --text-1: #ffffff; --text-2: rgba(255,255,255,0.6); --text-3: rgba(255,255,255,0.4); --text-4: rgba(255,255,255,0.25);
-  --border: rgba(255,255,255,0.08); --accent: #ffffff;
-  --good: #6ee7b7; --warn: #fbbf24; --bad: #ff8a8a;
-  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-}
+:root { --good: var(--accent); }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: var(--bg); }
 body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 40px; }
@@ -46,7 +40,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .act-card:hover { transform: translateY(-1px); border-color: rgba(255,255,255,0.18); }
 .act-icon { width: 46px; height: 46px; border-radius: 14px; background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
 .act-body { flex: 1; min-width: 0; }
-.act-title { font-size: 15.5px; font-weight: 700; }
+.act-title { font-family: var(--font-serif); font-style: italic; font-size: 16.5px; font-weight: 700; }
 .act-meta { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
 .act-arrow { color: var(--text-3); flex-shrink: 0; }
 .act-empty { text-align: center; color: var(--text-3); font-size: 14px; padding: 40px 0; }
@@ -66,7 +60,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .detail-modal { width: 100%; max-width: 480px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 26px 26px 0 0; padding: 24px 22px max(24px, env(safe-area-inset-bottom)); max-height: 85vh; overflow-y: auto; }
 .detail-h { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
 .detail-icon { width: 52px; height: 52px; border-radius: 16px; background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 26px; }
-.detail-title { font-size: 19px; font-weight: 800; }
+.detail-title { font-family: var(--font-serif); font-style: italic; font-size: 20px; font-weight: 700; }
 .detail-sub { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
 .detail-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 .detail-cell { background: var(--bg-card-2); border-radius: 14px; padding: 12px; }
@@ -79,8 +73,8 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 <div class="wrap">
   <a href="fitness.html" class="back-link">← Fitness</a>
   <div class="hd">
-    <h1>Aktivitäten</h1>
-    <div class="sub" id="actDateLabel">—</div>
+    <h1 class="rw-title">Aktivitäten</h1>
+    <div class="sub rw-eyebrow" id="actDateLabel">—</div>
   </div>
 
   <div id="actList"></div>

@@ -17,15 +17,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="sync.js" defer></script>
 <script src="topbar.js" defer></script>
+<link rel="stylesheet" href="theme.css">
 <style>
-:root {
-  --bg: #0a0a0b; --bg-card: #111113; --bg-card-2: #17171a;
-  --text-1: #ffffff; --text-2: rgba(255,255,255,0.6); --text-3: rgba(255,255,255,0.4); --text-4: rgba(255,255,255,0.25);
-  --border: rgba(255,255,255,0.08); --accent: #ffffff;
-  --good: #6ee7b7; --warn: #fbbf24; --bad: #ff8a8a;
-  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-}
+:root { --good: var(--accent); }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: var(--bg); }
 body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 40px; }
@@ -56,19 +50,6 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 @media (max-width: 420px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
 
 .tile-stack { display: flex; flex-direction: column; gap: 12px; }
-.tile {
-  display: flex; align-items: center; gap: 16px;
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px;
-  padding: 20px; text-decoration: none; color: inherit;
-  box-shadow: 0 8px 26px rgba(0,0,0,0.35);
-  transition: transform 0.18s ease, border-color 0.18s ease;
-}
-.tile:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.18); }
-.tile-icon { width: 52px; height: 52px; border-radius: 16px; flex-shrink: 0; background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 26px; }
-.tile-body { flex: 1; min-width: 0; }
-.tile-title { font-size: 16.5px; font-weight: 700; }
-.tile-sub { font-size: 12.5px; color: var(--text-3); margin-top: 2px; }
-.tile-arrow { font-size: 18px; color: var(--text-3); flex-shrink: 0; }
 
 .stack-hint { margin-top: 18px; font-size: 12.5px; color: var(--text-3); text-align: center; }
 .stack-hint a { color: var(--text-2); }
@@ -77,8 +58,8 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 <body>
 <div class="wrap">
   <div class="hd">
-    <h1>Gesundheit</h1>
-    <div class="sub" id="wellDateLabel">—</div>
+    <h1 class="rw-title">Gesundheit</h1>
+    <div class="sub rw-eyebrow" id="wellDateLabel">—</div>
   </div>
 
   <div class="score-card">
@@ -98,37 +79,51 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
   <div class="stat-grid" id="statGrid"></div>
 
   <div class="tile-stack">
-    <a href="recovery.html" class="tile">
-      <div class="tile-icon">🌙</div>
-      <div class="tile-body">
-        <div class="tile-title">Erholungsdaten</div>
-        <div class="tile-sub">Schlaf, HRV, Ruhepuls &amp; Trends</div>
+    <a href="recovery.html" class="rw-card">
+      <div class="rw-motif motif-radar"></div>
+      <div class="rw-card-num">·01</div>
+      <span class="rw-card-icon">🌙</span>
+      <div class="rw-card-spacer"></div>
+      <div class="rw-card-title">Erholungsdaten</div>
+      <div class="rw-card-foot">
+        <span class="rw-card-sub">Schlaf, HRV, Ruhepuls &amp; Trends</span>
+        <span class="rw-card-arrow">→</span>
       </div>
-      <div class="tile-arrow">→</div>
     </a>
-    <a href="recommendations.html" class="tile">
-      <div class="tile-icon">💡</div>
-      <div class="tile-body">
-        <div class="tile-title">Empfehlungen</div>
-        <div class="tile-sub">Heutige Tipps für deine Erholung</div>
+    <a href="recommendations.html" class="rw-card">
+      <div class="rw-motif motif-dots" style="--dot-x:70%;--dot-y:40%"></div>
+      <div class="rw-card-num">·02</div>
+      <span class="rw-card-icon">💡</span>
+      <div class="rw-card-spacer"></div>
+      <div class="rw-card-title">Empfehlungen</div>
+      <div class="rw-card-foot">
+        <span class="rw-card-sub">Heutige Tipps für deine Erholung</span>
+        <span class="rw-card-arrow">→</span>
       </div>
-      <div class="tile-arrow">→</div>
     </a>
-    <a href="peak-tracker.html" class="tile">
-      <div class="tile-icon">⚡</div>
-      <div class="tile-body">
-        <div class="tile-title">Peak Tracker</div>
-        <div class="tile-sub">Wann du heute am leistungsfähigsten bist</div>
+    <a href="peak-tracker.html" class="rw-card">
+      <div class="rw-motif motif-spark">
+        <svg viewBox="0 0 120 60"><path d="M2 46 L20 40 L38 42 L56 28 L74 32 L92 14 L118 6" /></svg>
       </div>
-      <div class="tile-arrow">→</div>
+      <div class="rw-card-num">·03</div>
+      <span class="rw-card-icon">⚡</span>
+      <div class="rw-card-spacer"></div>
+      <div class="rw-card-title">Peak Tracker</div>
+      <div class="rw-card-foot">
+        <span class="rw-card-sub">Wann du heute am leistungsfähigsten bist</span>
+        <span class="rw-card-arrow">→</span>
+      </div>
     </a>
-    <a href="nutrition.html" class="tile">
-      <div class="tile-icon">🍎</div>
-      <div class="tile-body">
-        <div class="tile-title">Ernährung</div>
-        <div class="tile-sub">Kalorien &amp; Makronährstoffe</div>
+    <a href="nutrition.html" class="rw-card">
+      <div class="rw-motif motif-orb"></div>
+      <div class="rw-card-num">·04</div>
+      <span class="rw-card-icon">🍎</span>
+      <div class="rw-card-spacer"></div>
+      <div class="rw-card-title">Ernährung</div>
+      <div class="rw-card-foot">
+        <span class="rw-card-sub">Kalorien &amp; Makronährstoffe</span>
+        <span class="rw-card-arrow">→</span>
       </div>
-      <div class="tile-arrow">→</div>
     </a>
   </div>
 

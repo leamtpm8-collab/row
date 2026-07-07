@@ -15,6 +15,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <title>Trainings-Coach</title>
 <script src="topbar.js" defer></script>
+<link rel="stylesheet" href="theme.css">
 
 <!-- =============================================================
      EDIT THIS BLOCK TO MAKE THE APP YOURS.
@@ -102,20 +103,8 @@ const CONFIG = {
 
 <style>
 :root {
-  --bg: #0a0a0b;
-  --bg-card: #111113;
-  --text-1: #ffffff;
-  --text-2: rgba(255,255,255,0.6);
-  --text-3: rgba(255,255,255,0.4);
-  --text-4: rgba(255,255,255,0.25);
-  --border: rgba(255,255,255,0.06);
-  --border-strong: rgba(255,255,255,0.14);
-  --accent: #ffffff;
-  --good: #6ee7b7;
-  --warn: #fbbf24;
-  --bad: #ff8a8a;
-  --font: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-  --font-mono: ui-monospace, SF Mono, Menlo, Consolas, monospace;
+  /* --good is used throughout for "on track" training/status color; alias to the brand accent. */
+  --good: var(--accent);
 }
 * { box-sizing: border-box; }
 html, body {
@@ -224,7 +213,7 @@ img, video, canvas, svg { max-width: 100%; }
 .po-day-date { color: var(--text-2); }
 .po-day-sep { color: var(--text-4); }
 .po-day-split { color: var(--good); font-weight: 800; }
-.po-day-split.is-rest { color: #7DD3FC; }
+.po-day-split.is-rest { color: var(--accent); }
 
 .po-header {
   display: flex; align-items: center; justify-content: space-between;
@@ -476,6 +465,7 @@ img, video, canvas, svg { max-width: 100%; }
   letter-spacing: 0.10em; text-transform: uppercase; margin-bottom: 6px;
 }
 .po-rx-headline {
+  font-family: var(--font-serif); font-style: italic;
   font-size: 26px; font-weight: 700; letter-spacing: -0.01em;
   line-height: 1.2; margin-bottom: 10px;
 }
@@ -895,7 +885,8 @@ img, video, canvas, svg { max-width: 100%; }
 }
 .wt-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 6px; }
 .wt-num {
-  font-size: 48px; font-weight: 600; letter-spacing: -0.025em;
+  font-family: var(--font-serif); font-style: italic;
+  font-size: 48px; font-weight: 700; letter-spacing: -0.015em;
   line-height: 1; font-variant-numeric: tabular-nums;
 }
 .wt-unit { font-size: 16px; color: var(--text-3); }
@@ -1100,7 +1091,8 @@ img, video, canvas, svg { max-width: 100%; }
   -webkit-tap-highlight-color: transparent;
 }
 .wt-overlay-title {
-  font-size: 26px; font-weight: 600; letter-spacing: -0.015em;
+  font-family: var(--font-serif); font-style: italic;
+  font-size: 26px; font-weight: 700; letter-spacing: -0.01em;
 }
 .wt-overlay-actions {
   display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
@@ -1442,7 +1434,7 @@ img, video, canvas, svg { max-width: 100%; }
   </div>
 
   <div class="po-header">
-    <h1 class="po-title" id="appTitle">Progressive Overload Coach</h1>
+    <h1 class="po-title rw-title" id="appTitle">Progressive Overload Coach</h1>
     <button class="po-icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
       <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>

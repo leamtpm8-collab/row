@@ -17,17 +17,19 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="sync.js" defer></script>
 <script src="topbar.js" defer></script>
+<link rel="stylesheet" href="theme.css">
 <style>
 :root {
-  --text-primary: #FAFAFA;
-  --text-secondary: #B8B6B0;
-  --text-tertiary: #76746E;
-  --success: #6BE3A4;
-  --warning: #F2C063;
-  --danger: #FF6B6B;
-  --info: #60A5FA;
-  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* This page predates the shared design system and used its own token names —
+     alias them to theme.css's tokens. --info (blue, "currently reading" tag)
+     is flattened to the mono-green brand accent per the site-wide decision. */
+  --text-primary: var(--text-1);
+  --text-secondary: var(--text-2);
+  --text-tertiary: var(--text-3);
+  --success: var(--accent);
+  --warning: var(--warn);
+  --danger: var(--bad);
+  --info: var(--accent);
 }
 
 * { box-sizing: border-box; }
@@ -50,7 +52,7 @@ body::before {
   content: '';
   position: fixed; inset: 0;
   background:
-    radial-gradient(circle at 82% 14%, rgba(224, 118, 88, 0.16), transparent 45%),
+    radial-gradient(circle at 82% 14%, rgba(110, 231, 183, 0.16), transparent 45%),
     radial-gradient(circle at 18% 90%, rgba(180, 180, 200, 0.06), transparent 50%);
   filter: blur(40px);
   pointer-events: none;
@@ -282,6 +284,7 @@ body::after {
 
 /* ===== Detail modal ===== */
 .book-detail-modal h3 {
+  font-family: var(--font-serif); font-style: italic;
   margin: 0 0 4px;
   writing-mode: initial;
   transform: none;
@@ -335,7 +338,7 @@ body::after {
 <div class="page">
 
   <div class="books-head">
-    <h1 class="dash-title">Bücher</h1>
+    <h1 class="dash-title rw-title">Bücher</h1>
     <button id="bookAddBtn" class="book-add-btn" type="button" aria-label="Buch hinzufügen">+</button>
   </div>
 

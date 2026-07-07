@@ -17,15 +17,9 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="sync.js" defer></script>
 <script src="topbar.js" defer></script>
+<link rel="stylesheet" href="theme.css">
 <style>
-:root {
-  --bg: #0a0a0b; --bg-card: #111113; --bg-card-2: #17171a;
-  --text-1: #ffffff; --text-2: rgba(255,255,255,0.6); --text-3: rgba(255,255,255,0.4); --text-4: rgba(255,255,255,0.25);
-  --border: rgba(255,255,255,0.08);
-  --good: #6ee7b7; --warn: #fbbf24; --bad: #ff8a8a;
-  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-}
+:root { --good: var(--accent); }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: var(--bg); }
 body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 40px; }
@@ -68,8 +62,8 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 <div class="wrap">
   <a href="main.html" class="back-link">← Start</a>
   <div class="hd">
-    <h1>Tagesscore</h1>
-    <div class="sub" id="dsDateLabel">—</div>
+    <h1 class="rw-title">Tagesscore</h1>
+    <div class="sub rw-eyebrow" id="dsDateLabel">—</div>
   </div>
 
   <div class="score-card">
