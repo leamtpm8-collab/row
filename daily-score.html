@@ -46,6 +46,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .why-row.good .dot { background: var(--good); } .why-row.bad .dot { background: var(--bad); }
 .why-empty { font-size: 13px; color: var(--text-3); }
 
+.goal-note { font-family: var(--font-serif); font-style: italic; font-size: 14px; color: var(--text-2); margin-bottom: 12px; line-height: 1.45; }
 .tip-card { display: flex; align-items: center; gap: 14px; background: var(--bg-card-2); border-radius: 16px; padding: 13px 15px; margin-bottom: 9px; }
 .tip-icon { width: 38px; height: 38px; border-radius: 12px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
 .tip-title { font-size: 13.5px; font-weight: 600; }
@@ -88,7 +89,8 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     <div id="dsBad"></div>
   </div>
   <div class="card">
-    <div class="card-h">Verbesserungsvorschläge</div>
+    <div class="card-h">Empfehlungen für heute</div>
+    <div class="goal-note" id="dsGoalNote"></div>
     <div id="dsTips"></div>
   </div>
   <div class="card">
@@ -116,22 +118,28 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
   const WELLBEING_KEY = 'daily_wellbeing_v1';
   const WHOOP_KEY = 'whoop_tokens_v1';
 
+  // Weights/targets kept in sync by hand with main.html's own copy (no
+  // shared JS modules in this app). Goal-oriented around the user's real
+  // target — Tennis-Trainer-A-Lizenz + Top-80-Deutschland — see the
+  // comment on main.html's SCORE_WEIGHTS for the full reasoning.
   const SCORE_WEIGHTS = {
-    recovery: 15, goals: 15, activity: 12, sleepQuality: 8, sleepDuration: 8,
-    steps: 8, water: 8, strain: 7, mood: 7, stress: 6, focus: 6,
+    recovery: 12, goals: 12, tennisTraining: 12, activity: 10, sleepQuality: 8, sleepDuration: 8,
+    nutrition: 8, steps: 6, water: 6, strain: 6, mood: 5, stress: 5, focus: 2,
   };
-  const SCORE_TARGETS = { sleepDurationMin: 8 * 60, steps: 10000, activityMin: 45, strainMax: 21 };
+  const SCORE_TARGETS = { sleepDurationMin: 8 * 60, steps: 10000, activityMin: 45, strainMax: 21, tennisMin: 45 };
 
   const COMPONENT_META = {
     recovery: { label: 'Erholung', icon: '🔋', good: 'Guter Recovery Score', bad: 'Niedriger Recovery Score', tip: 'Priorisiere heute Regeneration' },
-    goals: { label: 'Tagesziele', icon: '✅', good: 'Tagesziele größtenteils erreicht', bad: 'Noch offene Tagesziele', tip: 'Hake ein weiteres Tagesziel ab' },
-    activity: { label: 'Bewegung', icon: '🏃', good: 'Genug Bewegung heute', bad: 'Noch zu wenig Bewegung', tip: 'Gehe noch 20 Minuten spazieren' },
+    goals: { label: 'Disziplin', icon: '✅', good: 'Tagesziele größtenteils erreicht — gute Disziplin', bad: 'Noch offene Tagesziele', tip: 'Hake ein weiteres Tagesziel ab' },
+    tennisTraining: { label: 'Techniktraining Tennis', icon: '🎾', good: 'Tennis-Techniktraining heute erfasst', bad: 'Noch kein Techniktraining Tennis heute', tip: 'Trag eine Tennis-Einheit ein (Aktivität starten)' },
+    activity: { label: 'Fitness', icon: '🏃', good: 'Genug Bewegung heute', bad: 'Noch zu wenig Bewegung', tip: 'Gehe noch 20 Minuten spazieren' },
     sleepQuality: { label: 'Schlafqualität', icon: '😴', good: 'Gute Schlafqualität', bad: 'Schlafqualität unter Soll', tip: 'Gehe 30 Minuten früher schlafen' },
     sleepDuration: { label: 'Schlafdauer', icon: '🛌', good: 'Ausreichend geschlafen', bad: 'Zu wenig Schlaf', tip: 'Gehe 30 Minuten früher schlafen' },
+    nutrition: { label: 'Ernährung', icon: '🍎', good: 'Ernährung heute im Ziel', bad: 'Ernährung noch nicht erfasst/im Ziel', tip: 'Trag deine Mahlzeiten in der Ernährung-Seite ein' },
     steps: { label: 'Schritte', icon: '👣', good: 'Gute Schrittzahl', bad: 'Noch wenige Schritte', tip: 'Baue noch eine kurze Runde ein' },
     water: { label: 'Wasser', icon: '💧', good: 'Ausreichend getrunken', bad: 'Noch zu wenig getrunken', tip: 'Trinke noch 1 Liter Wasser' },
     strain: { label: 'Strain', icon: '⚡', good: 'Gute Trainingsbelastung', bad: 'Wenig Belastung heute', tip: 'Mache eine kurze Dehneinheit' },
-    mood: { label: 'Stimmung', icon: '🙂', good: 'Gute Stimmung', bad: 'Stimmung könnte besser sein', tip: 'Mach etwas, das dir heute Freude bereitet' },
+    mood: { label: 'Mentale Entwicklung', icon: '🙂', good: 'Gute Stimmung', bad: 'Stimmung könnte besser sein', tip: 'Mach etwas, das dir heute Freude bereitet' },
     stress: { label: 'Stress', icon: '🧘', good: 'Niedriger Stress', bad: 'Erhöhter Stress', tip: 'Entspanne dich 15 Minuten' },
     focus: { label: 'Fokus', icon: '🎯', good: 'Guter Fokus heute', bad: 'Wenig Fokus heute', tip: 'Mache eine kurze Konzentrationspause' },
   };
@@ -209,6 +217,28 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
       return Array.isArray(g) ? g : [];
     } catch (e) { return []; }
   }
+  function todayTennisMinutes() {
+    try {
+      const acts = JSON.parse(localStorage.getItem('fitness_activities_v1')) || [];
+      const key = getActiveDateString();
+      return acts.filter((a) => (a.startTime || '').slice(0, 10) === key && a.type === 'tennis')
+        .reduce((s, a) => s + (a.durationMin || 0), 0);
+    } catch (e) { return 0; }
+  }
+  function nutritionRatioToday() {
+    try {
+      const n = JSON.parse(localStorage.getItem('nutrition_v1'));
+      const entries = (n && n.logs && n.logs[getActiveDateString()]) || [];
+      if (!entries.length) return null;
+      const kcal = entries.reduce((s, e) => s + (Number(e.kcal) || 0), 0);
+      const protein = entries.reduce((s, e) => s + (Number(e.protein) || 0), 0);
+      const goal = n.goal || {};
+      const parts = [];
+      if (goal.kcal) parts.push(Math.min(kcal / goal.kcal, 1));
+      if (goal.protein) parts.push(Math.min(protein / goal.protein, 1));
+      return parts.length ? parts.reduce((s, p) => s + p, 0) / parts.length : null;
+    } catch (e) { return null; }
+  }
 
   function computeScore(inputs) {
     let weightedSum = 0, weightTotal = 0;
@@ -251,6 +281,8 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     if (noData) {
       const msg = '<div class="why-empty">Noch keine Daten für heute erfasst — verbinde WHOOP oder trag Werte ein (Schritte, Wasser, Ziele …).</div>';
       goodEl.innerHTML = msg; badEl.innerHTML = msg; tipsEl.innerHTML = msg;
+      const goalNoteEl = document.getElementById('dsGoalNote');
+      if (goalNoteEl) goalNoteEl.textContent = '';
       return;
     }
 
@@ -278,6 +310,16 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     tipsEl.innerHTML = tips.length
       ? tips.map((t) => '<div class="tip-card"><div class="tip-icon">' + t.meta.icon + '</div><div class="tip-title">' + t.meta.tip + '</div><div class="tip-delta">+' + Math.round(t.delta) + '%</div></div>').join('')
       : '<div class="why-empty">Dein Score ist heute schon sehr rund — nichts Dringendes offen.</div>';
+
+    // The single largest remaining opportunity, framed against the
+    // actual goal (Tennis-Trainer-A-Lizenz, Top-80-Deutschland) rather
+    // than a generic "improve your score" line.
+    const goalNoteEl = document.getElementById('dsGoalNote');
+    if (goalNoteEl) {
+      goalNoteEl.textContent = tips.length
+        ? 'Dein kleinster nächster Schritt heute, näher an dein Ziel (A-Lizenz, Top 80 Deutschland): ' + tips[0].meta.tip.charAt(0).toLowerCase() + tips[0].meta.tip.slice(1) + '.'
+        : 'Ein Tag, der dich wirklich näher an dein Ziel bringt — A-Lizenz, Top 80 Deutschland.';
+    }
   }
 
   async function boot() {
@@ -293,12 +335,16 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     const activityMin = todayActivityMinutes();
     const steps = todaySteps();
     const wellbeing = loadWellbeing();
+    const tennisMin = todayTennisMinutes();
+    const nutritionRatio = nutritionRatioToday();
 
     const inputs = {
       goals: goalsRatio,
       water: waterP ? waterP.done / waterP.total : null,
       steps: steps != null ? Math.min(steps / SCORE_TARGETS.steps, 1) : null,
       activity: activityMin > 0 ? Math.min(activityMin / SCORE_TARGETS.activityMin, 1) : null,
+      tennisTraining: tennisMin > 0 ? Math.min(tennisMin / SCORE_TARGETS.tennisMin, 1) : null,
+      nutrition: nutritionRatio,
       mood: wellbeing.mood != null ? wellbeing.mood / 5 : null,
       stress: wellbeing.stress != null ? (5 - wellbeing.stress) / 4 : null,
       focus: wellbeing.focus != null ? wellbeing.focus / 5 : null,

@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Maëls Übersicht">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<title>Fitness-Empfehlungen</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<link rel="stylesheet" href="theme.css">
+<style>
+:root { --good: var(--accent); }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 40px; }
+.wrap { max-width: 640px; margin: 0 auto; }
+.back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.back-link:hover { color: var(--text-2); }
+.hd { margin-bottom: 18px; }
+.hd h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.group-h { font-size: 13px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-mono); margin: 22px 2px 10px; }
+.group-h:first-of-type { margin-top: 0; }
+
+.tip-card {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+  padding: 18px; margin-bottom: 12px; box-shadow: 0 8px 26px rgba(0,0,0,0.3);
+}
+.tip-icon { width: 44px; height: 44px; border-radius: 14px; background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 21px; flex-shrink: 0; }
+.tip-title { font-size: 15px; font-weight: 700; }
+.tip-reason { font-size: 12.5px; color: var(--text-3); margin-top: 3px; }
+
+.delta-card {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+  padding: 16px 18px; margin-bottom: 10px; box-shadow: 0 8px 26px rgba(0,0,0,0.3);
+}
+.delta-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
+.delta-title { font-size: 14px; font-weight: 700; flex: 1; }
+.delta-val { font-size: 15px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+
+.connect-note { text-align: center; color: var(--text-3); font-size: 13px; padding: 20px 0 30px; }
+.connect-note a { color: var(--text-2); }
+.empty-note { font-size: 13px; color: var(--text-3); text-align: center; padding: 10px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="fitness.html" class="back-link">← Fitness</a>
+  <div class="hd">
+    <h1 class="rw-title">Empfehlungen</h1>
+    <div class="sub rw-eyebrow" id="fitRecoDateLabel">—</div>
+  </div>
+
+  <div class="group-h">Heute</div>
+  <div id="tipsBody"></div>
+
+  <div class="group-h" id="deltaGroupH" style="display:none">Was dir heute noch zu 100 % fehlt</div>
+  <div id="deltaBody"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const WHOOP_KEY = 'whoop_tokens_v1';
+  function loadWhoopTokens() { try { return JSON.parse(localStorage.getItem(WHOOP_KEY)); } catch (e) { return null; } }
+  function saveWhoopTokens(t) { try { localStorage.setItem(WHOOP_KEY, JSON.stringify(t)); } catch (e) {} }
+  async function refreshWhoopToken(t) {
+    if (!t.refresh) return null;
+    try {
+      const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: t.refresh }) });
+      const j = await r.json();
+      if (j.access_token) {
+        const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in || 3500) * 1000 };
+        saveWhoopTokens(next);
+        return next;
+      }
+    } catch (e) {}
+    return null;
+  }
+  async function whoopFetch(path, t) {
+    const [p, qs] = path.split('?');
+    const params = new URLSearchParams(qs || ''); params.set('path', p);
+    const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { Authorization: 'Bearer ' + t.access, Accept: 'application/json' } });
+    if (r.status === 401) { const n = await refreshWhoopToken(t); if (n) return whoopFetch(path, n); throw new Error('unauthorized'); }
+    if (!r.ok) throw new Error('WHOOP ' + r.status);
+    return await r.json();
+  }
+
+  const STEPS_KEY = 'fitness_steps_today_v1';
+  const ACTIVITIES_KEY = 'fitness_activities_v1';
+  function todayKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function loadTodaySteps() {
+    try {
+      const v = JSON.parse(localStorage.getItem(STEPS_KEY));
+      if (v && v.date === todayKey()) return v.steps;
+    } catch (e) {}
+    return null;
+  }
+  function todaysActivities() {
+    try {
+      const arr = JSON.parse(localStorage.getItem(ACTIVITIES_KEY));
+      return (Array.isArray(arr) ? arr : []).filter((a) => (a.startTime || '').slice(0, 10) === todayKey());
+    } catch (e) { return []; }
+  }
+
+  // Same weights/targets as fitness.html's Fitness Score — kept in sync
+  // by hand since each page duplicates its own copy per this app's
+  // convention (no shared JS modules).
+  const WEIGHTS = { steps: 0.12, calories: 0.18, strain: 0.22, activity: 0.14, hrZone: 0.20, recovery: 0.14 };
+  const TARGETS = { steps: 10000, calories: 3000, strain: 21, activityMin: 90, hrZoneWeighted: 60 };
+  const COMPONENT_META = {
+    steps: { icon: '👣', tip: 'Noch ' + '~%N%' + ' Schritte bis zum Tagesziel gehen', label: 'Schritte' },
+    calories: { icon: '🔥', tip: 'Noch etwas mehr Bewegung für dein Kalorienziel', label: 'Kalorien' },
+    strain: { icon: '⚡', tip: 'Eine intensivere Einheit würde deinen Strain heben', label: 'Strain' },
+    activity: { icon: '⏱️', tip: 'Noch etwas länger trainieren', label: 'Aktivitätsdauer' },
+    hrZone: { icon: '❤️', tip: 'Mehr Zeit in Zone 4-5 einbauen (Intervalle o. Ä.)', label: 'Herzfrequenzzonen' },
+    recovery: { icon: '🔋', tip: 'Priorisiere heute Erholung für morgen', label: 'Erholung' },
+  };
+
+  function fmtMin(mins) {
+    if (!mins) return '0min';
+    const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+    return h > 0 ? h + 'h ' + m + 'min' : m + 'min';
+  }
+
+  function tipCard(icon, title, reason) {
+    return '<div class="tip-card"><div class="tip-icon">' + icon + '</div><div><div class="tip-title">' + title + '</div><div class="tip-reason">' + reason + '</div></div></div>';
+  }
+
+  // Fixed-order, condition-gated candidate pool — same deterministic
+  // pattern as recommendations.html.
+  function buildTips(ctx) {
+    const candidates = [
+      {
+        id: 'zone4_needed', cond: ctx.hrZoneWeighted != null && ctx.hrZoneWeighted < TARGETS.hrZoneWeighted, icon: '🎯',
+        title: 'Mehr Zeit in hohen Zonen heute.', reason: 'Dir fehlen noch ungefähr ' + Math.max(1, Math.round((TARGETS.hrZoneWeighted - ctx.hrZoneWeighted) / 2)) + ' Minuten intensives Training (Zone 4) für ein starkes Tagesergebnis.',
+      },
+      {
+        id: 'low_strain_push', cond: ctx.strain != null && ctx.strain < 10 && ctx.recovery != null && ctx.recovery >= 60, icon: '🔥',
+        title: 'Deine Belastung ist heute niedrig.', reason: 'Bei ' + Math.round(ctx.recovery) + '% Erholung wäre ein intensiveres Training heute sinnvoll.',
+      },
+      {
+        id: 'high_recovery', cond: ctx.recovery != null && ctx.recovery >= 75, icon: '💪',
+        title: 'Guter Tag für Leistung.', reason: 'Deine Erholung liegt bei ' + Math.round(ctx.recovery) + '% — dein Körper ist bereit für eine anspruchsvolle Einheit.',
+      },
+      {
+        id: 'low_recovery_caution', cond: ctx.recovery != null && ctx.recovery < 34, icon: '🛌',
+        title: 'Heute lieber leicht trainieren.', reason: 'Deine Erholung liegt bei nur ' + Math.round(ctx.recovery) + '% — priorisiere heute Regeneration statt Intensität.',
+      },
+      {
+        id: 'no_activity_yet', cond: !ctx.activities.length, icon: '🏃',
+        title: 'Noch keine Aktivität heute.', reason: 'Trag ein Training ein oder starte eines direkt auf der Fitness-Seite.',
+      },
+      {
+        id: 'steps_behind', cond: ctx.steps != null && ctx.steps < TARGETS.steps * 0.5 && new Date().getHours() >= 16, icon: '👣',
+        title: 'Schrittzahl heute noch niedrig.', reason: 'Ein kurzer Spaziergang bringt dich heute noch näher an dein Schrittziel.',
+      },
+    ];
+    const picked = candidates.filter((c) => c.cond);
+    if (!picked.length) {
+      picked.push({ icon: '✅', title: 'Solider Tag bisher.', reason: 'Keine akuten Lücken erkennbar — weiter so.' });
+    }
+    return picked.slice(0, 5);
+  }
+
+  async function boot() {
+    const dLabel = document.getElementById('fitRecoDateLabel');
+    const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    const mons = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    const now = new Date();
+    dLabel.textContent = days[now.getDay()] + ', ' + now.getDate() + '. ' + mons[now.getMonth()];
+
+    const steps = loadTodaySteps();
+    const activities = todaysActivities();
+    const activityMin = activities.reduce((s, a) => s + (a.durationMin || 0), 0);
+    let calories = null, strain = null, recovery = null, hrZoneWeighted = null;
+
+    const tokens = loadWhoopTokens();
+    if (tokens && tokens.access) {
+      try {
+        let t = tokens;
+        if (t.expires && Date.now() > t.expires - 60000) { const n = await refreshWhoopToken(t); if (n) t = n; }
+        const [cycle, rec] = await Promise.all([
+          whoopFetch('/cycle?limit=1', t).catch(() => null),
+          whoopFetch('/recovery?limit=1', t).catch(() => null),
+        ]);
+        const c = cycle && cycle.records && cycle.records[0] && cycle.records[0].score;
+        if (c) { strain = c.strain; if (c.kilojoule != null) calories = c.kilojoule * 0.239006; }
+        const r = rec && rec.records && rec.records[0] && rec.records[0].score;
+        if (r && r.recovery_score != null) recovery = r.recovery_score;
+      } catch (e) { /* offline — tips fall back to activity-only reasoning */ }
+    }
+
+    const whoopActivitiesToday = activities.filter((a) => a.source === 'whoop' && a.zoneMin);
+    if (whoopActivitiesToday.length) {
+      hrZoneWeighted = whoopActivitiesToday.reduce((s, a) => {
+        const z = a.zoneMin || {};
+        return s + (z[3] || 0) * 1 + (z[4] || 0) * 2 + (z[5] || 0) * 3;
+      }, 0);
+    }
+
+    const ctx = { steps, activities, activityMin, calories, strain, recovery, hrZoneWeighted };
+    const tips = buildTips(ctx);
+    document.getElementById('tipsBody').innerHTML = tips.map((t) => tipCard(t.icon, t.title, t.reason)).join('');
+    if (!tokens || !tokens.access) {
+      document.getElementById('tipsBody').insertAdjacentHTML('beforeend', '<div class="connect-note">WHOOP auf der <a href="health.html">Gesundheit-Seite</a> verbinden für individuellere Empfehlungen.</div>');
+    }
+
+    // Same point-delta technique as daily-score.html: simulate each
+    // below-target component maxed out and show the real resulting
+    // Fitness-Score delta — not hardcoded copy.
+    const parts = {
+      steps: steps != null ? Math.min(steps / TARGETS.steps, 1) : null,
+      calories: calories != null ? Math.min(calories / TARGETS.calories, 1) : null,
+      strain: strain != null ? Math.min(strain / TARGETS.strain, 1) : null,
+      activity: activities.length ? Math.min(activityMin / TARGETS.activityMin, 1) : null,
+      hrZone: hrZoneWeighted != null ? Math.min(hrZoneWeighted / TARGETS.hrZoneWeighted, 1) : null,
+      recovery: recovery != null ? recovery / 100 : null,
+    };
+    let weightTotal = 0;
+    Object.keys(parts).forEach((k) => { if (parts[k] != null) weightTotal += WEIGHTS[k]; });
+
+    const deltaEl = document.getElementById('deltaBody');
+    const deltaGroupH = document.getElementById('deltaGroupH');
+    if (weightTotal > 0) {
+      const deltas = Object.keys(parts)
+        .filter((k) => parts[k] != null && parts[k] < 1)
+        .map((k) => ({ key: k, delta: ((1 - parts[k]) * WEIGHTS[k]) / weightTotal * 100, meta: COMPONENT_META[k] }))
+        .filter((d) => d.delta >= 0.5)
+        .sort((a, b) => b.delta - a.delta)
+        .slice(0, 5);
+      if (deltas.length) {
+        deltaGroupH.style.display = '';
+        deltaEl.innerHTML = deltas.map((d) =>
+          '<div class="delta-card"><div class="delta-icon">' + d.meta.icon + '</div><div class="delta-title">' + d.meta.tip.replace('~%N%', steps != null ? Math.max(0, TARGETS.steps - steps).toLocaleString('de-DE') : '—') + '</div><div class="delta-val">+' + Math.round(d.delta) + '%</div></div>'
+        ).join('');
+      } else {
+        deltaGroupH.style.display = '';
+        deltaEl.innerHTML = '<div class="empty-note">Dein Fitness-Score ist heute schon sehr rund.</div>';
+      }
+    }
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>

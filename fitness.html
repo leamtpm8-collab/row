@@ -126,6 +126,17 @@ button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
         <span class="rw-card-arrow">→</span>
       </div>
     </a>
+    <a href="fitness-recommendations.html" class="rw-card">
+      <div class="rw-motif motif-radar"></div>
+      <div class="rw-card-num">·04</div>
+      <span class="rw-card-icon">💡</span>
+      <div class="rw-card-spacer"></div>
+      <div class="rw-card-title">Empfehlungen</div>
+      <div class="rw-card-foot">
+        <span class="rw-card-sub">Was dir heute für deinen Score fehlt</span>
+        <span class="rw-card-arrow">→</span>
+      </div>
+    </a>
   </div>
 
   <div class="whoop-hint" id="whoopHint"></div>
@@ -168,6 +179,18 @@ button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
   // ============================================================
   const STEPS_KEY = 'fitness_steps_today_v1';
   const ACTIVITIES_KEY = 'fitness_activities_v1';
+  const VO2MAX_KEY = 'fitness_vo2max_v1';
+
+  // VO2max has no WHOOP field at all (checked the API) — this is only
+  // ever populated by api/fitness-sync.js from an Apple Health Shortcut,
+  // never manual entry, since it's not something to guess at.
+  function loadVo2max() {
+    try {
+      const v = JSON.parse(localStorage.getItem(VO2MAX_KEY));
+      if (v && v.value != null) return v;
+    } catch (e) {}
+    return null;
+  }
 
   function todayKey() {
     const d = new Date();
@@ -199,12 +222,20 @@ button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
   // ============================================================
   // Fitness Score — weighted composite, renormalized over whatever
   // data is actually available today (steps, WHOOP calories/strain,
-  // HR-zone minutes, logged activity). Mirrors the "redistribute
-  // weight when a component is missing" approach used in daily.html's
-  // Energy Score.
+  // recovery, zone-weighted HR minutes, logged activity). Mirrors the
+  // "redistribute weight when a component is missing" approach used
+  // in daily.html's Energy Score.
+  //
+  // Deliberately hard to max out: 100% requires a genuinely perfect
+  // training day (strain ~20-21, ~3000 total kcal, ~90+ min activity,
+  // real time in zones 4-5, good recovery) — not just "did something
+  // today". Calories/activity/hrZone targets and the zone-weighting
+  // were raised specifically because the old flat targets (600 kcal,
+  // 45 min, any 30 min across zones 1-5) let the score max out on an
+  // ordinary day.
   // ============================================================
-  const WEIGHTS = { steps: 0.25, calories: 0.20, strain: 0.25, activity: 0.15, hrZone: 0.15 };
-  const TARGETS = { steps: 10000, calories: 600, strain: 21, activityMin: 45, hrZoneMin: 30 };
+  const WEIGHTS = { steps: 0.12, calories: 0.18, strain: 0.22, activity: 0.14, hrZone: 0.20, recovery: 0.14 };
+  const TARGETS = { steps: 10000, calories: 3000, strain: 21, activityMin: 90, hrZoneWeighted: 60 };
 
   function computeScore(inputs) {
     let weightedSum = 0, weightTotal = 0;
@@ -261,31 +292,43 @@ button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
     const steps = loadTodaySteps();
     const activities = todaysActivities();
     const activityMin = activities.reduce((s, a) => s + (a.durationMin || 0), 0);
+    const vo2max = loadVo2max();
 
-    let calories = null, strain = null, hrZoneMin = null;
+    let calories = null, strain = null, recovery = null, hrZoneMinTotal = null, hrZoneWeighted = null;
     const tokens = loadWhoopTokens();
     if (tokens && tokens.access) {
       document.getElementById('whoopHint').innerHTML = '';
       try {
         let t = tokens;
         if (t.expires && Date.now() > t.expires - 60000) { const n = await refreshWhoopToken(t); if (n) t = n; }
-        const cycle = await whoopFetch('/cycle?limit=1', t).catch(() => null);
+        const [cycle, rec] = await Promise.all([
+          whoopFetch('/cycle?limit=1', t).catch(() => null),
+          whoopFetch('/recovery?limit=1', t).catch(() => null),
+        ]);
         const c = cycle && cycle.records && cycle.records[0] && cycle.records[0].score;
         if (c) {
           strain = c.strain;
           if (c.kilojoule != null) calories = c.kilojoule * 0.239006;
         }
+        const r = rec && rec.records && rec.records[0] && rec.records[0].score;
+        if (r && r.recovery_score != null) recovery = r.recovery_score;
       } catch (e) { /* offline / expired — score just falls back to local data */ }
     } else {
-      document.getElementById('whoopHint').innerHTML = 'WHOOP auf der <a href="health.html">Gesundheit-Seite</a> verbinden für Kalorien, Strain &amp; Herzfrequenzzonen.';
+      document.getElementById('whoopHint').innerHTML = 'WHOOP auf der <a href="health.html">Gesundheit-Seite</a> verbinden für Kalorien, Strain, Erholung &amp; Herzfrequenzzonen.';
     }
 
+    // Zone-weighted HR score: zone 3/4/5 minutes count 1x/2x/3x, so real
+    // 100% requires genuine time in the *high* zones, not just any
+    // elevated heart rate. hrZoneMinTotal (unweighted, all zones) is kept
+    // separately purely for the human-readable stat card.
     const whoopActivitiesToday = activities.filter((a) => a.source === 'whoop' && a.zoneMin);
     if (whoopActivitiesToday.length) {
-      hrZoneMin = whoopActivitiesToday.reduce((s, a) => {
+      hrZoneMinTotal = 0; hrZoneWeighted = 0;
+      whoopActivitiesToday.forEach((a) => {
         const z = a.zoneMin || {};
-        return s + (z[1] || 0) + (z[2] || 0) + (z[3] || 0) + (z[4] || 0) + (z[5] || 0);
-      }, 0);
+        hrZoneMinTotal += (z[1] || 0) + (z[2] || 0) + (z[3] || 0) + (z[4] || 0) + (z[5] || 0);
+        hrZoneWeighted += (z[3] || 0) * 1 + (z[4] || 0) * 2 + (z[5] || 0) * 3;
+      });
     }
 
     const score = computeScore({
@@ -293,24 +336,26 @@ button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
       calories: calories != null ? calories / TARGETS.calories : null,
       strain: strain != null ? strain / TARGETS.strain : null,
       activity: activities.length ? Math.min(activityMin / TARGETS.activityMin, 1) : (activities.length ? 0 : null),
-      hrZone: hrZoneMin != null ? hrZoneMin / TARGETS.hrZoneMin : null,
+      hrZone: hrZoneWeighted != null ? hrZoneWeighted / TARGETS.hrZoneWeighted : null,
+      recovery: recovery != null ? recovery / 100 : null,
     });
 
     renderRing(score);
     document.getElementById('scoreNum').style.color = zoneColor(score);
     if (score != null) {
       document.getElementById('scoreNote').textContent = 'Basierend auf ' +
-        [steps != null ? 'Schritten' : null, calories != null ? 'Kalorien' : null, strain != null ? 'Strain' : null, hrZoneMin != null ? 'Herzfrequenzzonen' : null, activities.length ? 'Aktivitäten' : null]
+        [steps != null ? 'Schritten' : null, calories != null ? 'Kalorien' : null, strain != null ? 'Strain' : null, recovery != null ? 'Erholung' : null, hrZoneWeighted != null ? 'Herzfrequenzzonen' : null, activities.length ? 'Aktivitäten' : null]
           .filter(Boolean).join(', ') + ' von heute.';
     }
 
     document.getElementById('statGrid').innerHTML =
       statCard('Schritte', steps != null ? steps.toLocaleString('de-DE') : '—', steps != null ? Math.round(steps / TARGETS.steps * 100) + '% Ziel · antippen' : 'antippen zum Erfassen', 'stepsCard') +
-      statCard('Kalorien', calories != null ? Math.round(calories) : '—', 'aktiv, kcal') +
+      statCard('Kalorien', calories != null ? Math.round(calories) : '—', 'gesamt, kcal') +
       statCard('Strain', strain != null ? strain.toFixed(1) : '—', 'WHOOP') +
+      statCard('Erholung', recovery != null ? Math.round(recovery) + '%' : '—', 'WHOOP') +
       statCard('Aktivität', fmtMin(activityMin), activities.length + ' heute') +
-      statCard('HF-Zonen', hrZoneMin != null ? fmtMin(hrZoneMin) : '—', 'Zone 1–5') +
-      statCard('VO₂max', '—', 'noch nicht verfügbar');
+      statCard('HF-Zonen', hrZoneMinTotal != null ? fmtMin(hrZoneMinTotal) : '—', 'Zone 1–5') +
+      statCard('VO₂max', vo2max ? vo2max.value.toFixed(1) : '—', vo2max ? 'Apple Health · ' + vo2max.date : 'noch nicht verfügbar');
     document.getElementById('stepsCard').addEventListener('click', editStepsToday);
   }
 
@@ -319,7 +364,7 @@ button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
   if (window.initCloudSync) {
     window.initCloudSync({
       appKey: 'fitness',
-      syncedKeys: ['fitness_activities_v1', 'fitness_body_v1', 'fitness_steps_today_v1'],
+      syncedKeys: ['fitness_activities_v1', 'fitness_body_v1', 'fitness_steps_today_v1', 'fitness_vo2max_v1'],
       onApplied: boot,
     });
   }

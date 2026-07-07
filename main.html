@@ -1352,11 +1352,19 @@ body::after {
   const WELLBEING_KEY = 'daily_wellbeing_v1';
   const WHOOP_KEY_TS = 'whoop_tokens_v1';
 
+  // Goal-oriented: "Disziplin" = the existing goals-completion ratio,
+  // "mentale Entwicklung" = the existing mood/focus quick-rates — both
+  // reframed around the user's actual goal (Tennis-Trainer-A-Lizenz,
+  // Top-80-Deutschland) rather than adding more daily manual taps.
+  // tennisTraining and nutrition are the two genuinely new inputs, both
+  // reusing data that already exists elsewhere in the app (a logged
+  // Tennis activity, nutrition.html's entries) rather than inventing
+  // yet another thing to fill in by hand.
   const SCORE_WEIGHTS = {
-    recovery: 15, goals: 15, activity: 12, sleepQuality: 8, sleepDuration: 8,
-    steps: 8, water: 8, strain: 7, mood: 7, stress: 6, focus: 6,
+    recovery: 12, goals: 12, tennisTraining: 12, activity: 10, sleepQuality: 8, sleepDuration: 8,
+    nutrition: 8, steps: 6, water: 6, strain: 6, mood: 5, stress: 5, focus: 2,
   };
-  const SCORE_TARGETS = { sleepDurationMin: 8 * 60, steps: 10000, activityMin: 45, strainMax: 21 };
+  const SCORE_TARGETS = { sleepDurationMin: 8 * 60, steps: 10000, activityMin: 45, strainMax: 21, tennisMin: 45 };
 
   function tsLoadWhoopTokens() { try { return JSON.parse(localStorage.getItem(WHOOP_KEY_TS)); } catch (e) { return null; } }
   function tsSaveWhoopTokens(t) { try { localStorage.setItem(WHOOP_KEY_TS, JSON.stringify(t)); } catch (e) {} }
@@ -1414,6 +1422,28 @@ body::after {
     } catch (e) {}
     return null;
   }
+  function tsTennisMinutesToday() {
+    try {
+      const acts = JSON.parse(localStorage.getItem('fitness_activities_v1')) || [];
+      const key = getActiveDateString();
+      return acts.filter((a) => (a.startTime || '').slice(0, 10) === key && a.type === 'tennis')
+        .reduce((s, a) => s + (a.durationMin || 0), 0);
+    } catch (e) { return 0; }
+  }
+  function tsNutritionRatioToday() {
+    try {
+      const n = JSON.parse(localStorage.getItem('nutrition_v1'));
+      const entries = (n && n.logs && n.logs[getActiveDateString()]) || [];
+      if (!entries.length) return null;
+      const kcal = entries.reduce((s, e) => s + (Number(e.kcal) || 0), 0);
+      const protein = entries.reduce((s, e) => s + (Number(e.protein) || 0), 0);
+      const goal = n.goal || {};
+      const parts = [];
+      if (goal.kcal) parts.push(Math.min(kcal / goal.kcal, 1));
+      if (goal.protein) parts.push(Math.min(protein / goal.protein, 1));
+      return parts.length ? parts.reduce((s, p) => s + p, 0) / parts.length : null;
+    } catch (e) { return null; }
+  }
   function computeScore(inputs) {
     let weightedSum = 0, weightTotal = 0;
     const parts = {};
@@ -1458,11 +1488,16 @@ body::after {
     const steps = tsTodaySteps();
     const wellbeing = tsLoadWellbeing();
 
+    const tennisMin = tsTennisMinutesToday();
+    const nutritionRatio = tsNutritionRatioToday();
+
     const inputs = {
       goals: goalsRatio,
       water: waterP ? waterP.done / waterP.total : null,
       steps: steps != null ? Math.min(steps / SCORE_TARGETS.steps, 1) : null,
       activity: activityMin > 0 ? Math.min(activityMin / SCORE_TARGETS.activityMin, 1) : null,
+      tennisTraining: tennisMin > 0 ? Math.min(tennisMin / SCORE_TARGETS.tennisMin, 1) : null,
+      nutrition: nutritionRatio,
       mood: wellbeing && wellbeing.mood != null ? wellbeing.mood / 5 : null,
       stress: wellbeing && wellbeing.stress != null ? (5 - wellbeing.stress) / 4 : null,
       focus: wellbeing && wellbeing.focus != null ? wellbeing.focus / 5 : null,
