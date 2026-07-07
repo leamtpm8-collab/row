@@ -431,8 +431,15 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     });
   }
 
+  function registerServiceWorker() {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+  }
+
   function boot() {
     injectStyleAndHTML();
+    registerServiceWorker();
     const btn = document.getElementById('topbarWaterAdd');
     if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); addWater(); });
     const logoutBtn = document.getElementById('topbarLogout');
