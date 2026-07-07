@@ -596,6 +596,28 @@ body::after {
   .gm-card { padding: 16px; }
   .gm-progress-num { font-size: 36px; }
 }
+
+/* ---- Tagesscore card (same dark-card system as fitness.html/wellness.html) ---- */
+.tscore-card {
+  --ts-bg-card: #111113; --ts-bg-card-2: #17171a; --ts-border: rgba(255,255,255,0.08);
+  --ts-good: #6ee7b7; --ts-warn: #fbbf24; --ts-bad: #ff8a8a;
+  text-decoration: none; color: inherit;
+  background: var(--ts-bg-card); border: 1px solid var(--ts-border); border-radius: 24px;
+  padding: 26px 20px 22px; margin-bottom: 20px;
+  box-shadow: 0 10px 34px rgba(0,0,0,0.4);
+  display: flex; flex-direction: column; align-items: center;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+.tscore-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.18); }
+.tscore-ring-wrap { position: relative; width: 168px; height: 168px; margin-bottom: 4px; }
+.tscore-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.tscore-ring-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 11; }
+.tscore-ring-fill { fill: none; stroke: var(--ts-good); stroke-width: 11; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.22,1,0.36,1), stroke 0.4s ease; }
+.tscore-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.tscore-num { font-size: 40px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: #fff; }
+.tscore-label { font-size: 11.5px; color: rgba(255,255,255,0.4); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.tscore-note { font-size: 13px; color: rgba(255,255,255,0.6); text-align: center; max-width: 320px; margin-top: 6px; }
+.tscore-arrow { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 10px; font-family: ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.05em; }
 </style>
 </head>
 <body>
@@ -638,9 +660,24 @@ body::after {
     <div class="day-ring-text">
       <div class="day-ring-status"    id="dayRingStatus">Wird geladen…</div>
       <div class="day-ring-remaining" id="dayRingRemaining">—</div>
-      <div class="day-ring-hours">08:00 – 24:00 Uhr</div>
+      <div class="day-ring-hours">07:30 – 22:30 Uhr</div>
     </div>
   </div>
+
+  <a href="daily-score.html" class="tscore-card" id="tscoreCard">
+    <div class="tscore-ring-wrap">
+      <svg class="tscore-ring" viewBox="0 0 168 168">
+        <circle class="tscore-ring-track" cx="84" cy="84" r="74"></circle>
+        <circle class="tscore-ring-fill" id="tscoreRingFill" cx="84" cy="84" r="74"></circle>
+      </svg>
+      <div class="tscore-ring-center">
+        <div class="tscore-num" id="tscoreNum">—</div>
+        <div class="tscore-label">Tagesscore</div>
+      </div>
+    </div>
+    <div class="tscore-note" id="tscoreNote">Wird berechnet…</div>
+    <div class="tscore-arrow">Details ansehen →</div>
+  </a>
 
   <div class="section">
     <div class="section-title">Aufgabenliste</div>
@@ -703,8 +740,8 @@ body::after {
   // Paste your Anthropic key here to enable ✨ Polish. Empty = falls back to plain add.
   const ANTHROPIC_API_KEY = '';
 
-  const WAKE_HOUR  = 8;
-  const SLEEP_HOUR = 24;
+  const WAKE_HOUR  = 7.5;
+  const SLEEP_HOUR = 22.5;
 
   // ---------- storage helpers ----------
   function storeGet(key) {
@@ -1291,6 +1328,165 @@ body::after {
     loadTomorrow
   );
 
+  // ============================================================
+  // Tagesscore — weighted composite over recovery/sleep/steps/
+  // water/activity/goals/wellbeing, renormalized over whichever
+  // components actually have data today (same approach as the
+  // Fitness Score in fitness.html and the Energy Score in
+  // daily.html). Cached to localStorage so Roger's context-reader
+  // (topbar.js) picks it up automatically.
+  // ============================================================
+  const SCORE_KEY = 'daily_score_v1';
+  const WELLBEING_KEY = 'daily_wellbeing_v1';
+  const WHOOP_KEY_TS = 'whoop_tokens_v1';
+
+  const SCORE_WEIGHTS = {
+    recovery: 15, goals: 15, activity: 12, sleepQuality: 8, sleepDuration: 8,
+    steps: 8, water: 8, strain: 7, mood: 7, stress: 6, focus: 6,
+  };
+  const SCORE_TARGETS = { sleepDurationMin: 8 * 60, steps: 10000, activityMin: 45, strainMax: 21 };
+
+  function tsLoadWhoopTokens() { try { return JSON.parse(localStorage.getItem(WHOOP_KEY_TS)); } catch (e) { return null; } }
+  function tsSaveWhoopTokens(t) { try { localStorage.setItem(WHOOP_KEY_TS, JSON.stringify(t)); } catch (e) {} }
+  async function tsRefreshWhoopToken(t) {
+    if (!t.refresh) return null;
+    try {
+      const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: t.refresh }) });
+      const j = await r.json();
+      if (j.access_token) {
+        const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in || 3500) * 1000 };
+        tsSaveWhoopTokens(next);
+        return next;
+      }
+    } catch (e) {}
+    return null;
+  }
+  async function tsWhoopFetch(path, t) {
+    const [p, qs] = path.split('?');
+    const params = new URLSearchParams(qs || ''); params.set('path', p);
+    const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { Authorization: 'Bearer ' + t.access, Accept: 'application/json' } });
+    if (r.status === 401) { const n = await tsRefreshWhoopToken(t); if (n) return tsWhoopFetch(path, n); throw new Error('unauthorized'); }
+    if (!r.ok) throw new Error('WHOOP ' + r.status);
+    return await r.json();
+  }
+  function tsLoadWellbeing() {
+    try {
+      const v = JSON.parse(localStorage.getItem(WELLBEING_KEY));
+      if (v && v.date === getActiveDateString()) return v;
+    } catch (e) {}
+    return null;
+  }
+  function tsWaterProgress() {
+    let state = null;
+    try { state = JSON.parse(localStorage.getItem('po_water_v1')); } catch (e) {}
+    if (!state) return null;
+    const done = (state.logs || {})[getActiveDateString()] || 0;
+    const p = state.profile || { weightKg: 75 };
+    const wKg = state.weightUnit === 'lb' ? (p.weightKg || 0) / 2.20462 : (p.weightKg || 0);
+    const totalMl = wKg * 35 + ((p.activityHrsPerWeek || 0) / 7) * 500;
+    const unitVol = state.unit === 'glass' ? (state.glassMl || 250) : state.unit === 'oz' ? 30 : state.unit === 'ml' ? 1 : (state.bottleMl || 500);
+    const total = Math.max(1, Math.ceil(totalMl / unitVol));
+    return { done, total };
+  }
+  function tsTodayActivityMinutes() {
+    try {
+      const acts = JSON.parse(localStorage.getItem('fitness_activities_v1')) || [];
+      const key = getActiveDateString();
+      return acts.filter((a) => (a.startTime || '').slice(0, 10) === key).reduce((s, a) => s + (a.durationMin || 0), 0);
+    } catch (e) { return 0; }
+  }
+  function tsTodaySteps() {
+    try {
+      const v = JSON.parse(localStorage.getItem('fitness_steps_today_v1'));
+      if (v && v.date === getActiveDateString()) return v.steps;
+    } catch (e) {}
+    return null;
+  }
+  function computeScore(inputs) {
+    let weightedSum = 0, weightTotal = 0;
+    const parts = {};
+    for (const key of Object.keys(inputs)) {
+      const v = inputs[key];
+      if (v == null) continue;
+      const ratio = Math.max(0, Math.min(v, 1));
+      weightedSum += ratio * SCORE_WEIGHTS[key];
+      weightTotal += SCORE_WEIGHTS[key];
+      parts[key] = ratio;
+    }
+    const score = weightTotal > 0 ? Math.round((weightedSum / weightTotal) * 100) : null;
+    return { score, parts };
+  }
+  function tsZoneColor(score) {
+    if (score == null) return 'rgba(255,255,255,0.5)';
+    if (score >= 67) return '#6ee7b7';
+    if (score >= 34) return '#fbbf24';
+    return '#ff8a8a';
+  }
+  function renderTagesscore(score) {
+    const fill = document.getElementById('tscoreRingFill');
+    if (!fill) return;
+    const C = 2 * Math.PI * 74;
+    fill.style.strokeDasharray = C;
+    fill.style.strokeDashoffset = score != null ? C * (1 - score / 100) : C;
+    fill.style.stroke = tsZoneColor(score);
+    const numEl = document.getElementById('tscoreNum');
+    numEl.textContent = score != null ? score + '%' : '—';
+    numEl.style.color = tsZoneColor(score);
+    document.getElementById('tscoreNote').textContent = score == null
+      ? 'Noch nicht genug Daten für heute — verbinde WHOOP oder trag Werte ein.'
+      : score >= 67 ? 'Sehr guter Tag bisher — weiter so.'
+      : score >= 34 ? 'Solider Tag — an ein paar Stellen ist noch Luft nach oben.'
+      : 'Noch viel Potenzial für heute.';
+  }
+  async function updateTagesscore() {
+    const goals = getGoals(todayKey());
+    const goalsRatio = goals.length ? goals.filter((g) => g.done).length / goals.length : null;
+    const waterP = tsWaterProgress();
+    const activityMin = tsTodayActivityMinutes();
+    const steps = tsTodaySteps();
+    const wellbeing = tsLoadWellbeing();
+
+    const inputs = {
+      goals: goalsRatio,
+      water: waterP ? waterP.done / waterP.total : null,
+      steps: steps != null ? Math.min(steps / SCORE_TARGETS.steps, 1) : null,
+      activity: activityMin > 0 ? Math.min(activityMin / SCORE_TARGETS.activityMin, 1) : null,
+      mood: wellbeing && wellbeing.mood != null ? wellbeing.mood / 5 : null,
+      stress: wellbeing && wellbeing.stress != null ? (5 - wellbeing.stress) / 4 : null,
+      focus: wellbeing && wellbeing.focus != null ? wellbeing.focus / 5 : null,
+    };
+
+    const tokens = tsLoadWhoopTokens();
+    if (tokens && tokens.access) {
+      try {
+        let t = tokens;
+        if (t.expires && Date.now() > t.expires - 60000) { const n = await tsRefreshWhoopToken(t); if (n) t = n; }
+        const [rec, sleep, cycle] = await Promise.all([
+          tsWhoopFetch('/recovery?limit=1', t).catch(() => null),
+          tsWhoopFetch('/activity/sleep?limit=1', t).catch(() => null),
+          tsWhoopFetch('/cycle?limit=1', t).catch(() => null),
+        ]);
+        const r = rec && rec.records && rec.records[0] && rec.records[0].score;
+        const s = sleep && sleep.records && sleep.records[0] && sleep.records[0].score;
+        const c = cycle && cycle.records && cycle.records[0] && cycle.records[0].score;
+        if (r && r.recovery_score != null) inputs.recovery = r.recovery_score / 100;
+        if (s && s.sleep_performance_percentage != null) inputs.sleepQuality = s.sleep_performance_percentage / 100;
+        if (s && s.stage_summary) {
+          const ss = s.stage_summary;
+          const durMs = (ss.total_in_bed_time_milli || 0) - (ss.total_awake_time_milli || 0);
+          inputs.sleepDuration = Math.min(durMs / 60000 / SCORE_TARGETS.sleepDurationMin, 1);
+        }
+        if (c && c.strain != null) inputs.strain = c.strain / SCORE_TARGETS.strainMax;
+      } catch (e) { /* offline / not connected — score falls back to local-only inputs */ }
+    }
+
+    const { score, parts } = computeScore(inputs);
+    try {
+      localStorage.setItem(SCORE_KEY, JSON.stringify({ date: getActiveDateString(), score, breakdown: parts, weights: SCORE_WEIGHTS }));
+    } catch (e) {}
+    renderTagesscore(score);
+  }
+
   // ---------- Boot ----------
   rollover();
   processStreak();
@@ -1299,11 +1495,14 @@ body::after {
   renderStreak();
   updateDayRing();
   setInterval(updateDayRing, 60 * 1000);
+  updateTagesscore();
+  setInterval(updateTagesscore, 5 * 60 * 1000);
+  window.addEventListener('goals-changed', updateTagesscore);
   startTicker();
 
   // Re-render when storage changes from another tab (or our bridged parent).
   window.addEventListener('storage', () => {
-    loadToday(); loadTomorrow(); renderStreak();
+    loadToday(); loadTomorrow(); renderStreak(); updateTagesscore();
   });
 })();
 </script>

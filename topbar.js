@@ -626,6 +626,15 @@ body.has-bottombar .roger-popup, body.has-page-tabs .roger-popup { bottom: calc(
       const taken = JSON.parse(localStorage.getItem('stack:taken:' + rogerTodayKey()));
       if (taken && Object.keys(taken).length) pool.push('Welche Auswirkungen könnten meine Medikamente auf meine Erholung haben?');
     } catch (e) {}
+    try {
+      const ds = JSON.parse(localStorage.getItem('daily_score_v1'));
+      if (ds && ds.date === rogerTodayKey() && ds.score != null) {
+        pool.push('Warum ist mein Tagesscore heute nur ' + ds.score + '%?');
+        pool.push('Was bringt mir heute die meisten zusätzlichen Punkte?');
+        pool.push('Wie schaffe ich heute noch über 90% Tagesscore?');
+        pool.push('Welche Gewohnheit verbessert meinen Tagesscore langfristig am meisten?');
+      }
+    } catch (e) {}
     return pool;
   }
   function rogerRenderChips() {
@@ -646,6 +655,7 @@ body.has-bottombar .roger-popup, body.has-page-tabs .roger-popup { bottom: calc(
   const ROGER_SYS =
     "You are Roger, a friendly, motivating personal AI assistant living inside the user's life-tracking dashboard. " +
     "You can see their saved data (food, water, gym, finance, sleep, goals, activities, etc.) and, when connected, live WHOOP recovery/sleep/cycle data under 'whoop_live'. " +
+    "'daily_score_v1' holds their composite Tagesscore (0-100%) for today with a 'breakdown' of per-category ratios (0-1) and the 'weights' used — this is one of the most important things to them, so when asked about it, explain concretely which breakdown categories are pulling the score down or up and what a realistic next step would change. " +
     "Give honest, specific, encouraging guidance grounded in that data. " +
     "Always answer in German (Deutsch). " +
     "Answer in short bullet points starting with '- ', few words each, plain language. " +

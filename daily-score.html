@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Tagesscore</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --bg: #0a0a0b; --bg-card: #111113; --bg-card-2: #17171a;
+  --text-1: #ffffff; --text-2: rgba(255,255,255,0.6); --text-3: rgba(255,255,255,0.4); --text-4: rgba(255,255,255,0.25);
+  --border: rgba(255,255,255,0.08);
+  --good: #6ee7b7; --warn: #fbbf24; --bad: #ff8a8a;
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 40px; }
+.wrap { max-width: 640px; margin: 0 auto; }
+.back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.back-link:hover { color: var(--text-2); }
+.hd { margin-bottom: 18px; }
+.hd h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.score-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 26px; padding: 26px 20px 22px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 34px rgba(0,0,0,0.4); margin-bottom: 18px; }
+.score-ring-wrap { position: relative; width: 168px; height: 168px; margin-bottom: 4px; }
+.score-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.score-ring-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 11; }
+.score-ring-fill { fill: none; stroke: var(--good); stroke-width: 11; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.22,1,0.36,1), stroke 0.4s ease; }
+.score-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.score-num { font-size: 40px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.score-label { font-size: 11.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.roger-note { font-size: 12px; color: var(--text-3); margin-top: 8px; }
+
+.card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; padding: 18px 20px; margin-bottom: 14px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
+.card-h { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+.why-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13.5px; }
+.why-row .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.why-row.good .dot { background: var(--good); } .why-row.bad .dot { background: var(--bad); }
+.why-empty { font-size: 13px; color: var(--text-3); }
+
+.tip-card { display: flex; align-items: center; gap: 14px; background: var(--bg-card-2); border-radius: 16px; padding: 13px 15px; margin-bottom: 9px; }
+.tip-icon { width: 38px; height: 38px; border-radius: 12px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+.tip-title { font-size: 13.5px; font-weight: 600; }
+.tip-delta { margin-left: auto; font-size: 13px; font-weight: 800; color: var(--good); white-space: nowrap; }
+
+.rate-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
+.rate-label { font-size: 13.5px; font-weight: 600; }
+.rate-dots { display: flex; gap: 6px; }
+.rate-dot { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-card-2); color: var(--text-3); font-size: 12px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.rate-dot.active { background: var(--good); color: #06231a; border-color: var(--good); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="main.html" class="back-link">← Start</a>
+  <div class="hd">
+    <h1>Tagesscore</h1>
+    <div class="sub" id="dsDateLabel">—</div>
+  </div>
+
+  <div class="score-card">
+    <div class="score-ring-wrap">
+      <svg class="score-ring" viewBox="0 0 168 168">
+        <circle class="score-ring-track" cx="84" cy="84" r="74"></circle>
+        <circle class="score-ring-fill" id="dsRingFill" cx="84" cy="84" r="74"></circle>
+      </svg>
+      <div class="score-ring-center">
+        <div class="score-num" id="dsNum">—</div>
+        <div class="score-label">Tagesscore</div>
+      </div>
+    </div>
+    <div class="roger-note">Frag Roger unten rechts, wie du heute noch mehr rausholst.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">Warum ist mein Score so hoch?</div>
+    <div id="dsGood"></div>
+  </div>
+  <div class="card">
+    <div class="card-h">Was kostet heute Punkte?</div>
+    <div id="dsBad"></div>
+  </div>
+  <div class="card">
+    <div class="card-h">Verbesserungsvorschläge</div>
+    <div id="dsTips"></div>
+  </div>
+  <div class="card">
+    <div class="card-h">Wie fühlst du dich heute?</div>
+    <div class="rate-row">
+      <div class="rate-label">Stimmung</div>
+      <div class="rate-dots" data-field="mood"></div>
+    </div>
+    <div class="rate-row">
+      <div class="rate-label">Stress (1 = niedrig)</div>
+      <div class="rate-dots" data-field="stress"></div>
+    </div>
+    <div class="rate-row">
+      <div class="rate-label">Fokus</div>
+      <div class="rate-dots" data-field="focus"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const SCORE_KEY = 'daily_score_v1';
+  const WELLBEING_KEY = 'daily_wellbeing_v1';
+  const WHOOP_KEY = 'whoop_tokens_v1';
+
+  const SCORE_WEIGHTS = {
+    recovery: 15, goals: 15, activity: 12, sleepQuality: 8, sleepDuration: 8,
+    steps: 8, water: 8, strain: 7, mood: 7, stress: 6, focus: 6,
+  };
+  const SCORE_TARGETS = { sleepDurationMin: 8 * 60, steps: 10000, activityMin: 45, strainMax: 21 };
+
+  const COMPONENT_META = {
+    recovery: { label: 'Erholung', icon: '🔋', good: 'Guter Recovery Score', bad: 'Niedriger Recovery Score', tip: 'Priorisiere heute Regeneration' },
+    goals: { label: 'Tagesziele', icon: '✅', good: 'Tagesziele größtenteils erreicht', bad: 'Noch offene Tagesziele', tip: 'Hake ein weiteres Tagesziel ab' },
+    activity: { label: 'Bewegung', icon: '🏃', good: 'Genug Bewegung heute', bad: 'Noch zu wenig Bewegung', tip: 'Gehe noch 20 Minuten spazieren' },
+    sleepQuality: { label: 'Schlafqualität', icon: '😴', good: 'Gute Schlafqualität', bad: 'Schlafqualität unter Soll', tip: 'Gehe 30 Minuten früher schlafen' },
+    sleepDuration: { label: 'Schlafdauer', icon: '🛌', good: 'Ausreichend geschlafen', bad: 'Zu wenig Schlaf', tip: 'Gehe 30 Minuten früher schlafen' },
+    steps: { label: 'Schritte', icon: '👣', good: 'Gute Schrittzahl', bad: 'Noch wenige Schritte', tip: 'Baue noch eine kurze Runde ein' },
+    water: { label: 'Wasser', icon: '💧', good: 'Ausreichend getrunken', bad: 'Noch zu wenig getrunken', tip: 'Trinke noch 1 Liter Wasser' },
+    strain: { label: 'Strain', icon: '⚡', good: 'Gute Trainingsbelastung', bad: 'Wenig Belastung heute', tip: 'Mache eine kurze Dehneinheit' },
+    mood: { label: 'Stimmung', icon: '🙂', good: 'Gute Stimmung', bad: 'Stimmung könnte besser sein', tip: 'Mach etwas, das dir heute Freude bereitet' },
+    stress: { label: 'Stress', icon: '🧘', good: 'Niedriger Stress', bad: 'Erhöhter Stress', tip: 'Entspanne dich 15 Minuten' },
+    focus: { label: 'Fokus', icon: '🎯', good: 'Guter Fokus heute', bad: 'Wenig Fokus heute', tip: 'Mache eine kurze Konzentrationspause' },
+  };
+
+  function getActiveDateString() {
+    const now = new Date();
+    const d = new Date(now);
+    if (now.getHours() < 6) d.setDate(d.getDate() - 1);
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function todayGoalsKey() { return 'goals:' + getActiveDateString(); }
+
+  function loadWhoopTokens() { try { return JSON.parse(localStorage.getItem(WHOOP_KEY)); } catch (e) { return null; } }
+  function saveWhoopTokens(t) { try { localStorage.setItem(WHOOP_KEY, JSON.stringify(t)); } catch (e) {} }
+  async function refreshWhoopToken(t) {
+    if (!t.refresh) return null;
+    try {
+      const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: t.refresh }) });
+      const j = await r.json();
+      if (j.access_token) {
+        const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in || 3500) * 1000 };
+        saveWhoopTokens(next);
+        return next;
+      }
+    } catch (e) {}
+    return null;
+  }
+  async function whoopFetch(path, t) {
+    const [p, qs] = path.split('?');
+    const params = new URLSearchParams(qs || ''); params.set('path', p);
+    const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { Authorization: 'Bearer ' + t.access, Accept: 'application/json' } });
+    if (r.status === 401) { const n = await refreshWhoopToken(t); if (n) return whoopFetch(path, n); throw new Error('unauthorized'); }
+    if (!r.ok) throw new Error('WHOOP ' + r.status);
+    return await r.json();
+  }
+
+  function loadWellbeing() {
+    try {
+      const v = JSON.parse(localStorage.getItem(WELLBEING_KEY));
+      if (v && v.date === getActiveDateString()) return v;
+    } catch (e) {}
+    return { date: getActiveDateString() };
+  }
+  function saveWellbeing(w) { try { localStorage.setItem(WELLBEING_KEY, JSON.stringify(w)); } catch (e) {} }
+
+  function waterProgress() {
+    let state = null;
+    try { state = JSON.parse(localStorage.getItem('po_water_v1')); } catch (e) {}
+    if (!state) return null;
+    const done = (state.logs || {})[getActiveDateString()] || 0;
+    const p = state.profile || { weightKg: 75 };
+    const wKg = state.weightUnit === 'lb' ? (p.weightKg || 0) / 2.20462 : (p.weightKg || 0);
+    const totalMl = wKg * 35 + ((p.activityHrsPerWeek || 0) / 7) * 500;
+    const unitVol = state.unit === 'glass' ? (state.glassMl || 250) : state.unit === 'oz' ? 30 : state.unit === 'ml' ? 1 : (state.bottleMl || 500);
+    const total = Math.max(1, Math.ceil(totalMl / unitVol));
+    return { done, total };
+  }
+  function todayActivityMinutes() {
+    try {
+      const acts = JSON.parse(localStorage.getItem('fitness_activities_v1')) || [];
+      const key = getActiveDateString();
+      return acts.filter((a) => (a.startTime || '').slice(0, 10) === key).reduce((s, a) => s + (a.durationMin || 0), 0);
+    } catch (e) { return 0; }
+  }
+  function todaySteps() {
+    try {
+      const v = JSON.parse(localStorage.getItem('fitness_steps_today_v1'));
+      if (v && v.date === getActiveDateString()) return v.steps;
+    } catch (e) {}
+    return null;
+  }
+  function loadGoals() {
+    try {
+      const g = JSON.parse(localStorage.getItem(todayGoalsKey()));
+      return Array.isArray(g) ? g : [];
+    } catch (e) { return []; }
+  }
+
+  function computeScore(inputs) {
+    let weightedSum = 0, weightTotal = 0;
+    const parts = {};
+    for (const key of Object.keys(inputs)) {
+      const v = inputs[key];
+      if (v == null) continue;
+      const ratio = Math.max(0, Math.min(v, 1));
+      weightedSum += ratio * SCORE_WEIGHTS[key];
+      weightTotal += SCORE_WEIGHTS[key];
+      parts[key] = ratio;
+    }
+    const score = weightTotal > 0 ? Math.round((weightedSum / weightTotal) * 100) : null;
+    return { score, parts, weightTotal };
+  }
+
+  function zoneColor(score) {
+    if (score == null) return 'rgba(255,255,255,0.5)';
+    if (score >= 67) return 'var(--good)';
+    if (score >= 34) return 'var(--warn)';
+    return 'var(--bad)';
+  }
+  function renderRing(score) {
+    const fill = document.getElementById('dsRingFill');
+    const C = 2 * Math.PI * 74;
+    fill.style.strokeDasharray = C;
+    fill.style.strokeDashoffset = score != null ? C * (1 - score / 100) : C;
+    fill.style.stroke = zoneColor(score);
+    const numEl = document.getElementById('dsNum');
+    numEl.textContent = score != null ? score + '%' : '—';
+    numEl.style.color = zoneColor(score);
+  }
+
+  function renderBreakdown(parts, weightTotal) {
+    const goodEl = document.getElementById('dsGood');
+    const badEl = document.getElementById('dsBad');
+    const tipsEl = document.getElementById('dsTips');
+    const noData = Object.keys(parts).length === 0;
+
+    if (noData) {
+      const msg = '<div class="why-empty">Noch keine Daten für heute erfasst — verbinde WHOOP oder trag Werte ein (Schritte, Wasser, Ziele …).</div>';
+      goodEl.innerHTML = msg; badEl.innerHTML = msg; tipsEl.innerHTML = msg;
+      return;
+    }
+
+    const goods = [], bads = [];
+    Object.keys(parts).forEach((key) => {
+      const meta = COMPONENT_META[key];
+      if (!meta) return;
+      if (parts[key] >= 0.75) goods.push(meta.good);
+      else if (parts[key] < 0.5) bads.push(meta.bad);
+    });
+    goodEl.innerHTML = goods.length ? goods.map((g) => '<div class="why-row good"><span class="dot"></span>' + g + '</div>').join('') : '<div class="why-empty">Noch nichts, das heute besonders heraussticht.</div>';
+    badEl.innerHTML = bads.length ? bads.map((b) => '<div class="why-row bad"><span class="dot"></span>' + b + '</div>').join('') : '<div class="why-empty">Aktuell nichts Auffälliges.</div>';
+
+    // Computed, not hardcoded: simulate each below-target component maxed
+    // out and show the resulting score delta.
+    const tips = Object.keys(parts)
+      .filter((key) => parts[key] < 1 && COMPONENT_META[key])
+      .map((key) => {
+        const delta = ((1 - parts[key]) * SCORE_WEIGHTS[key]) / (weightTotal || 100) * 100;
+        return { key, delta, meta: COMPONENT_META[key] };
+      })
+      .filter((t) => t.delta >= 0.5)
+      .sort((a, b) => b.delta - a.delta)
+      .slice(0, 5);
+    tipsEl.innerHTML = tips.length
+      ? tips.map((t) => '<div class="tip-card"><div class="tip-icon">' + t.meta.icon + '</div><div class="tip-title">' + t.meta.tip + '</div><div class="tip-delta">+' + Math.round(t.delta) + '%</div></div>').join('')
+      : '<div class="why-empty">Dein Score ist heute schon sehr rund — nichts Dringendes offen.</div>';
+  }
+
+  async function boot() {
+    const dLabel = document.getElementById('dsDateLabel');
+    const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    const mons = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    const now = new Date();
+    dLabel.textContent = days[now.getDay()] + ', ' + now.getDate() + '. ' + mons[now.getMonth()];
+
+    const goals = loadGoals();
+    const goalsRatio = goals.length ? goals.filter((g) => g.done).length / goals.length : null;
+    const waterP = waterProgress();
+    const activityMin = todayActivityMinutes();
+    const steps = todaySteps();
+    const wellbeing = loadWellbeing();
+
+    const inputs = {
+      goals: goalsRatio,
+      water: waterP ? waterP.done / waterP.total : null,
+      steps: steps != null ? Math.min(steps / SCORE_TARGETS.steps, 1) : null,
+      activity: activityMin > 0 ? Math.min(activityMin / SCORE_TARGETS.activityMin, 1) : null,
+      mood: wellbeing.mood != null ? wellbeing.mood / 5 : null,
+      stress: wellbeing.stress != null ? (5 - wellbeing.stress) / 4 : null,
+      focus: wellbeing.focus != null ? wellbeing.focus / 5 : null,
+    };
+
+    const tokens = loadWhoopTokens();
+    if (tokens && tokens.access) {
+      try {
+        let t = tokens;
+        if (t.expires && Date.now() > t.expires - 60000) { const n = await refreshWhoopToken(t); if (n) t = n; }
+        const [rec, sleep, cycle] = await Promise.all([
+          whoopFetch('/recovery?limit=1', t).catch(() => null),
+          whoopFetch('/activity/sleep?limit=1', t).catch(() => null),
+          whoopFetch('/cycle?limit=1', t).catch(() => null),
+        ]);
+        const r = rec && rec.records && rec.records[0] && rec.records[0].score;
+        const s = sleep && sleep.records && sleep.records[0] && sleep.records[0].score;
+        const c = cycle && cycle.records && cycle.records[0] && cycle.records[0].score;
+        if (r && r.recovery_score != null) inputs.recovery = r.recovery_score / 100;
+        if (s && s.sleep_performance_percentage != null) inputs.sleepQuality = s.sleep_performance_percentage / 100;
+        if (s && s.stage_summary) {
+          const ss = s.stage_summary;
+          const durMs = (ss.total_in_bed_time_milli || 0) - (ss.total_awake_time_milli || 0);
+          inputs.sleepDuration = Math.min(durMs / 60000 / SCORE_TARGETS.sleepDurationMin, 1);
+        }
+        if (c && c.strain != null) inputs.strain = c.strain / SCORE_TARGETS.strainMax;
+      } catch (e) { /* offline / not connected */ }
+    }
+
+    const { score, parts, weightTotal } = computeScore(inputs);
+    try { localStorage.setItem(SCORE_KEY, JSON.stringify({ date: getActiveDateString(), score, breakdown: parts, weights: SCORE_WEIGHTS })); } catch (e) {}
+    renderRing(score);
+    renderBreakdown(parts, weightTotal);
+  }
+
+  function renderRateRow(field, current) {
+    const wrap = document.querySelector('.rate-dots[data-field="' + field + '"]');
+    wrap.innerHTML = [1, 2, 3, 4, 5].map((n) =>
+      '<button class="rate-dot' + (current === n ? ' active' : '') + '" type="button" data-n="' + n + '">' + n + '</button>'
+    ).join('');
+    wrap.querySelectorAll('.rate-dot').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const w = loadWellbeing();
+        w[field] = Number(btn.dataset.n);
+        saveWellbeing(w);
+        renderRateRow(field, w[field]);
+        boot();
+      });
+    });
+  }
+
+  const wb = loadWellbeing();
+  renderRateRow('mood', wb.mood);
+  renderRateRow('stress', wb.stress);
+  renderRateRow('focus', wb.focus);
+  boot();
+})();
+</script>
+</body>
+</html>
