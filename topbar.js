@@ -301,6 +301,85 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
       );
     } catch (e) {}
   }
+
+  // -------- WHOOP token cross-device sync --------
+  // Tokens are saved to plain localStorage by every page's own connect/refresh
+  // flow, which is per-device. This mirrors that one key into its own Supabase
+  // row so connecting WHOOP on one device makes it show up everywhere else.
+  const WHOOP_TOKENS_KEY = 'whoop_tokens_v1';
+  const WHOOP_SYNC_ROW_KEY = 'whoop_tokens';
+
+  function loadWhoopTokensLocal() {
+    try { return JSON.parse(localStorage.getItem(WHOOP_TOKENS_KEY)); } catch (e) { return null; }
+  }
+
+  function initWhoopSync() {
+    if (!window.supabase || !TOPBAR_SUPABASE_URL || !TOPBAR_SUPABASE_KEY) return;
+    if (TOPBAR_SUPABASE_URL.indexOf('PASTE-') === 0) return;
+    let supa;
+    try { supa = window.supabase.createClient(TOPBAR_SUPABASE_URL, TOPBAR_SUPABASE_KEY); } catch (e) { return; }
+    let lastSyncedJson = null;
+
+    async function pushWhoopTokens(tokens) {
+      const json = JSON.stringify(tokens);
+      if (json === lastSyncedJson) return;
+      try {
+        await supa.from('app_state').upsert(
+          { key: WHOOP_SYNC_ROW_KEY, data: { whoop_tokens_v1: tokens }, updated_at: new Date().toISOString() },
+          { onConflict: 'key' }
+        );
+        lastSyncedJson = json;
+      } catch (e) {}
+    }
+
+    (async function pull() {
+      try {
+        const { data } = await supa.from('app_state').select('data').eq('key', WHOOP_SYNC_ROW_KEY).maybeSingle();
+        const remote = data && data.data && data.data[WHOOP_TOKENS_KEY];
+        const local = loadWhoopTokensLocal();
+        if (remote && remote.access) {
+          if (!local || !local.access) {
+            lastSyncedJson = JSON.stringify(remote);
+            localStorage.setItem(WHOOP_TOKENS_KEY, lastSyncedJson);
+            location.reload();
+            return;
+          }
+          if ((remote.expires || 0) > (local.expires || 0) && JSON.stringify(remote) !== JSON.stringify(local)) {
+            lastSyncedJson = JSON.stringify(remote);
+            localStorage.setItem(WHOOP_TOKENS_KEY, lastSyncedJson);
+            return;
+          }
+        }
+        if (local && local.access) pushWhoopTokens(local);
+      } catch (e) {}
+    })();
+
+    try {
+      supa.channel('app_state_' + WHOOP_SYNC_ROW_KEY)
+        .on('postgres_changes', {
+          event: '*', schema: 'public', table: 'app_state', filter: 'key=eq.' + WHOOP_SYNC_ROW_KEY,
+        }, (payload) => {
+          const remote = payload.new && payload.new.data && payload.new.data[WHOOP_TOKENS_KEY];
+          if (!remote || !remote.access) return;
+          const json = JSON.stringify(remote);
+          if (json === lastSyncedJson) return;
+          const local = loadWhoopTokensLocal();
+          if (!local || !local.access || (remote.expires || 0) > (local.expires || 0)) {
+            lastSyncedJson = json;
+            localStorage.setItem(WHOOP_TOKENS_KEY, json);
+          }
+        })
+        .subscribe();
+    } catch (e) {}
+
+    const origSet = localStorage.setItem.bind(localStorage);
+    localStorage.setItem = function (k, v) {
+      origSet(k, v);
+      if (k === WHOOP_TOKENS_KEY) {
+        try { pushWhoopTokens(JSON.parse(v)); } catch (e) {}
+      }
+    };
+  }
   function addWater() {
     let state = null;
     try { state = JSON.parse(localStorage.getItem('po_water_v1')); } catch (e) {}
@@ -359,6 +438,7 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     render();
     lockGestures();
     startModalLock();
+    initWhoopSync();
     window.addEventListener('storage', render);
     window.addEventListener('focus', render);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); });
