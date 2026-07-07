@@ -4,15 +4,15 @@
 import { next } from '@vercel/functions';
 
 export const config = {
-  matcher: ['/((?!login\\.html|api/login|api/logout|tools/).*)'],
+  matcher: ['/((?!login\\.html|api/login|api/logout|tools/|icons/|manifest\\.json).*)'],
 };
 
-const EXEMPT_PATHS = new Set(['/login.html', '/api/login', '/api/logout']);
+const EXEMPT_PATHS = new Set(['/login.html', '/api/login', '/api/logout', '/manifest.json']);
 
 export default async function middleware(request) {
   const { pathname } = new URL(request.url);
 
-  if (EXEMPT_PATHS.has(pathname) || pathname.startsWith('/tools/')) {
+  if (EXEMPT_PATHS.has(pathname) || pathname.startsWith('/tools/') || pathname.startsWith('/icons/')) {
     return next();
   }
 
