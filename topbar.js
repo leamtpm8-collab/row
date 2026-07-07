@@ -185,6 +185,89 @@ body.has-bottombar .roger-fab, body.has-page-tabs .roger-fab { bottom: calc(84px
 @media (max-width: 480px) {
   .roger-fab { width: 52px; height: 52px; right: 14px; }
 }
+
+/* ---- Roger chat popup ---- */
+.roger-popup {
+  position: fixed; right: 18px; bottom: calc(90px + env(safe-area-inset-bottom));
+  width: min(380px, calc(100vw - 28px));
+  height: min(560px, calc(100vh - 150px));
+  background: #0a0a0b; border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 22px; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+  z-index: 56; display: flex; flex-direction: column; overflow: hidden;
+  opacity: 0; transform: translateY(18px) scale(0.94); transform-origin: bottom right;
+  pointer-events: none; transition: opacity 0.22s ease, transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), bottom 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+}
+.roger-popup.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+body.has-bottombar .roger-popup, body.has-page-tabs .roger-popup { bottom: calc(154px + env(safe-area-inset-bottom)); }
+@media (max-width: 480px) {
+  .roger-popup { right: 10px; width: calc(100vw - 20px); bottom: calc(84px + env(safe-area-inset-bottom)); }
+  body.has-bottombar .roger-popup, body.has-page-tabs .roger-popup { bottom: calc(148px + env(safe-area-inset-bottom)); }
+}
+.roger-popup-header {
+  display: flex; align-items: center; gap: 10px; padding: 14px 14px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08); flex-shrink: 0;
+}
+.roger-popup-avatar { width: 30px; height: 30px; flex-shrink: 0; }
+.roger-popup-name { font-size: 14px; font-weight: 700; color: #fff; font-family: 'Times New Roman', Georgia, serif; font-style: italic; }
+.roger-popup-status { font-size: 10px; color: rgba(255, 255, 255, 0.4); font-family: ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.08em; }
+.roger-popup-actions { margin-left: auto; display: flex; gap: 4px; }
+.roger-popup-iconbtn {
+  width: 30px; height: 30px; border-radius: 9px; border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03); color: rgba(255, 255, 255, 0.6); font-size: 14px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.roger-popup-iconbtn:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.roger-popup-keypanel { display: none; padding: 12px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); flex-shrink: 0; }
+.roger-popup-keypanel.open { display: block; }
+.roger-popup-keybar { display: flex; gap: 6px; }
+.roger-popup-keybar input {
+  flex: 1; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff; border-radius: 8px; padding: 8px 9px; font-size: 12px; outline: none; min-width: 0;
+}
+.roger-popup-keybar button {
+  border: 0; border-radius: 8px; padding: 0 12px; cursor: pointer; color: #10160a;
+  background: #c6e937; font-weight: 700; font-size: 12px;
+}
+.roger-popup-hint { font-size: 10.5px; color: rgba(255, 255, 255, 0.4); line-height: 1.4; margin-top: 7px; }
+.roger-popup-hint a { color: #c6e937; }
+.roger-popup-hint.saved { color: #c6e937; }
+.roger-popup-feed { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 9px; overscroll-behavior: contain; }
+.roger-popup-msg { max-width: 92%; }
+.roger-popup-msg.user { align-self: flex-end; }
+.roger-popup-msg.coach { align-self: flex-start; width: 100%; }
+.roger-popup-bubble { border-radius: 12px; padding: 9px 11px; font-size: 13px; line-height: 1.5; color: #e9ecf5; }
+.roger-popup-msg.user .roger-popup-bubble { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08); }
+.roger-popup-msg.coach .roger-popup-bubble { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(198, 233, 55, 0.3); border-left: 2px solid #c6e937; }
+.roger-popup-tag {
+  display: inline-block; margin-bottom: 6px; font-family: ui-monospace, monospace; font-size: 8.5px;
+  font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #10160a;
+  background: #c6e937; padding: 2px 7px; border-radius: 999px;
+}
+.roger-popup-bubble b, .roger-popup-pill { color: #c6e937; font-weight: 700; }
+.roger-popup-pill { background: rgba(198, 233, 55, 0.16); padding: 1px 5px; border-radius: 5px; font-weight: 600; }
+.roger-popup-list { margin: 5px 0 0; padding-left: 15px; display: grid; gap: 4px; }
+.roger-popup-dots { display: inline-flex; gap: 4px; }
+.roger-popup-dots i { width: 5px; height: 5px; border-radius: 50%; background: #c6e937; opacity: 0.4; animation: rogerPopupDot 1.2s ease-in-out infinite; }
+.roger-popup-dots i:nth-child(2) { animation-delay: 0.2s; } .roger-popup-dots i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes rogerPopupDot { 0%, 100% { opacity: 0.35; transform: scale(1); } 50% { opacity: 1; transform: scale(1.4); } }
+.roger-popup-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 14px 10px; flex-shrink: 0; }
+.roger-chip {
+  border: 1px solid rgba(198, 233, 55, 0.3); background: rgba(198, 233, 55, 0.08); color: #e9ecf5;
+  font-size: 11px; font-family: inherit; padding: 6px 10px; border-radius: 999px; cursor: pointer;
+  text-align: left; transition: background 0.15s ease, border-color 0.15s ease; max-width: 100%;
+}
+.roger-chip:hover { background: rgba(198, 233, 55, 0.16); border-color: rgba(198, 233, 55, 0.5); }
+.roger-popup-composer { display: flex; gap: 7px; padding: 10px 14px; border-top: 1px solid rgba(255, 255, 255, 0.08); flex-shrink: 0; }
+.roger-popup-composer input {
+  flex: 1; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff; border-radius: 10px; padding: 9px 11px; font-size: 12.5px; outline: none; min-width: 0;
+}
+.roger-popup-composer input:focus { border-color: rgba(198, 233, 55, 0.5); }
+.roger-popup-composer button {
+  width: 36px; flex-shrink: 0; border: 0; border-radius: 10px; cursor: pointer;
+  color: #10160a; background: #c6e937; font-size: 15px;
+}
 `;
 
   const topbarHtml = `
@@ -239,6 +322,48 @@ body.has-bottombar .roger-fab, body.has-page-tabs .roger-fab { bottom: calc(84px
   </span>
 </button>`;
 
+  const rogerPopupHtml = `
+<div class="roger-popup" id="rogerPopup" aria-hidden="true">
+  <div class="roger-popup-header">
+    <svg class="roger-popup-avatar" viewBox="0 0 200 200" aria-hidden="true">
+      <defs>
+        <radialGradient id="rogerPopupShade" cx="35%" cy="30%" r="75%">
+          <stop offset="0%" stop-color="#eaff7a"/>
+          <stop offset="55%" stop-color="#c6e937"/>
+          <stop offset="100%" stop-color="#9dbf1f"/>
+        </radialGradient>
+      </defs>
+      <circle cx="100" cy="100" r="94" fill="url(#rogerPopupShade)"/>
+      <path d="M 10 66 C 55 6, 145 6, 190 66" stroke="#fdfff0" stroke-width="12" fill="none" stroke-linecap="round"/>
+      <path d="M 10 134 C 55 194, 145 194, 190 134" stroke="#fdfff0" stroke-width="12" fill="none" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <div class="roger-popup-name">Roger</div>
+      <div class="roger-popup-status">KI-Assistent</div>
+    </div>
+    <div class="roger-popup-actions">
+      <button class="roger-popup-iconbtn" id="rogerPopupKeyBtn" type="button" aria-label="API-Schlüssel" title="API-Schlüssel">🔑</button>
+      <button class="roger-popup-iconbtn" id="rogerPopupCloseBtn" type="button" aria-label="Schließen" title="Schließen">✕</button>
+    </div>
+  </div>
+  <div class="roger-popup-keypanel" id="rogerPopupKeypanel">
+    <div class="roger-popup-keybar">
+      <input id="rogerPopupKeyInput" type="password" placeholder="sk-ant-…" autocomplete="off">
+      <button id="rogerPopupKeySave" type="button">Speichern</button>
+    </div>
+    <div class="roger-popup-hint" id="rogerPopupHint">
+      Dein Schlüssel wird nur in diesem Browser gespeichert und direkt an Anthropic gesendet.
+      Einen Schlüssel bekommst du unter <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>.
+    </div>
+  </div>
+  <div class="roger-popup-feed" id="rogerPopupFeed"></div>
+  <div class="roger-popup-chips" id="rogerPopupChips"></div>
+  <div class="roger-popup-composer">
+    <input id="rogerPopupInput" placeholder="Frag Roger etwas…" autocomplete="off">
+    <button id="rogerPopupSend" type="button" aria-label="Senden">→</button>
+  </div>
+</div>`;
+
   function isFinancePage() {
     const p = (window.location.pathname || '').toLowerCase();
     return p.endsWith('/finance.html') || p.endsWith('finance.html');
@@ -287,6 +412,9 @@ body.has-bottombar .roger-fab, body.has-page-tabs .roger-fab { bottom: calc(84px
       const fabWrap = document.createElement('div');
       fabWrap.innerHTML = rogerFabHtml.trim();
       document.body.appendChild(fabWrap.firstChild);
+      const popupWrap = document.createElement('div');
+      popupWrap.innerHTML = rogerPopupHtml.trim();
+      document.body.appendChild(popupWrap.firstChild);
       if (isFinancePage()) document.body.classList.add('has-page-tabs');
     }
   }
@@ -341,7 +469,7 @@ body.has-bottombar .roger-fab, body.has-page-tabs .roger-fab { bottom: calc(84px
     }
     function onEnter() { hovering = true; }
     function onLeave() { hovering = false; targetTilt = 0; }
-    function onClick() { window.location.href = 'roger.html'; }
+    function onClick() { rogerTogglePopup(); }
 
     function tick() {
       curTilt += (targetTilt - curTilt) * EASE;
@@ -363,6 +491,267 @@ body.has-bottombar .roger-fab, body.has-page-tabs .roger-fab { bottom: calc(84px
     scheduleIdleLook();
     scheduleBlink();
     requestAnimationFrame(tick);
+  }
+
+  // ============================================================
+  // Roger chat popup — bring-your-own-Anthropic-key chat, same
+  // localStorage key (roger_api_key_v1) as roger.html so a saved
+  // key works in both places. Reads whatever the dashboard has
+  // saved in localStorage as context, plus a live WHOOP pull
+  // (recovery/sleep/cycle) when a WHOOP connection exists, so the
+  // suggested questions about recovery/sleep/strain have real data
+  // to answer from.
+  // ============================================================
+  const ROGER_KEY_LS = 'roger_api_key_v1';
+  let rogerChipTimer = null;
+  let rogerBusy = false;
+
+  function rogerSavedKey() { try { return localStorage.getItem(ROGER_KEY_LS) || ''; } catch (e) { return ''; } }
+  function rogerEsc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function rogerInlineMarks(s) { return rogerEsc(s).replace(/\*\*(.+?)\*\*/g, '<span class="roger-popup-pill">$1</span>'); }
+  function rogerRenderMd(text) {
+    const lines = String(text).split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    const items = [], loose = [];
+    for (const l of lines) {
+      if (/^[-•*]\s+/.test(l)) items.push('<li>' + rogerInlineMarks(l.replace(/^[-•*]\s+/, '')) + '</li>');
+      else loose.push(rogerInlineMarks(l));
+    }
+    let html = loose.join('<br>');
+    if (items.length) html += (html ? '<br>' : '') + '<ul class="roger-popup-list">' + items.join('') + '</ul>';
+    return html;
+  }
+  function rogerAddUser(t) {
+    const feed = document.getElementById('rogerPopupFeed');
+    if (!feed) return;
+    const el = document.createElement('div');
+    el.className = 'roger-popup-msg user';
+    el.innerHTML = '<div class="roger-popup-bubble">' + rogerEsc(t) + '</div>';
+    feed.appendChild(el);
+    feed.scrollTop = feed.scrollHeight;
+  }
+  function rogerAddCoach(html) {
+    const feed = document.getElementById('rogerPopupFeed');
+    if (!feed) return null;
+    const el = document.createElement('div');
+    el.className = 'roger-popup-msg coach';
+    el.innerHTML = '<div class="roger-popup-bubble"><span class="roger-popup-tag">Roger</span><div>' + html + '</div></div>';
+    feed.appendChild(el);
+    feed.scrollTop = feed.scrollHeight;
+    return el;
+  }
+
+  async function rogerRefreshWhoopToken(t) {
+    if (!t.refresh) return null;
+    try {
+      const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: t.refresh }) });
+      const j = await r.json();
+      if (j.access_token) {
+        const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in || 3500) * 1000 };
+        try { localStorage.setItem('whoop_tokens_v1', JSON.stringify(next)); } catch (e) {}
+        return next;
+      }
+    } catch (e) {}
+    return null;
+  }
+  async function rogerWhoopFetch(path, t) {
+    const [p, qs] = path.split('?');
+    const params = new URLSearchParams(qs || ''); params.set('path', p);
+    const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { Authorization: 'Bearer ' + t.access, Accept: 'application/json' } });
+    if (r.status === 401) { const n = await rogerRefreshWhoopToken(t); if (n) return rogerWhoopFetch(path, n); throw new Error('unauthorized'); }
+    if (!r.ok) throw new Error('WHOOP ' + r.status);
+    return await r.json();
+  }
+  async function rogerGatherContext() {
+    const out = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k === ROGER_KEY_LS) continue;
+      try { out[k] = JSON.parse(localStorage.getItem(k)); } catch (e) { out[k] = localStorage.getItem(k); }
+    }
+    let tokens = null;
+    try { tokens = JSON.parse(localStorage.getItem('whoop_tokens_v1')); } catch (e) {}
+    if (tokens && tokens.access) {
+      try {
+        let t = tokens;
+        if (t.expires && Date.now() > t.expires - 60000) { const n = await rogerRefreshWhoopToken(t); if (n) t = n; }
+        const [rec, sleep, cycle] = await Promise.all([
+          rogerWhoopFetch('/recovery?limit=1', t).catch(() => null),
+          rogerWhoopFetch('/activity/sleep?limit=1', t).catch(() => null),
+          rogerWhoopFetch('/cycle?limit=1', t).catch(() => null),
+        ]);
+        out.whoop_live = {
+          recovery: rec && rec.records && rec.records[0] && rec.records[0].score,
+          sleep: sleep && sleep.records && sleep.records[0],
+          cycle: cycle && cycle.records && cycle.records[0] && cycle.records[0].score,
+        };
+      } catch (e) { /* not connected / offline — Roger just answers from local data */ }
+    }
+    return out;
+  }
+
+  function rogerTodayKey() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function rogerBuildChipPool() {
+    const pool = [
+      'Wie hoch sollte mein heutiger Strain sein?',
+      'Habe ich heute genug Bewegung?',
+      'Wie sieht mein aktueller Gesundheitszustand aus?',
+      'Was sollte ich heute tun, um mich besser zu regenerieren?',
+      'Gib mir Tipps für einen besseren Schlaf.',
+    ];
+    let tokens = null;
+    try { tokens = JSON.parse(localStorage.getItem('whoop_tokens_v1')); } catch (e) {}
+    if (tokens && tokens.access) {
+      pool.push('Wie hat sich mein Schlaf heute auf meine Erholung ausgewirkt?');
+      pool.push('Wie gut passt mein heutiges Training zu meiner Recovery?');
+      pool.push('Was bedeutet meine aktuelle Herzfrequenzvariabilität?');
+    }
+    try {
+      const acts = JSON.parse(localStorage.getItem('fitness_activities_v1')) || [];
+      const todays = acts.filter((a) => (a.startTime || '').slice(0, 10) === rogerTodayKey());
+      if (todays.length) {
+        const last = todays[todays.length - 1];
+        pool.push('Du hast heute bereits ' + last.type + ' gemacht. Wie wirkt sich das auf morgen aus?');
+      }
+    } catch (e) {}
+    try {
+      if (JSON.parse(localStorage.getItem('po_water_v1'))) pool.push('Sollte ich heute mehr Wasser trinken?');
+    } catch (e) {}
+    try {
+      const taken = JSON.parse(localStorage.getItem('stack:taken:' + rogerTodayKey()));
+      if (taken && Object.keys(taken).length) pool.push('Welche Auswirkungen könnten meine Medikamente auf meine Erholung haben?');
+    } catch (e) {}
+    return pool;
+  }
+  function rogerRenderChips() {
+    const chipsEl = document.getElementById('rogerPopupChips');
+    if (!chipsEl) return;
+    const pool = rogerBuildChipPool();
+    const chips = pool.slice().sort(() => Math.random() - 0.5).slice(0, 4);
+    chipsEl.innerHTML = chips.map((c) => '<button class="roger-chip" type="button">' + rogerEsc(c) + '</button>').join('');
+    chipsEl.querySelectorAll('.roger-chip').forEach((btn) => {
+      btn.addEventListener('click', () => rogerAsk(btn.textContent));
+    });
+  }
+  function rogerStartChipRotation() {
+    clearInterval(rogerChipTimer);
+    rogerChipTimer = setInterval(rogerRenderChips, 25000);
+  }
+
+  const ROGER_SYS =
+    "You are Roger, a friendly, motivating personal AI assistant living inside the user's life-tracking dashboard. " +
+    "You can see their saved data (food, water, gym, finance, sleep, goals, activities, etc.) and, when connected, live WHOOP recovery/sleep/cycle data under 'whoop_live'. " +
+    "Give honest, specific, encouraging guidance grounded in that data. " +
+    "Always answer in German (Deutsch). " +
+    "Answer in short bullet points starting with '- ', few words each, plain language. " +
+    "Wrap key words and numbers in **double asterisks**. " +
+    "End with one '- Heute tun:' bullet giving the single action. " +
+    "Dashboard data as JSON:\n";
+
+  async function rogerAsk(rawText) {
+    const input = document.getElementById('rogerPopupInput');
+    const text = (rawText || (input && input.value) || '').trim();
+    if (!text || rogerBusy) return;
+    const key = rogerSavedKey();
+    if (!key) {
+      rogerAddCoach('- Füge zuerst oben deinen **Anthropic-API-Schlüssel** ein und frag mich dann erneut.');
+      document.getElementById('rogerPopupKeypanel').classList.add('open');
+      return;
+    }
+    rogerBusy = true;
+    rogerAddUser(text);
+    if (input) input.value = '';
+    const loading = rogerAddCoach('<span class="roger-popup-dots"><i></i><i></i><i></i></span>');
+    try {
+      const context = await rogerGatherContext();
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'x-api-key': key,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+        },
+        body: JSON.stringify({
+          model: 'claude-opus-4-8',
+          max_tokens: 1024,
+          system: ROGER_SYS + JSON.stringify(context),
+          messages: [{ role: 'user', content: text }],
+        }),
+      });
+      const json = await res.json();
+      if (json.error) {
+        loading.querySelector('div:last-child').innerHTML = rogerRenderMd('- ' + (json.error.message || 'Etwas ist schiefgelaufen — prüfe deinen API-Schlüssel.'));
+      } else {
+        const reply = (json.content && json.content[0] && json.content[0].text) || 'Hmm, keine Antwort.';
+        loading.querySelector('div:last-child').innerHTML = rogerRenderMd(reply);
+      }
+    } catch (e) {
+      loading.querySelector('div:last-child').innerHTML = rogerRenderMd('- Konnte Anthropic nicht erreichen — prüfe deine Verbindung und deinen Schlüssel.');
+    }
+    rogerBusy = false;
+  }
+
+  function rogerOpenPopup() {
+    const popup = document.getElementById('rogerPopup');
+    if (!popup) return;
+    popup.classList.add('open');
+    popup.setAttribute('aria-hidden', 'false');
+    rogerRenderChips();
+    rogerStartChipRotation();
+    document.addEventListener('click', rogerOutsideClick, true);
+  }
+  function rogerClosePopup() {
+    const popup = document.getElementById('rogerPopup');
+    if (!popup) return;
+    popup.classList.remove('open');
+    popup.setAttribute('aria-hidden', 'true');
+    clearInterval(rogerChipTimer);
+    document.removeEventListener('click', rogerOutsideClick, true);
+  }
+  function rogerTogglePopup() {
+    const popup = document.getElementById('rogerPopup');
+    if (!popup) return;
+    if (popup.classList.contains('open')) rogerClosePopup(); else rogerOpenPopup();
+  }
+  function rogerOutsideClick(e) {
+    const popup = document.getElementById('rogerPopup');
+    const fab = document.getElementById('rogerFab');
+    if (!popup || !popup.classList.contains('open')) return;
+    if (popup.contains(e.target) || (fab && fab.contains(e.target))) return;
+    rogerClosePopup();
+  }
+
+  function initRogerPopup() {
+    const popup = document.getElementById('rogerPopup');
+    if (!popup) return;
+    const keyToggle = document.getElementById('rogerPopupKeyBtn');
+    const keypanel = document.getElementById('rogerPopupKeypanel');
+    const keyInput = document.getElementById('rogerPopupKeyInput');
+    const hint = document.getElementById('rogerPopupHint');
+    if (rogerSavedKey()) {
+      hint.classList.add('saved');
+      hint.innerHTML = '✓ Schlüssel gespeichert in diesem Browser.';
+      keyInput.placeholder = '•••• Schlüssel gespeichert ••••';
+      keyToggle.style.opacity = '1';
+    }
+    keyToggle.addEventListener('click', () => keypanel.classList.toggle('open'));
+    document.getElementById('rogerPopupKeySave').addEventListener('click', () => {
+      const k = keyInput.value.trim();
+      if (!k) return;
+      try { localStorage.setItem(ROGER_KEY_LS, k); } catch (e) {}
+      keyInput.value = '';
+      keyInput.placeholder = '•••• Schlüssel gespeichert ••••';
+      hint.classList.add('saved');
+      hint.innerHTML = '✓ Schlüssel gespeichert in diesem Browser.';
+      keypanel.classList.remove('open');
+    });
+    document.getElementById('rogerPopupCloseBtn').addEventListener('click', rogerClosePopup);
+    document.getElementById('rogerPopupSend').addEventListener('click', () => rogerAsk());
+    document.getElementById('rogerPopupInput').addEventListener('keydown', (e) => { if (e.key === 'Enter') rogerAsk(); });
+    rogerAddCoach('Hey — ich bin <b>Roger</b>. Frag mich zu Ernährung, Training, Schlaf oder wo du anfangen sollst.');
   }
 
   function calendarDateKey() {
@@ -499,6 +888,7 @@ body.has-bottombar .roger-fab, body.has-page-tabs .roger-fab { bottom: calc(84px
     const logoutBtn = document.getElementById('topbarLogout');
     if (logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); logout(); });
     initRogerFab();
+    initRogerPopup();
     render();
     lockGestures();
     startModalLock();
