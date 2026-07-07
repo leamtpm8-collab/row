@@ -192,6 +192,8 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     if (p.endsWith('wellness.html')) return 'health';
     if (p.endsWith('recovery.html')) return 'health';
     if (p.endsWith('recommendations.html')) return 'health';
+    if (p.endsWith('peak-tracker.html')) return 'health';
+    if (p.endsWith('nutrition.html')) return 'health';
     if (p.endsWith('gym.html')) return 'fitness';
     if (p.endsWith('fitness.html')) return 'fitness';
     if (p.endsWith('activities.html')) return 'fitness';

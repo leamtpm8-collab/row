@@ -4,10 +4,10 @@
 import { next } from '@vercel/functions';
 
 export const config = {
-  matcher: ['/((?!login\\.html|api/login|api/logout|tools/|icons/|manifest\\.json).*)'],
+  matcher: ['/((?!login\\.html|api/login|api/logout|api/nutrition-sync|tools/|icons/|manifest\\.json).*)'],
 };
 
-const EXEMPT_PATHS = new Set(['/login.html', '/api/login', '/api/logout', '/manifest.json']);
+const EXEMPT_PATHS = new Set(['/login.html', '/api/login', '/api/logout', '/api/nutrition-sync', '/manifest.json']);
 
 export default async function middleware(request) {
   const { pathname } = new URL(request.url);

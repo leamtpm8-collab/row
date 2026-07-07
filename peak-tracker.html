@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Maëls Übersicht">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<title>Peak Tracker</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<style>
+:root {
+  --bg: #0a0a0b; --bg-card: #111113; --bg-card-2: #17171a;
+  --text-1: #ffffff; --text-2: rgba(255,255,255,0.6); --text-3: rgba(255,255,255,0.4); --text-4: rgba(255,255,255,0.25);
+  --border: rgba(255,255,255,0.08); --accent: #ffffff;
+  --good: #6ee7b7; --warn: #fbbf24; --bad: #ff8a8a;
+  --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 48px; }
+.wrap { max-width: 680px; margin: 0 auto; }
+.back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.back-link:hover { color: var(--text-2); }
+.hd { margin-bottom: 16px; }
+.hd h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+.hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.sleep-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+  padding: 12px 16px; margin-bottom: 14px; font-size: 13px; color: var(--text-2);
+}
+.sleep-bar b { color: var(--text-1); font-weight: 700; }
+.sleep-bar .sb-note { font-size: 11px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
+
+.now-card {
+  display: flex; align-items: center; gap: 16px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px;
+  padding: 18px; margin-bottom: 14px; box-shadow: 0 10px 34px rgba(0,0,0,0.4);
+}
+.now-ring-wrap { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
+.now-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.now-ring-track { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 8; }
+.now-ring-fill { fill: none; stroke: var(--good); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease; }
+.now-ring-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.now-body { flex: 1; min-width: 0; }
+.now-mood { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-size: 20px; font-weight: 700; }
+.now-sub { font-size: 11px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+.now-hint { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+
+.chart-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px;
+  padding: 18px 16px 14px; margin-bottom: 14px; box-shadow: 0 10px 34px rgba(0,0,0,0.4);
+}
+.chart-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+.chart-title { font-size: 12px; font-weight: 700; color: var(--text-2); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+.chart-desc { font-size: 12px; color: var(--text-3); margin-top: 4px; max-width: 340px; }
+.mode-toggle { display: flex; background: var(--bg-card-2); border-radius: 10px; padding: 3px; flex-shrink: 0; }
+.mode-btn { border: none; background: transparent; color: var(--text-3); font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; padding: 6px 10px; border-radius: 8px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.mode-btn.active { background: rgba(110,231,183,0.16); color: var(--good); }
+
+.chart-stage { position: relative; }
+.chart-svg { width: 100%; height: 180px; display: block; overflow: visible; }
+.chart-axis { display: flex; justify-content: space-between; margin-top: 6px; font-size: 10px; color: var(--text-4); font-family: var(--font-mono); }
+.chart-tip { position: absolute; top: -6px; transform: translate(-50%, -100%); background: #0a0a0b; border: 1px solid var(--border); border-radius: 10px; padding: 6px 9px; font-size: 12px; text-align: center; pointer-events: none; white-space: nowrap; box-shadow: 0 6px 18px rgba(0,0,0,0.5); opacity: 0; transition: opacity 0.12s ease; }
+.chart-tip.show { opacity: 1; }
+.chart-tip b { font-size: 14px; }
+.chart-tip .tip-time { color: var(--text-3); font-size: 10px; font-family: var(--font-mono); }
+
+.why-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px;
+  padding: 18px; margin-bottom: 14px; box-shadow: 0 10px 34px rgba(0,0,0,0.4);
+}
+.why-title { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+.why-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.why-list li { font-size: 13px; color: var(--text-2); line-height: 1.5; padding-left: 16px; position: relative; }
+.why-list li::before { content: '•'; color: var(--good); position: absolute; left: 0; }
+.why-list b { color: var(--text-1); }
+
+.group-h { font-size: 13px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-mono); margin: 20px 2px 10px; display: flex; justify-content: space-between; }
+
+.window-card {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px;
+  padding: 14px 16px; margin-bottom: 10px;
+}
+.window-card.active { border-color: rgba(110,231,183,0.4); }
+.window-time { font-family: Georgia, 'Times New Roman', serif; font-style: italic; font-size: 17px; font-weight: 700; }
+.window-note { font-size: 11px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+.window-right { display: flex; align-items: center; gap: 12px; }
+.window-peak { text-align: right; }
+.window-peak-num { font-size: 16px; font-weight: 800; color: var(--good); font-variant-numeric: tabular-nums; }
+.window-peak-lbl { font-size: 9.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
+.block-btn { border: 1px solid var(--border); background: var(--bg-card-2); color: var(--text-1); font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; white-space: nowrap; }
+.block-btn:hover { border-color: rgba(110,231,183,0.4); }
+
+.plan-strip { background: var(--bg-card); border: 1px dashed var(--border); border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; }
+.plan-empty { font-size: 12.5px; color: var(--text-3); text-align: center; }
+.plan-item { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; font-size: 13px; }
+.plan-item + .plan-item { border-top: 1px solid var(--border); }
+.plan-remove { background: none; border: none; color: var(--text-3); font-size: 16px; cursor: pointer; line-height: 1; padding: 2px 6px; }
+.plan-remove:hover { color: var(--bad); }
+
+.feel-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px;
+  padding: 16px; box-shadow: 0 10px 34px rgba(0,0,0,0.4);
+}
+.feel-title { font-size: 13px; font-weight: 700; margin-bottom: 12px; }
+.feel-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+.feel-chip { border: 1px solid var(--border); background: var(--bg-card-2); border-radius: 14px; padding: 10px 4px; text-align: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.feel-chip .dot { width: 8px; height: 8px; border-radius: 50%; margin: 0 auto 6px; }
+.feel-chip .lbl { font-size: 10px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em; }
+.feel-chip.selected { border-color: rgba(110,231,183,0.5); background: rgba(110,231,183,0.08); }
+.feel-chip.selected .lbl { color: var(--text-1); }
+
+.connect-note { text-align: center; color: var(--text-3); font-size: 13px; padding: 8px 0 4px; }
+.connect-note a { color: var(--text-2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="wellness.html" class="back-link">← Gesundheit</a>
+  <div class="hd">
+    <h1>Peak Tracker</h1>
+    <div class="sub" id="ptDateLabel">—</div>
+  </div>
+
+  <div class="sleep-bar">
+    <span>🌙 Bett <b id="ptBed">—</b> · ☀️ Wach <b id="ptWake">—</b></span>
+    <span class="sb-note">Dein Fenster</span>
+  </div>
+
+  <div class="now-card">
+    <div class="now-ring-wrap">
+      <svg class="now-ring" viewBox="0 0 90 90">
+        <circle class="now-ring-track" cx="45" cy="45" r="38"></circle>
+        <circle class="now-ring-fill" id="ptRingFill" cx="45" cy="45" r="38"></circle>
+      </svg>
+      <div class="now-ring-num" id="ptRingNum">—</div>
+    </div>
+    <div class="now-body">
+      <div class="now-mood" id="ptMood">—</div>
+      <div class="now-sub" id="ptNowSub">JETZT GERADE</div>
+      <div class="now-hint" id="ptHint">Kurve wird berechnet …</div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-hd">
+      <div>
+        <div class="chart-title">Tagesverlauf</div>
+        <div class="chart-desc">Deine vorhergesagte Leistungsfähigkeit, stundenweise. Zum Scrubben über die Kurve fahren.</div>
+      </div>
+      <div class="mode-toggle" id="ptModeToggle">
+        <button class="mode-btn active" data-mode="line">LINIE</button>
+        <button class="mode-btn" data-mode="bars">BALKEN</button>
+        <button class="mode-btn" data-mode="stack">FLÄCHE</button>
+      </div>
+    </div>
+    <div class="chart-stage">
+      <svg class="chart-svg" id="ptChartSvg" viewBox="0 0 640 180" preserveAspectRatio="none"></svg>
+      <div class="chart-tip" id="ptTip"><b id="ptTipVal">—</b><div class="tip-time" id="ptTipTime">—</div></div>
+    </div>
+    <div class="chart-axis">
+      <span>00</span><span>03</span><span>06</span><span>09</span><span>12</span><span>15</span><span>18</span><span>21</span><span>24</span>
+    </div>
+  </div>
+
+  <div class="why-card" id="ptWhyCard" style="display:none">
+    <div class="why-title" id="ptWhyTitle">—</div>
+    <ul class="why-list" id="ptWhyList"></ul>
+  </div>
+
+  <div class="group-h"><span>Beste Stunden</span><span id="ptWindowCount">—</span></div>
+  <div id="ptWindows"></div>
+
+  <div class="group-h">Dein Tagesplan</div>
+  <div class="plan-strip" id="ptPlanStrip"></div>
+
+  <div class="feel-card">
+    <div class="feel-title">Wie fühlst du dich gerade?</div>
+    <div class="feel-row" id="ptFeelRow"></div>
+  </div>
+
+  <div class="connect-note" id="ptConnectNote" style="display:none">WHOOP auf der <a href="health.html">Gesundheit-Seite</a> verbinden, um deine Vorhersage zu personalisieren.</div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const WAKE_HOUR = 7.5;
+  const SLEEP_HOUR = 22.5;
+  const WHOOP_KEY = 'whoop_tokens_v1';
+  const PLAN_KEY = 'peak_plan_v1';
+  const WELLBEING_KEY = 'daily_wellbeing_v1';
+
+  function loadWhoopTokens() { try { return JSON.parse(localStorage.getItem(WHOOP_KEY)); } catch (e) { return null; } }
+  function saveWhoopTokens(t) { try { localStorage.setItem(WHOOP_KEY, JSON.stringify(t)); } catch (e) {} }
+  async function refreshWhoopToken(t) {
+    if (!t.refresh) return null;
+    try {
+      const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: t.refresh }) });
+      const j = await r.json();
+      if (j.access_token) {
+        const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in || 3500) * 1000 };
+        saveWhoopTokens(next);
+        return next;
+      }
+    } catch (e) {}
+    return null;
+  }
+  async function whoopFetch(path, t) {
+    const [p, qs] = path.split('?');
+    const params = new URLSearchParams(qs || ''); params.set('path', p);
+    const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { Authorization: 'Bearer ' + t.access, Accept: 'application/json' } });
+    if (r.status === 401) { const n = await refreshWhoopToken(t); if (n) return whoopFetch(path, n); throw new Error('unauthorized'); }
+    if (!r.ok) throw new Error('WHOOP ' + r.status);
+    return await r.json();
+  }
+  function avg(arr) { const v = arr.filter((x) => x != null); return v.length ? v.reduce((s, x) => s + x, 0) / v.length : null; }
+
+  function dateKey(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function fmtHour(h) {
+    const hh = Math.floor(((h % 24) + 24) % 24);
+    const mm = Math.round((h - Math.floor(h)) * 60);
+    return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+  }
+  function zoneColor(score) {
+    if (score == null) return 'rgba(255,255,255,0.5)';
+    if (score >= 67) return 'var(--good)';
+    if (score >= 34) return 'var(--warn)';
+    return 'var(--bad)';
+  }
+  function moodWord(score) {
+    if (score >= 85) return 'Höchstform';
+    if (score >= 70) return 'Fokussiert';
+    if (score >= 50) return 'Stabil';
+    if (score >= 30) return 'Müde';
+    return 'Neblig';
+  }
+
+  // ---------- curve model ----------
+  function gaussian(h, center, width, height) {
+    const d = h - center;
+    return height * Math.exp(-(d * d) / (2 * width * width));
+  }
+  function baseCurveAt(h) {
+    if (h < WAKE_HOUR || h > SLEEP_HOUR) return 14;
+    const span = SLEEP_HOUR - WAKE_HOUR;
+    const t = h - WAKE_HOUR;
+    const peak1 = span * 0.28, width1 = span * 0.13;
+    const dip    = span * 0.46, dipWidth = span * 0.09;
+    const peak2 = span * 0.78, width2 = span * 0.16;
+    let v = 30
+      + gaussian(t, peak1, width1, 34)
+      - gaussian(t, dip, dipWidth, 20)
+      + gaussian(t, peak2, width2, 46);
+    return Math.max(10, Math.min(100, v));
+  }
+  function buildCurve(mods) {
+    const pts = [];
+    for (let h = 0; h <= 24; h += 0.5) {
+      let v = baseCurveAt(h);
+      const inAwake = h >= WAKE_HOUR && h <= SLEEP_HOUR;
+      if (inAwake) {
+        v *= mods.recoveryFactor;
+        v *= mods.sleepFactor;
+        const t = h - WAKE_HOUR, span = SLEEP_HOUR - WAKE_HOUR;
+        if (t > span * 0.55) v *= mods.fatigueFactor; // afternoon/evening only
+        v -= mods.hrvPenalty;
+      }
+      pts.push({ h, v: Math.max(5, Math.min(100, v)) });
+    }
+    return pts;
+  }
+  function curveValueAt(curve, h) {
+    for (let i = 0; i < curve.length - 1; i++) {
+      if (h >= curve[i].h && h <= curve[i + 1].h) {
+        const f = (h - curve[i].h) / (curve[i + 1].h - curve[i].h);
+        return curve[i].v + (curve[i + 1].v - curve[i].v) * f;
+      }
+    }
+    return curve[curve.length - 1].v;
+  }
+  function findBestWindows(curve) {
+    const max = Math.max(...curve.map((p) => p.v));
+    const threshold = max * 0.85;
+    const windows = [];
+    let cur = null;
+    curve.forEach((p) => {
+      if (p.v >= threshold && p.h >= WAKE_HOUR && p.h <= SLEEP_HOUR) {
+        if (!cur) cur = { start: p.h, end: p.h, peak: p.v, peakH: p.h };
+        else { cur.end = p.h; if (p.v > cur.peak) { cur.peak = p.v; cur.peakH = p.h; } }
+      } else if (cur) { windows.push(cur); cur = null; }
+    });
+    if (cur) windows.push(cur);
+    return windows.filter((w) => w.end - w.start >= 1).sort((a, b) => b.peak - a.peak).slice(0, 3);
+  }
+
+  // ---------- chart rendering ----------
+  const VB_W = 640, VB_H = 180, PAD_TOP = 14, PAD_BOT = 10;
+  function xFor(h) { return (h / 24) * VB_W; }
+  function yFor(v) { return PAD_TOP + (1 - v / 100) * (VB_H - PAD_TOP - PAD_BOT); }
+  function smoothPath(points) {
+    if (!points.length) return '';
+    let d = 'M ' + points[0].x.toFixed(2) + ' ' + points[0].y.toFixed(2);
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1], curr = points[i];
+      const cx = (prev.x + curr.x) / 2;
+      d += ' Q ' + cx.toFixed(2) + ' ' + prev.y.toFixed(2) + ', ' + cx.toFixed(2) + ' ' + ((prev.y + curr.y) / 2).toFixed(2);
+      d += ' T ' + curr.x.toFixed(2) + ' ' + curr.y.toFixed(2);
+    }
+    return d;
+  }
+
+  let currentCurve = null, currentMode = 'line', currentWindows = [];
+
+  function renderChart() {
+    const svg = document.getElementById('ptChartSvg');
+    if (!svg || !currentCurve) return;
+    const pts = currentCurve.map((p) => ({ x: xFor(p.h), y: yFor(p.v) }));
+    let html = '';
+
+    currentWindows.forEach((w) => {
+      html += '<rect x="' + xFor(w.start).toFixed(1) + '" y="' + PAD_TOP + '" width="' + (xFor(w.end) - xFor(w.start)).toFixed(1) + '" height="' + (VB_H - PAD_TOP - PAD_BOT) + '" fill="rgba(110,231,183,0.08)"></rect>';
+    });
+
+    if (currentMode === 'bars') {
+      for (let h = 0; h < 24; h++) {
+        const v = curveValueAt(currentCurve, h + 0.5);
+        const x = xFor(h), w = xFor(1) - 2;
+        const y = yFor(v);
+        html += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + (VB_H - PAD_BOT - y).toFixed(1) + '" rx="3" fill="rgba(110,231,183,0.55)"></rect>';
+      }
+    } else {
+      const linePath = smoothPath(pts);
+      if (currentMode === 'stack') {
+        const areaPath = linePath + ' L ' + pts[pts.length - 1].x.toFixed(2) + ' ' + (VB_H - PAD_BOT) + ' L ' + pts[0].x.toFixed(2) + ' ' + (VB_H - PAD_BOT) + ' Z';
+        html += '<defs><linearGradient id="ptFade" x1="0" y1="0" x2="0" y2="1">'
+              + '<stop offset="0%" stop-color="#6ee7b7" stop-opacity="0.35"/>'
+              + '<stop offset="100%" stop-color="#6ee7b7" stop-opacity="0"/></linearGradient></defs>';
+        html += '<path d="' + areaPath + '" fill="url(#ptFade)"></path>';
+      }
+      html += '<path d="' + linePath + '" fill="none" stroke="#6ee7b7" stroke-width="2.5" stroke-linecap="round"></path>';
+    }
+
+    const nowH = new Date().getHours() + new Date().getMinutes() / 60;
+    if (nowH >= WAKE_HOUR && nowH <= SLEEP_HOUR) {
+      const nx = xFor(nowH), ny = yFor(curveValueAt(currentCurve, nowH));
+      html += '<circle cx="' + nx.toFixed(1) + '" cy="' + ny.toFixed(1) + '" r="5" fill="#f2c063"></circle>';
+    }
+
+    svg.innerHTML = html;
+  }
+
+  function ringSet(score) {
+    const fillEl = document.getElementById('ptRingFill');
+    const C = 2 * Math.PI * 38;
+    fillEl.style.strokeDasharray = C;
+    fillEl.style.strokeDashoffset = score != null ? C * (1 - score / 100) : C;
+    fillEl.style.stroke = zoneColor(score);
+    document.getElementById('ptRingNum').textContent = score != null ? Math.round(score) : '—';
+  }
+
+  function showAtHour(h, scrubbing) {
+    if (!currentCurve) return;
+    const v = curveValueAt(currentCurve, h);
+    ringSet(v);
+    document.getElementById('ptMood').textContent = moodWord(v);
+    document.getElementById('ptNowSub').textContent = scrubbing ? ('SCRUBBING · ' + fmtHour(h)) : 'JETZT GERADE';
+  }
+
+  function initTooltip() {
+    const stage = document.querySelector('.chart-stage');
+    const svg = document.getElementById('ptChartSvg');
+    const tip = document.getElementById('ptTip');
+    const tipVal = document.getElementById('ptTipVal');
+    const tipTime = document.getElementById('ptTipTime');
+    const nowH = new Date().getHours() + new Date().getMinutes() / 60;
+
+    function move(clientX) {
+      const rect = svg.getBoundingClientRect();
+      const frac = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+      const h = frac * 24;
+      const v = curveValueAt(currentCurve, h);
+      showAtHour(h, true);
+      tip.classList.add('show');
+      tip.style.left = (frac * 100) + '%';
+      tipVal.textContent = Math.round(v);
+      tipTime.textContent = fmtHour(h);
+    }
+    function reset() {
+      tip.classList.remove('show');
+      showAtHour(nowH, false);
+    }
+    stage.addEventListener('mousemove', (e) => move(e.clientX));
+    stage.addEventListener('mouseleave', reset);
+    stage.addEventListener('touchstart', (e) => { if (e.touches[0]) move(e.touches[0].clientX); }, { passive: true });
+    stage.addEventListener('touchmove', (e) => { if (e.touches[0]) move(e.touches[0].clientX); }, { passive: true });
+    stage.addEventListener('touchend', reset);
+  }
+
+  document.getElementById('ptModeToggle').addEventListener('click', (e) => {
+    const btn = e.target.closest('.mode-btn');
+    if (!btn) return;
+    document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentMode = btn.dataset.mode;
+    renderChart();
+  });
+
+  // ---------- plan strip ----------
+  function loadPlan() {
+    try {
+      const p = JSON.parse(localStorage.getItem(PLAN_KEY));
+      if (p && p.date === dateKey(new Date())) return p;
+    } catch (e) {}
+    return { date: dateKey(new Date()), entries: [] };
+  }
+  function savePlan(p) { try { localStorage.setItem(PLAN_KEY, JSON.stringify(p)); } catch (e) {} }
+  function renderPlan() {
+    const plan = loadPlan();
+    const el = document.getElementById('ptPlanStrip');
+    if (!plan.entries.length) {
+      el.innerHTML = '<div class="plan-empty">Noch nichts geplant · blocke dein bestes Zeitfenster oben</div>';
+      return;
+    }
+    el.innerHTML = plan.entries.map((e, i) =>
+      '<div class="plan-item"><span>' + e.label + '</span><button class="plan-remove" data-i="' + i + '">×</button></div>'
+    ).join('');
+    el.querySelectorAll('.plan-remove').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const p = loadPlan();
+        p.entries.splice(Number(btn.dataset.i), 1);
+        savePlan(p);
+        renderPlan();
+      });
+    });
+  }
+  function blockWindow(w) {
+    const plan = loadPlan();
+    const label = fmtHour(w.start) + '–' + fmtHour(w.end) + ' · Höchstleistung blockiert';
+    plan.entries.push({ label, start: w.start, end: w.end });
+    savePlan(plan);
+    renderPlan();
+  }
+
+  // ---------- feeling chips ----------
+  const FEEL_OPTIONS = [
+    { v: 1, label: 'Neblig', color: 'var(--bad)' },
+    { v: 2, label: 'Müde', color: '#f2c063' },
+    { v: 3, label: 'Stabil', color: 'rgba(255,255,255,0.5)' },
+    { v: 4, label: 'Fokussiert', color: 'var(--good)' },
+    { v: 5, label: 'Höchstform', color: 'var(--good)' },
+  ];
+  function loadWellbeing() {
+    try {
+      const w = JSON.parse(localStorage.getItem(WELLBEING_KEY));
+      if (w && w.date === dateKey(new Date())) return w;
+    } catch (e) {}
+    return { date: dateKey(new Date()) };
+  }
+  function saveWellbeing(w) { try { localStorage.setItem(WELLBEING_KEY, JSON.stringify(w)); } catch (e) {} }
+  function renderFeelRow() {
+    const wb = loadWellbeing();
+    const row = document.getElementById('ptFeelRow');
+    row.innerHTML = FEEL_OPTIONS.map((o) =>
+      '<div class="feel-chip' + (wb.mood === o.v ? ' selected' : '') + '" data-v="' + o.v + '">'
+      + '<div class="dot" style="background:' + o.color + '"></div><div class="lbl">' + o.label + '</div></div>'
+    ).join('');
+    row.querySelectorAll('.feel-chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        const w = loadWellbeing();
+        w.mood = Number(chip.dataset.v);
+        saveWellbeing(w);
+        renderFeelRow();
+      });
+    });
+  }
+
+  // ---------- why-this-score bullets ----------
+  function buildWhy(ctx, curve, nowH) {
+    const lines = [];
+    const bestWindow = currentWindows[0];
+    let headline = 'Ein durchschnittlicher Tag.';
+    if (bestWindow) {
+      const rising = nowH < bestWindow.peakH;
+      headline = rising ? 'Baue dich zu deinem Peak auf.' : 'Nutze dein bestes Fenster heute.';
+      lines.push('<li><b>Beste Stunde heute ist ' + fmtHour(bestWindow.peakH) + '.</b> Blocke sie dir für deine anspruchsvollste Aufgabe.</li>');
+    }
+    if (ctx.recovery != null) {
+      lines.push('<li><b>Recovery ' + Math.round(ctx.recovery) + '%.</b> ' +
+        (ctx.recovery >= 67 ? 'Dein Körper ist bereit für Belastung — stapel Training oder Denkarbeit ins Peak-Fenster.' :
+         ctx.recovery >= 34 ? 'Mittlere Erholung — geh es heute etwas moderater an.' :
+         'Niedrige Erholung — priorisiere heute Regeneration statt Höchstleistung.') + '</li>');
+    }
+    if (ctx.sleepDur != null && ctx.sleepDur < 7 * 60) {
+      lines.push('<li><b>Schlafdefizit.</b> Dein Vormittagshoch startet dadurch etwas schwächer als sonst.</li>');
+    }
+    if (ctx.hrvToday != null && ctx.hrvYesterday != null && ctx.hrvToday < ctx.hrvYesterday - 2) {
+      lines.push('<li><b>HRV niedriger als gestern.</b> Möglicher Stressindikator — plane heute bewusst kurze Pausen ein.</li>');
+    }
+    if (ctx.strainYesterday != null && ctx.strainYesterday >= 14) {
+      lines.push('<li><b>Hohe Belastung gestern (Strain ' + ctx.strainYesterday.toFixed(1) + ').</b> Dein Abend-Peak fällt heute etwas gedämpfter aus.</li>');
+    }
+    if (!lines.length) {
+      lines.push('<li>Basierend auf deinem Schlafrhythmus — verbinde WHOOP für eine personalisierte Vorhersage.</li>');
+    }
+    return { headline, lines: lines.slice(0, 4) };
+  }
+
+  async function boot() {
+    const dLabel = document.getElementById('ptDateLabel');
+    const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    const mons = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    const now = new Date();
+    dLabel.textContent = days[now.getDay()] + ', ' + now.getDate() + '. ' + mons[now.getMonth()];
+    document.getElementById('ptBed').textContent = fmtHour(SLEEP_HOUR);
+    document.getElementById('ptWake').textContent = fmtHour(WAKE_HOUR);
+
+    let mods = { recoveryFactor: 1, sleepFactor: 1, fatigueFactor: 1, hrvPenalty: 0 };
+    let ctx = {};
+
+    const tokens = loadWhoopTokens();
+    if (!tokens || !tokens.access) {
+      document.getElementById('ptConnectNote').style.display = '';
+    } else {
+      try {
+        let t = tokens;
+        if (t.expires && Date.now() > t.expires - 60000) { const n = await refreshWhoopToken(t); if (n) t = n; }
+        const [recHist, sleepHist, cycleHist] = await Promise.all([
+          whoopFetch('/recovery?limit=8', t).catch(() => null),
+          whoopFetch('/activity/sleep?limit=2', t).catch(() => null),
+          whoopFetch('/cycle?limit=2', t).catch(() => null),
+        ]);
+        const recRecords = (recHist && recHist.records) || [];
+        const sleepRecords = (sleepHist && sleepHist.records) || [];
+        const cycleRecords = (cycleHist && cycleHist.records) || [];
+        const rToday = recRecords[0] && recRecords[0].score;
+        const rYesterday = recRecords[1] && recRecords[1].score;
+        const sToday = sleepRecords[0] && sleepRecords[0].score;
+        const cYesterday = cycleRecords[1] && cycleRecords[1].score;
+        const rhrWeekAvg = avg(recRecords.slice(1, 8).map((x) => x.score && x.score.resting_heart_rate));
+
+        ctx.recovery = rToday ? rToday.recovery_score : null;
+        ctx.hrvToday = rToday ? rToday.hrv_rmssd_milli : null;
+        ctx.hrvYesterday = rYesterday ? rYesterday.hrv_rmssd_milli : null;
+        ctx.rhrToday = rToday ? rToday.resting_heart_rate : null;
+        ctx.rhrWeekAvg = rhrWeekAvg;
+        ctx.sleepPerf = sToday ? sToday.sleep_performance_percentage : null;
+        const ss = sToday && sToday.stage_summary;
+        ctx.sleepDur = ss ? ((ss.total_in_bed_time_milli || 0) - (ss.total_awake_time_milli || 0)) / 60000 : null;
+        ctx.strainYesterday = cYesterday ? cYesterday.strain : null;
+
+        if (ctx.recovery != null) mods.recoveryFactor = 0.72 + 0.56 * (ctx.recovery / 100);
+        if (ctx.sleepPerf != null) mods.sleepFactor = 0.78 + 0.44 * (ctx.sleepPerf / 100);
+        if (ctx.strainYesterday != null) mods.fatigueFactor = Math.max(0.78, 1 - Math.max(0, ctx.strainYesterday - 12) / 40);
+        if (ctx.hrvToday != null && ctx.hrvYesterday != null && ctx.hrvToday < ctx.hrvYesterday - 2) mods.hrvPenalty = 6;
+        if (ctx.rhrToday != null && ctx.rhrWeekAvg != null && ctx.rhrToday > ctx.rhrWeekAvg + 3) mods.hrvPenalty += 4;
+      } catch (e) {
+        document.getElementById('ptConnectNote').style.display = '';
+        document.getElementById('ptConnectNote').textContent = 'WHOOP-Daten aktuell nicht erreichbar — Vorhersage basiert auf deinem Schlafrhythmus.';
+      }
+    }
+
+    currentCurve = buildCurve(mods);
+    currentWindows = findBestWindows(currentCurve);
+
+    const nowH = now.getHours() + now.getMinutes() / 60;
+    showAtHour(Math.max(WAKE_HOUR, Math.min(SLEEP_HOUR, nowH)), false);
+    renderChart();
+    initTooltip();
+
+    document.getElementById('ptWindowCount').textContent = currentWindows.length + ' Fenster';
+    const windowsEl = document.getElementById('ptWindows');
+    if (!currentWindows.length) {
+      windowsEl.innerHTML = '<div class="plan-empty" style="padding:14px 0">Noch keine ausgeprägten Spitzenfenster erkennbar.</div>';
+    } else {
+      windowsEl.innerHTML = currentWindows.map((w, i) => {
+        const active = nowH >= w.start && nowH <= w.end;
+        return '<div class="window-card' + (active ? ' active' : '') + '">'
+          + '<div><div class="window-time">' + fmtHour(w.start) + '–' + fmtHour(w.end) + '</div>'
+          + '<div class="window-note">' + (active ? 'Jetzt gerade' : 'Peak um ' + fmtHour(w.peakH)) + '</div></div>'
+          + '<div class="window-right"><div class="window-peak"><div class="window-peak-num">' + Math.round(w.peak) + '</div><div class="window-peak-lbl">Peak</div></div>'
+          + '<button class="block-btn" data-i="' + i + '">Blocken →</button></div></div>';
+      }).join('');
+      windowsEl.querySelectorAll('.block-btn').forEach((btn) => {
+        btn.addEventListener('click', () => blockWindow(currentWindows[Number(btn.dataset.i)]));
+      });
+    }
+    renderPlan();
+    renderFeelRow();
+
+    const why = buildWhy(ctx, currentCurve, nowH);
+    document.getElementById('ptWhyCard').style.display = '';
+    document.getElementById('ptWhyTitle').textContent = why.headline;
+    document.getElementById('ptWhyList').innerHTML = why.lines.join('');
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
