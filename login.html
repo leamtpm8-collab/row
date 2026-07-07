@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#050506">
 <title>Anmelden — Maëls Übersicht</title>
 <style>
@@ -143,6 +143,19 @@ button.submit:disabled { opacity: 0.6; cursor: default; }
       errorEl.textContent = 'Verbindungsfehler — bitte erneut versuchen.';
     });
   });
+
+  // Block pinch-zoom and double-tap-zoom, same as topbar.js's lockGestures()
+  // on every other page — this is the one page that doesn't load topbar.js.
+  function blockGesture(e) { e.preventDefault(); }
+  document.addEventListener('gesturestart', blockGesture, { passive: false });
+  document.addEventListener('gesturechange', blockGesture, { passive: false });
+  document.addEventListener('gestureend', blockGesture, { passive: false });
+  var lastTouch = 0;
+  document.addEventListener('touchend', function (e) {
+    var now = Date.now();
+    if (now - lastTouch <= 300) e.preventDefault();
+    lastTouch = now;
+  }, { passive: false });
 })();
 </script>
 </body>
