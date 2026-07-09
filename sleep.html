@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Maëls Übersicht">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png">
+<link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+<title>Schlaf</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="sync.js" defer></script>
+<script src="topbar.js" defer></script>
+<link rel="stylesheet" href="theme.css">
+<style>
+:root { --good: var(--accent); }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--bg); }
+body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 40px; }
+.wrap { max-width: 640px; margin: 0 auto; }
+.back-link { display: inline-flex; align-items: center; gap: 6px; color: var(--text-3); text-decoration: none; font-size: 13px; font-weight: 600; margin-bottom: 14px; }
+.hd { margin-bottom: 18px; }
+.hd h1 { margin: 0; font-size: 24px; }
+.hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+
+.score-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 26px; padding: 26px 20px 22px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 34px rgba(0,0,0,0.4); margin-bottom: 16px; }
+.score-ring-wrap { position: relative; width: 168px; height: 168px; margin-bottom: 4px; }
+.score-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.score-ring-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 11; }
+.score-ring-fill { fill: none; stroke: #9aa0a6; stroke-width: 11; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.22,1,0.36,1); }
+.score-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.score-num { font-size: 40px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: #cfd3d6; }
+.score-label { font-size: 11.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+.timeline-track { position: relative; height: 34px; border-radius: 10px; background: var(--bg-card-2); overflow: hidden; margin: 6px 0 16px; display: flex; }
+.timeline-seg { height: 100%; }
+.timeline-legend { display: flex; flex-wrap: wrap; gap: 10px 14px; font-size: 11px; color: var(--text-3); margin-bottom: 16px; }
+.timeline-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.timeline-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+.group-h { font-size: 13px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-mono); margin: 20px 0 10px; }
+.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 14px 14px; }
+.stat-label { font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-val { font-size: 19px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.connect-note { text-align: center; color: var(--text-3); font-size: 13px; padding: 40px 0; }
+.connect-note a { color: var(--text-2); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a href="main.html" class="back-link">← Start</a>
+  <div class="hd">
+    <h1 class="rw-title">Schlaf</h1>
+    <div class="sub rw-eyebrow" id="slDateLabel">—</div>
+  </div>
+
+  <div id="slBody"></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  const WHOOP_KEY = 'whoop_tokens_v1';
+  function loadWhoopTokens() { try { return JSON.parse(localStorage.getItem(WHOOP_KEY)); } catch (e) { return null; } }
+  function saveWhoopTokens(t) { try { localStorage.setItem(WHOOP_KEY, JSON.stringify(t)); } catch (e) {} }
+  async function refreshWhoopToken(t) {
+    if (!t.refresh) return null;
+    try {
+      const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: t.refresh }) });
+      const j = await r.json();
+      if (j.access_token) {
+        const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in || 3500) * 1000 };
+        saveWhoopTokens(next);
+        return next;
+      }
+    } catch (e) {}
+    return null;
+  }
+  async function whoopFetch(path, t) {
+    const [p, qs] = path.split('?');
+    const params = new URLSearchParams(qs || ''); params.set('path', p);
+    const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { Authorization: 'Bearer ' + t.access, Accept: 'application/json' } });
+    if (r.status === 401) { const n = await refreshWhoopToken(t); if (n) return whoopFetch(path, n); throw new Error('unauthorized'); }
+    if (!r.ok) throw new Error('WHOOP ' + r.status);
+    return await r.json();
+  }
+  function fmtMins(ms) {
+    if (ms == null) return '—';
+    const m = Math.round(ms / 60000);
+    const h = Math.floor(m / 60);
+    return h + 'h ' + String(m % 60).padStart(2, '0') + 'm';
+  }
+  function fmtClock(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso);
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+  function statCard(label, val) {
+    return '<div class="stat-card"><div class="stat-label">' + label + '</div><div class="stat-val">' + val + '</div></div>';
+  }
+  function renderRing(score) {
+    const fill = document.getElementById('slRingFill');
+    const C = 2 * Math.PI * 74;
+    fill.style.strokeDasharray = C;
+    fill.style.strokeDashoffset = score != null ? C * (1 - score / 100) : C;
+    document.getElementById('slNum').textContent = score != null ? score + '%' : '—';
+  }
+
+  async function boot() {
+    const dLabel = document.getElementById('slDateLabel');
+    const days = ['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+    const mons = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+    const now = new Date();
+    dLabel.textContent = days[now.getDay()] + ', ' + now.getDate() + '. ' + mons[now.getMonth()];
+
+    const body = document.getElementById('slBody');
+    const tokens = loadWhoopTokens();
+    if (!tokens || !tokens.access) {
+      body.innerHTML = '<div class="connect-note">WHOOP auf der <a href="wellness.html">Gesundheit-Seite</a> verbinden, um deine Schlafdaten zu sehen.</div>';
+      return;
+    }
+
+    try {
+      let t = tokens;
+      if (t.expires && Date.now() > t.expires - 60000) { const n = await refreshWhoopToken(t); if (n) t = n; }
+      const sleepHist = await whoopFetch('/activity/sleep?limit=1', t).catch(() => null);
+      const rec = sleepHist && sleepHist.records && sleepHist.records[0];
+      if (!rec || !rec.score) {
+        body.innerHTML = '<div class="score-card"><div class="score-ring-wrap"><svg class="score-ring" viewBox="0 0 168 168"><circle class="score-ring-track" cx="84" cy="84" r="74"></circle><circle class="score-ring-fill" id="slRingFill" cx="84" cy="84" r="74"></circle></svg><div class="score-ring-center"><div class="score-num" id="slNum">—</div><div class="score-label">Schlaf</div></div></div></div>'
+          + '<div class="connect-note">Noch keine Schlafdaten von WHOOP verfügbar.</div>';
+        renderRing(null);
+        return;
+      }
+      const score = rec.score;
+      const ss = score.stage_summary || {};
+      const dur = (ss.total_in_bed_time_milli || 0) - (ss.total_awake_time_milli || 0);
+      const need = score.sleep_needed || {};
+      const needTotal = (need.baseline_milli || 0) + (need.need_from_sleep_debt_milli || 0) + (need.need_from_recent_strain_milli || 0) - (need.need_from_recent_nap_milli || 0);
+
+      let html = '<div class="score-card"><div class="score-ring-wrap"><svg class="score-ring" viewBox="0 0 168 168"><circle class="score-ring-track" cx="84" cy="84" r="74"></circle><circle class="score-ring-fill" id="slRingFill" cx="84" cy="84" r="74"></circle></svg><div class="score-ring-center"><div class="score-num" id="slNum">—</div><div class="score-label">Schlaf</div></div></div></div>';
+
+      // Timeline bar: awake/light/deep/REM proportions
+      const segs = [
+        { ms: ss.total_awake_time_milli || 0, color: '#ff8a8a', label: 'Wach' },
+        { ms: ss.total_light_sleep_time_milli || 0, color: '#7DD3FC', label: 'Leichtschlaf' },
+        { ms: ss.total_slow_wave_sleep_time_milli || 0, color: 'var(--accent)', label: 'Tiefschlaf' },
+        { ms: ss.total_rem_sleep_time_milli || 0, color: '#B794F4', label: 'REM' },
+      ];
+      const segTotal = segs.reduce((s, x) => s + x.ms, 0) || 1;
+      html += '<div class="timeline-track">' + segs.map((s) => '<div class="timeline-seg" style="width:' + (s.ms / segTotal * 100) + '%;background:' + s.color + '"></div>').join('') + '</div>';
+      html += '<div class="timeline-legend">' + segs.map((s) => '<span><span class="timeline-dot" style="background:' + s.color + '"></span>' + s.label + ' · ' + fmtMins(s.ms) + '</span>').join('') + '</div>';
+
+      html += '<div class="group-h">Überblick</div><div class="stat-grid">' +
+        statCard('Schlafdauer', fmtMins(dur)) +
+        statCard('Schlafbedarf', needTotal > 0 ? fmtMins(needTotal) : '—') +
+        statCard('Schlafqualität', score.sleep_performance_percentage != null ? Math.round(score.sleep_performance_percentage) + '%' : '—') +
+        statCard('Konsistenz', score.sleep_consistency_percentage != null ? Math.round(score.sleep_consistency_percentage) + '%' : '—') +
+        statCard('Effizienz', score.sleep_efficiency_percentage != null ? Math.round(score.sleep_efficiency_percentage) + '%' : '—') +
+        statCard('Atemfrequenz', score.respiratory_rate != null ? score.respiratory_rate.toFixed(1) + '/min' : '—') +
+      '</div>';
+
+      html += '<div class="group-h">Zeiten</div><div class="stat-grid">' +
+        statCard('Einschlafzeit', fmtClock(rec.start)) +
+        statCard('Aufwachzeit', fmtClock(rec.end)) +
+      '</div>';
+
+      body.innerHTML = html;
+      renderRing(score.sleep_performance_percentage != null ? Math.round(score.sleep_performance_percentage) : null);
+    } catch (e) {
+      body.innerHTML = '<div class="connect-note">WHOOP-Daten aktuell nicht erreichbar.</div>';
+    }
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>

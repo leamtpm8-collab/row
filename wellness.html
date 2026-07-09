@@ -25,13 +25,14 @@ html, body { margin: 0; padding: 0; background: var(--bg); }
 body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 40px; }
 .wrap { max-width: 640px; margin: 0 auto; }
 .hd { margin-bottom: 22px; }
-.hd h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.hd h1 { margin: 0; font-size: 26px; }
 .hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
 
 .score-card {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 26px;
+  background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 26px;
+  backdrop-filter: blur(24px) saturate(1.2); -webkit-backdrop-filter: blur(24px) saturate(1.2);
   padding: 28px 20px 24px; display: flex; flex-direction: column; align-items: center;
-  box-shadow: 0 10px 34px rgba(0,0,0,0.4); margin-bottom: 16px;
+  box-shadow: var(--shadow-card); margin-bottom: 16px; text-decoration: none; color: inherit;
 }
 .score-ring-wrap { position: relative; width: 190px; height: 190px; margin-bottom: 6px; }
 .score-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
@@ -42,16 +43,21 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .score-label { font-size: 12px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
 .score-note { font-size: 13px; color: var(--text-2); text-align: center; max-width: 320px; margin-top: 8px; }
 
-.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 14px 12px; text-align: left; }
+.tile-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.tile-icon { font-size: 22px; margin-bottom: 26px; }
+
+.caf-widget-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.caf-widget-num { font-size: 24px; font-weight: 800; color: var(--text-1); line-height: 1; }
+.caf-widget-bar-track { height: 8px; background: rgba(255,255,255,0.07); border-radius: 5px; margin-top: 10px; overflow: hidden; }
+.caf-widget-bar-fill { height: 100%; border-radius: 5px; background: var(--good); transition: width 0.5s ease; }
+
+.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.stat-card { background: var(--bg-card-2); border-radius: 14px; padding: 12px; text-align: left; }
 .stat-label { font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
 .stat-val { font-size: 18px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
-.stat-sub { font-size: 11px; color: var(--text-4); margin-top: 2px; }
-@media (max-width: 420px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
 
-.tile-stack { display: flex; flex-direction: column; gap: 12px; }
-
-.stack-hint { margin-top: 18px; font-size: 12.5px; color: var(--text-3); text-align: center; }
+.section-card { margin-bottom: 16px; }
+.stack-hint { margin-top: 4px; font-size: 12.5px; color: var(--text-3); text-align: center; }
 .stack-hint a { color: var(--text-2); }
 </style>
 </head>
@@ -62,7 +68,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     <div class="sub rw-eyebrow" id="wellDateLabel">—</div>
   </div>
 
-  <div class="score-card">
+  <a href="recovery.html" class="score-card">
     <div class="score-ring-wrap">
       <svg class="score-ring" viewBox="0 0 190 190">
         <circle class="score-ring-track" cx="95" cy="95" r="82"></circle>
@@ -70,61 +76,40 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
       </svg>
       <div class="score-ring-center">
         <div class="score-num" id="scoreNum">—</div>
-        <div class="score-label">Recovery</div>
+        <div class="score-label">Erholung</div>
       </div>
     </div>
     <div class="score-note" id="scoreNote">Verbinde WHOOP auf dieser Seite, um deinen Erholungswert zu sehen.</div>
+  </a>
+
+  <div class="tile-row">
+    <a href="nutrition.html" class="rw-card">
+      <div class="tile-icon">🍎</div>
+      <div class="rw-card-title">Essen</div>
+      <div class="rw-card-sub">Kalorien &amp; Makros</div>
+    </a>
+    <a href="po-water.html" class="rw-card">
+      <div class="tile-icon">💧</div>
+      <div class="rw-card-title">Wasser</div>
+      <div class="rw-card-sub">Flüssigkeitszufuhr</div>
+    </a>
   </div>
 
-  <div class="stat-grid" id="statGrid"></div>
+  <div class="rw-section-title">Kaffee Tracker</div>
+  <a href="caffeine.html" class="rw-card section-card">
+    <div class="caf-widget-head">
+      <div>
+        <div class="caf-widget-num" id="cafNum">0 <span style="font-size:13px;color:var(--text-3);font-weight:600">/ 100 mg</span></div>
+        <div class="rw-eyebrow">Heute</div>
+      </div>
+      <span class="rw-card-arrow">→</span>
+    </div>
+    <div class="caf-widget-bar-track"><div class="caf-widget-bar-fill" id="cafBar" style="width:0%"></div></div>
+  </a>
 
-  <div class="tile-stack">
-    <a href="recovery.html" class="rw-card">
-      <div class="rw-motif motif-radar"></div>
-      <div class="rw-card-num">·01</div>
-      <span class="rw-card-icon">🌙</span>
-      <div class="rw-card-spacer"></div>
-      <div class="rw-card-title">Erholungsdaten</div>
-      <div class="rw-card-foot">
-        <span class="rw-card-sub">Schlaf, HRV, Ruhepuls &amp; Trends</span>
-        <span class="rw-card-arrow">→</span>
-      </div>
-    </a>
-    <a href="recommendations.html" class="rw-card">
-      <div class="rw-motif motif-dots" style="--dot-x:70%;--dot-y:40%"></div>
-      <div class="rw-card-num">·02</div>
-      <span class="rw-card-icon">💡</span>
-      <div class="rw-card-spacer"></div>
-      <div class="rw-card-title">Empfehlungen</div>
-      <div class="rw-card-foot">
-        <span class="rw-card-sub">Heutige Tipps für deine Erholung</span>
-        <span class="rw-card-arrow">→</span>
-      </div>
-    </a>
-    <a href="peak-tracker.html" class="rw-card">
-      <div class="rw-motif motif-spark">
-        <svg viewBox="0 0 120 60"><path d="M2 46 L20 40 L38 42 L56 28 L74 32 L92 14 L118 6" /></svg>
-      </div>
-      <div class="rw-card-num">·03</div>
-      <span class="rw-card-icon">⚡</span>
-      <div class="rw-card-spacer"></div>
-      <div class="rw-card-title">Peak Tracker</div>
-      <div class="rw-card-foot">
-        <span class="rw-card-sub">Wann du heute am leistungsfähigsten bist</span>
-        <span class="rw-card-arrow">→</span>
-      </div>
-    </a>
-    <a href="nutrition.html" class="rw-card">
-      <div class="rw-motif motif-orb"></div>
-      <div class="rw-card-num">·04</div>
-      <span class="rw-card-icon">🍎</span>
-      <div class="rw-card-spacer"></div>
-      <div class="rw-card-title">Ernährung</div>
-      <div class="rw-card-foot">
-        <span class="rw-card-sub">Kalorien &amp; Makronährstoffe</span>
-        <span class="rw-card-arrow">→</span>
-      </div>
-    </a>
+  <div class="rw-section-title">WHOOP-Gesundheitsdaten</div>
+  <div class="rw-card section-card">
+    <div class="stat-grid" id="statGrid"></div>
   </div>
 
   <div class="stack-hint" id="stackHint">Nahrungsergänzung verwalten? Auf der <a href="health.html">Daily-Stack-Seite</a>.</div>
@@ -175,14 +160,22 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     numEl.textContent = score != null ? score + '%' : '—';
     numEl.style.color = zoneColor(score);
   }
-  function fmtMins(ms) {
-    if (ms == null) return '—';
-    const m = Math.round(ms / 60000);
-    const h = Math.floor(m / 60);
-    return h + 'h ' + String(m % 60).padStart(2, '0') + 'm';
+  function statCard(label, val) {
+    return '<div class="stat-card"><div class="stat-label">' + label + '</div><div class="stat-val">' + val + '</div></div>';
   }
-  function statCard(label, val, sub) {
-    return '<div class="stat-card"><div class="stat-label">' + label + '</div><div class="stat-val">' + val + '</div><div class="stat-sub">' + (sub || '') + '</div></div>';
+
+  // ---------- Kaffee Tracker widget preview (same age-adjusted limit as caffeine.html) ----------
+  function renderCaffeineWidget() {
+    try {
+      const logs = JSON.parse(localStorage.getItem('caf:logs')) || [];
+      const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
+      const total = Math.round(logs.filter((l) => l.ts >= midnight.getTime()).reduce((s, l) => s + l.mg, 0));
+      const limit = 100;
+      document.getElementById('cafNum').innerHTML = total + ' <span style="font-size:13px;color:var(--text-3);font-weight:600">/ ' + limit + ' mg</span>';
+      const bar = document.getElementById('cafBar');
+      bar.style.width = Math.min(100, (total / limit) * 100) + '%';
+      bar.style.background = total >= limit ? 'var(--bad)' : total >= 75 ? 'var(--warn)' : 'var(--good)';
+    } catch (e) {}
   }
 
   async function boot() {
@@ -192,12 +185,14 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     const now = new Date();
     dLabel.textContent = days[now.getDay()] + ', ' + now.getDate() + '. ' + mons[now.getMonth()];
 
+    renderCaffeineWidget();
+
     const tokens = loadWhoopTokens();
     if (!tokens || !tokens.access) {
       document.getElementById('statGrid').innerHTML =
-        statCard('Schlafdauer', '—') + statCard('Schlafqualität', '—') + statCard('Recovery', '—') +
-        statCard('HRV', '—') + statCard('Ruhepuls', '—') + statCard('Ø-Herzfrequenz', '—') +
-        statCard('Max. HF', '—') + statCard('Atemfrequenz', '—') + statCard('Blutsauerstoff', '—');
+        statCard('Atemfrequenz', '—') + statCard('Ø-Herzfrequenz', '—') +
+        statCard('Ruhepuls', '—') + statCard('HRV', '—') +
+        statCard('Hauttemperatur', '—') + statCard('Blutsauerstoff', '—');
       renderRing(null);
       return;
     }
@@ -220,23 +215,14 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
         ? (score >= 67 ? 'Sehr gute Erholung — dein Körper ist bereit für Belastung.' : score >= 34 ? 'Durchschnittliche Erholung — geh es heute moderat an.' : 'Niedrige Erholung — priorisiere heute Regeneration.')
         : 'Noch keine Recovery-Daten von WHOOP verfügbar.';
 
-      let sleepDur = null, sleepPerf = null, respRate = null;
-      if (s && s.score) {
-        const ss = s.score.stage_summary || {};
-        sleepDur = (ss.total_in_bed_time_milli || 0) - (ss.total_awake_time_milli || 0);
-        sleepPerf = s.score.sleep_performance_percentage;
-        respRate = s.score.respiratory_rate;
-      }
+      const respRate = s && s.score ? s.score.respiratory_rate : null;
 
       document.getElementById('statGrid').innerHTML =
-        statCard('Schlafdauer', sleepDur != null ? fmtMins(sleepDur) : '—') +
-        statCard('Schlafqualität', sleepPerf != null ? Math.round(sleepPerf) + '%' : '—') +
-        statCard('Recovery', score != null ? score + '%' : '—') +
-        statCard('HRV', r && r.hrv_rmssd_milli != null ? Math.round(r.hrv_rmssd_milli) + ' ms' : '—') +
-        statCard('Ruhepuls', r && r.resting_heart_rate != null ? Math.round(r.resting_heart_rate) + ' bpm' : '—') +
-        statCard('Ø-Herzfrequenz', c && c.average_heart_rate != null ? Math.round(c.average_heart_rate) + ' bpm' : '—') +
-        statCard('Max. HF', c && c.max_heart_rate != null ? Math.round(c.max_heart_rate) + ' bpm' : '—') +
         statCard('Atemfrequenz', respRate != null ? respRate.toFixed(1) + '/min' : '—') +
+        statCard('Ø-Herzfrequenz', c && c.average_heart_rate != null ? Math.round(c.average_heart_rate) + ' bpm' : '—') +
+        statCard('Ruhepuls', r && r.resting_heart_rate != null ? Math.round(r.resting_heart_rate) + ' bpm' : '—') +
+        statCard('HRV', r && r.hrv_rmssd_milli != null ? Math.round(r.hrv_rmssd_milli) + ' ms' : '—') +
+        statCard('Hauttemperatur', r && r.skin_temp_celsius != null ? r.skin_temp_celsius.toFixed(1) + ' °C' : '—') +
         statCard('Blutsauerstoff', r && r.spo2_percentage != null ? r.spo2_percentage.toFixed(1) + '%' : '—');
     } catch (e) {
       renderRing(null);
