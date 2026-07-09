@@ -1,7 +1,8 @@
 /* =============================================================
-   Shared design system — monochrome-green "Rowan" reference style.
-   Linked from every page's <head>. Purely visual: tokens, card
-   component, and a small motif library. No page logic lives here.
+   Shared design system — carbon-black + forest-green glassmorphism,
+   modeled after the user's "Caffeine" reference page. Linked from
+   every page's <head>. Purely visual: tokens, card component, and a
+   small motif library. No page logic lives here.
    ============================================================= */
 
 :root {
@@ -28,17 +29,21 @@
   --font-serif: Georgia, 'Times New Roman', serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
-  --radius: 22px;
-  --shadow-card: 0 12px 38px rgba(0, 0, 0, 0.45);
+  --radius: 20px;
+  --shadow-card: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --glass-bg: rgba(255, 255, 255, 0.04);
+  --glass-border: rgba(255, 255, 255, 0.07);
 }
 
 /* ---------- base ---------- */
 .rw-title {
-  font-family: var(--font-serif);
-  font-style: italic;
   font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--text-1);
+  letter-spacing: -0.025em;
+  background: linear-gradient(180deg, #FFFFFF 0%, #C7C4BC 120%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 .rw-eyebrow {
   font-family: var(--font-mono);
@@ -48,6 +53,21 @@
   text-transform: uppercase;
   letter-spacing: 0.09em;
 }
+/* Uppercase tracked label with a trailing gradient rule — used to
+   open a section on the new glassmorphism dashboard pages. */
+.rw-section-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+.rw-section-title::before { content: ''; width: 18px; height: 1px; background: var(--text-3); opacity: 0.6; }
+.rw-section-title::after { content: ''; flex: 1; height: 1px; background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent); }
 
 /* ---------- card ---------- */
 .rw-card {
@@ -55,9 +75,11 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
   box-shadow: var(--shadow-card);
   padding: 20px;
   text-decoration: none;
@@ -90,10 +112,9 @@ a.rw-card:hover, a.rw-card:focus-visible {
 }
 .rw-card-spacer { flex: 1; min-height: 28px; }
 .rw-card-title {
-  font-family: var(--font-serif);
-  font-style: italic;
   font-weight: 700;
-  font-size: 20px;
+  letter-spacing: -0.01em;
+  font-size: 19px;
   color: var(--text-1);
   z-index: 2;
   margin-bottom: 4px;
@@ -121,10 +142,12 @@ a.rw-card:hover .rw-card-arrow { transform: translateX(4px); }
 
 /* ---------- generic stat / info cards (non-link) ---------- */
 .rw-stat {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 18px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
   padding: 14px 14px;
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
 }
 .rw-stat-label {
   font-family: var(--font-mono);
