@@ -22,22 +22,13 @@
 :root { --good: var(--accent); }
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; background: var(--bg); }
-body {
-  color: var(--text-1); font-family: var(--font);
-  -webkit-font-smoothing: antialiased; min-height: 100vh;
-  padding: max(24px, env(safe-area-inset-top)) 18px 40px;
-}
+body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: antialiased; min-height: 100vh; padding: max(24px, env(safe-area-inset-top)) 18px 40px; }
 .wrap { max-width: 640px; margin: 0 auto; }
 .hd { margin-bottom: 22px; }
-.hd h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.hd h1 { margin: 0; font-size: 26px; }
 .hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
 
-/* ---- score ring ---- */
-.score-card {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 26px;
-  padding: 28px 20px 24px; display: flex; flex-direction: column; align-items: center;
-  box-shadow: 0 10px 34px rgba(0,0,0,0.4); margin-bottom: 16px;
-}
+.score-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 26px; backdrop-filter: blur(24px) saturate(1.2); -webkit-backdrop-filter: blur(24px) saturate(1.2); padding: 28px 20px 24px; display: flex; flex-direction: column; align-items: center; box-shadow: var(--shadow-card); margin-bottom: 16px; }
 .score-ring-wrap { position: relative; width: 190px; height: 190px; margin-bottom: 6px; }
 .score-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
 .score-ring-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 12; }
@@ -47,23 +38,27 @@ body {
 .score-label { font-size: 12px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
 .score-note { font-size: 13px; color: var(--text-2); text-align: center; max-width: 320px; margin-top: 8px; }
 
-/* ---- today stat cards ---- */
-.stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-.stat-card {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px;
-  padding: 14px 12px; text-align: left; width: 100%; font-family: inherit; color: inherit; cursor: default;
-}
-button.stat-card { cursor: pointer; }
-button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
+.tile-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.tile-icon { font-size: 22px; margin-bottom: 10px; }
+
+.section-card { margin-bottom: 16px; }
+.act-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+.act-add-btn { border: 1px solid var(--glass-border); background: var(--bg-card-2); color: var(--text-1); width: 30px; height: 30px; border-radius: 9px; font-size: 16px; cursor: pointer; -webkit-tap-highlight-color: transparent; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+.act-item { padding: 11px 0; }
+.act-item + .act-item { border-top: 1px solid var(--glass-border); }
+.act-row { display: flex; align-items: center; gap: 12px; }
+.act-icon { width: 32px; height: 32px; border-radius: 10px; background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.act-name { font-size: 13px; font-weight: 600; color: var(--text-1); flex: 1; min-width: 0; }
+.act-meta { font-size: 11.5px; color: var(--text-3); font-family: var(--font-mono); flex-shrink: 0; }
+.act-analysis { font-size: 12px; color: var(--text-3); margin-top: 5px; margin-left: 44px; line-height: 1.4; }
+.act-empty { text-align: center; font-size: 12.5px; font-style: italic; color: var(--text-3); padding: 10px 0; }
+
+.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.stat-card { background: var(--bg-card-2); border-radius: 14px; padding: 12px; text-align: left; }
 .stat-label { font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
-.stat-val { font-size: 19px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
-.stat-sub { font-size: 11px; color: var(--text-4); margin-top: 2px; }
-@media (max-width: 420px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+.stat-val { font-size: 18px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
 
-/* ---- three big tiles ---- */
-.tile-stack { display: flex; flex-direction: column; gap: 12px; }
-
-.whoop-hint { margin-top: 18px; font-size: 12.5px; color: var(--text-3); text-align: center; }
+.whoop-hint { margin-top: 4px; font-size: 12.5px; color: var(--text-3); text-align: center; }
 .whoop-hint a { color: var(--text-2); }
 </style>
 </head>
@@ -82,61 +77,37 @@ button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
       </svg>
       <div class="score-ring-center">
         <div class="score-num" id="scoreNum">—</div>
-        <div class="score-label">Fitness Score</div>
+        <div class="score-label">Fitness-Tagesscore</div>
       </div>
     </div>
     <div class="score-note" id="scoreNote">Verbinde WHOOP oder trag deine Schritte ein, um deinen Score zu berechnen.</div>
   </div>
 
-  <div class="stat-grid" id="statGrid"></div>
-
-  <div class="tile-stack">
-    <a href="activities.html" class="rw-card">
-      <div class="rw-motif motif-bars"><span></span><span></span><span></span><span></span></div>
-      <div class="rw-card-num">·01</div>
-      <span class="rw-card-icon">🏃</span>
-      <div class="rw-card-spacer"></div>
-      <div class="rw-card-title">Aktivitäten</div>
-      <div class="rw-card-foot">
-        <span class="rw-card-sub">Heutige Einheiten &amp; Herzfrequenzzonen</span>
-        <span class="rw-card-arrow">→</span>
-      </div>
-    </a>
-    <a href="start-activity.html" class="rw-card">
-      <div class="rw-motif motif-spark">
-        <svg viewBox="0 0 120 60"><path d="M2 46 L20 40 L38 42 L56 28 L74 32 L92 14 L118 6" /></svg>
-      </div>
-      <div class="rw-card-num">·02</div>
-      <span class="rw-card-icon">▶️</span>
-      <div class="rw-card-spacer"></div>
-      <div class="rw-card-title">Aktivität starten</div>
-      <div class="rw-card-foot">
-        <span class="rw-card-sub">Gym, Tennis, Laufen, Fahrrad &amp; mehr</span>
-        <span class="rw-card-arrow">→</span>
-      </div>
+  <div class="tile-row">
+    <a href="fitness-recommendations.html" class="rw-card">
+      <div class="tile-icon">💡</div>
+      <div class="rw-card-title">Tipps</div>
+      <div class="rw-card-sub">Zum Tagesscore</div>
     </a>
     <a href="progress.html" class="rw-card">
-      <div class="rw-motif motif-dots" style="--dot-x:64%;--dot-y:44%"></div>
-      <div class="rw-card-num">·03</div>
-      <span class="rw-card-icon">📈</span>
-      <div class="rw-card-spacer"></div>
-      <div class="rw-card-title">Gewicht &amp; Progress</div>
-      <div class="rw-card-foot">
-        <span class="rw-card-sub">Körperdaten &amp; Fortschrittsfotos</span>
-        <span class="rw-card-arrow">→</span>
-      </div>
+      <div class="tile-icon">📈</div>
+      <div class="rw-card-title">Gewicht</div>
+      <div class="rw-card-sub">&amp; Progress</div>
     </a>
-    <a href="fitness-recommendations.html" class="rw-card">
-      <div class="rw-motif motif-radar"></div>
-      <div class="rw-card-num">·04</div>
-      <span class="rw-card-icon">💡</span>
-      <div class="rw-card-spacer"></div>
-      <div class="rw-card-title">Empfehlungen</div>
-      <div class="rw-card-foot">
-        <span class="rw-card-sub">Was dir heute für deinen Score fehlt</span>
-        <span class="rw-card-arrow">→</span>
-      </div>
-    </a>
+  </div>
+
+  <div class="rw-section-title">Aktivitäten mit Analysen</div>
+  <div class="rw-card section-card">
+    <div class="act-head">
+      <span class="rw-eyebrow">Heute</span>
+      <a href="start-activity.html" class="act-add-btn" aria-label="Aktivität starten">+</a>
+    </div>
+    <div id="actAnalysisList"></div>
+  </div>
+
+  <div class="rw-section-title">WHOOP-Fitnessdaten</div>
+  <div class="rw-card section-card">
+    <div class="stat-grid" id="statGrid"></div>
   </div>
 
   <div class="whoop-hint" id="whoopHint"></div>
@@ -146,9 +117,6 @@ button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
 (function () {
   'use strict';
 
-  // ============================================================
-  // WHOOP (optional — same connection as health.html)
-  // ============================================================
   const WHOOP_KEY = 'whoop_tokens_v1';
   function loadWhoopTokens() { try { return JSON.parse(localStorage.getItem(WHOOP_KEY)); } catch (e) { return null; } }
   function saveWhoopTokens(t) { try { localStorage.setItem(WHOOP_KEY, JSON.stringify(t)); } catch (e) {} }
@@ -174,88 +142,63 @@ button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
     return await r.json();
   }
 
-  // ============================================================
-  // Local data
-  // ============================================================
   const STEPS_KEY = 'fitness_steps_today_v1';
   const ACTIVITIES_KEY = 'fitness_activities_v1';
   const VO2MAX_KEY = 'fitness_vo2max_v1';
 
-  // VO2max has no WHOOP field at all (checked the API) — this is only
-  // ever populated by api/fitness-sync.js from an Apple Health Shortcut,
-  // never manual entry, since it's not something to guess at.
   function loadVo2max() {
-    try {
-      const v = JSON.parse(localStorage.getItem(VO2MAX_KEY));
-      if (v && v.value != null) return v;
-    } catch (e) {}
+    try { const v = JSON.parse(localStorage.getItem(VO2MAX_KEY)); if (v && v.value != null) return v; } catch (e) {}
     return null;
   }
-
   function todayKey() {
     const d = new Date();
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
-  function loadTodaySteps() {
-    try {
-      const v = JSON.parse(localStorage.getItem(STEPS_KEY));
-      if (v && v.date === todayKey()) return v.steps;
-    } catch (e) {}
-    return null;
-  }
-  function loadActivities() {
-    try {
-      const arr = JSON.parse(localStorage.getItem(ACTIVITIES_KEY));
-      return Array.isArray(arr) ? arr : [];
-    } catch (e) { return []; }
-  }
-  function todaysActivities() {
-    const key = todayKey();
-    return loadActivities().filter((a) => (a.startTime || '').slice(0, 10) === key);
-  }
+  function loadTodaySteps() { try { const v = JSON.parse(localStorage.getItem(STEPS_KEY)); if (v && v.date === todayKey()) return v.steps; } catch (e) {} return null; }
+  function loadActivities() { try { const arr = JSON.parse(localStorage.getItem(ACTIVITIES_KEY)); return Array.isArray(arr) ? arr : []; } catch (e) { return []; } }
+  function todaysActivities() { const key = todayKey(); return loadActivities().filter((a) => (a.startTime || '').slice(0, 10) === key); }
   function fmtMin(mins) {
     if (!mins) return '0min';
     const h = Math.floor(mins / 60), m = Math.round(mins % 60);
     return h > 0 ? h + 'h ' + m + 'min' : m + 'min';
   }
+  const ACT_ICONS = { tennis: '🎾', gym: '🏋️', laufen: '🏃', fahrrad: '🚴', spaziergang: '🚶', stretching: '🧘', hiit: '🔥', seilspringen: '🪢' };
 
-  // ============================================================
-  // Fitness Score — weighted composite, renormalized over whatever
-  // data is actually available today (steps, WHOOP calories/strain,
-  // recovery, zone-weighted HR minutes, logged activity). Mirrors the
-  // "redistribute weight when a component is missing" approach used
-  // in daily.html's Energy Score.
-  //
-  // Deliberately hard to max out: 100% requires a genuinely perfect
-  // training day (strain ~20-21, ~3000 total kcal, ~90+ min activity,
-  // real time in zones 4-5, good recovery) — not just "did something
-  // today". Calories/activity/hrZone targets and the zone-weighting
-  // were raised specifically because the old flat targets (600 kcal,
-  // 45 min, any 30 min across zones 1-5) let the score max out on an
-  // ordinary day.
-  // ============================================================
+  // ---------------------------------------------------------------
+  // Age-aware: birthdate is fixed/known (not a form field), used only
+  // to scale the calorie target down for a growing teenager instead of
+  // demanding an adult athlete's ~3000 kcal/day for a "perfect" score.
+  // WHOOP's own strain/HR-zone scale is already relative to the user's
+  // own max-HR estimate, so those targets are left as-is — only total
+  // daily energy expenditure meaningfully differs by age at this scale.
+  // ---------------------------------------------------------------
+  const BIRTHDATE = '2012-07-05';
+  function currentAge() {
+    const today = new Date(), bd = new Date(BIRTHDATE);
+    let age = today.getFullYear() - bd.getFullYear();
+    const m = today.getMonth() - bd.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < bd.getDate())) age--;
+    return age;
+  }
+  const AGE = currentAge();
+  const AGE_CAL_SCALE = Math.min(1, Math.max(0.8, 0.8 + (AGE - 14) * 0.05));
+
   const WEIGHTS = { steps: 0.12, calories: 0.18, strain: 0.22, activity: 0.14, hrZone: 0.20, recovery: 0.14 };
-  const TARGETS = { steps: 10000, calories: 3000, strain: 21, activityMin: 90, hrZoneWeighted: 60 };
+  const TARGETS = { steps: 10000, calories: Math.round(3000 * AGE_CAL_SCALE), strain: 21, activityMin: 90, hrZoneWeighted: 60 };
 
   function computeScore(inputs) {
     let weightedSum = 0, weightTotal = 0;
     for (const key of Object.keys(inputs)) {
-      const v = inputs[key];
-      if (v == null) continue;
-      weightedSum += Math.min(v, 1) * WEIGHTS[key];
-      weightTotal += WEIGHTS[key];
+      const v = inputs[key]; if (v == null) continue;
+      weightedSum += Math.min(v, 1) * WEIGHTS[key]; weightTotal += WEIGHTS[key];
     }
     if (weightTotal === 0) return null;
     return Math.round((weightedSum / weightTotal) * 100);
   }
-
   function zoneColor(score) {
     if (score == null) return 'rgba(255,255,255,0.5)';
-    if (score >= 67) return 'var(--good)';
-    if (score >= 34) return 'var(--warn)';
-    return 'var(--bad)';
+    if (score >= 67) return 'var(--good)'; if (score >= 34) return 'var(--warn)'; return 'var(--bad)';
   }
-
   function renderRing(score) {
     const fill = document.getElementById('scoreRingFill');
     const C = 2 * Math.PI * 82;
@@ -263,13 +206,28 @@ button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
     fill.style.strokeDashoffset = score != null ? C * (1 - score / 100) : C;
     document.getElementById('scoreNum').textContent = score != null ? score + '%' : '—';
   }
+  function statCard(label, val) { return '<div class="stat-card"><div class="stat-label">' + label + '</div><div class="stat-val">' + val + '</div></div>'; }
 
-  function statCard(label, val, sub, id) {
-    const tag = id ? 'button type="button" id="' + id + '"' : 'div';
-    const closeTag = id ? 'button' : 'div';
-    return '<' + tag + ' class="stat-card">' +
-      '<div class="stat-label">' + label + '</div><div class="stat-val">' + val + '</div><div class="stat-sub">' + (sub || '') + '</div>' +
-    '</' + closeTag + '>';
+  // One computed sentence per activity on its contribution to the score —
+  // same spirit as the point-delta engine in fitness-recommendations.html,
+  // simplified to a single qualitative note per entry.
+  function analysisFor(a) {
+    const z = a.zoneMin || {};
+    const highZone = (z[4] || 0) + (z[5] || 0);
+    if (a.source === 'whoop' && highZone >= 15) return 'Viel Zeit in Zone 4-5 — starker Beitrag zu deinem Score.';
+    if (a.source === 'whoop' && (a.durationMin || 0) >= 45) return 'Lange Einheit — guter Beitrag zur Aktivitäts-Zielzeit.';
+    if (a.type === 'tennis') return 'Tennis zählt direkt auf dein Techniktraining-Ziel im Tagesscore ein.';
+    return 'Trägt zu deiner heutigen Aktivitätszeit bei.';
+  }
+  function renderActivitiesAnalysis(activities) {
+    const el = document.getElementById('actAnalysisList');
+    if (!activities.length) { el.innerHTML = '<div class="act-empty">Noch keine Aktivität heute — tippe + zum Starten.</div>'; return; }
+    el.innerHTML = activities.map((a) => {
+      const icon = ACT_ICONS[a.type] || '💪';
+      const label = a.label || (a.type ? a.type.charAt(0).toUpperCase() + a.type.slice(1) : 'Aktivität');
+      return '<div class="act-item"><div class="act-row"><div class="act-icon">' + icon + '</div><div class="act-name">' + label + '</div><div class="act-meta">' + fmtMin(a.durationMin) + '</div></div>'
+        + '<div class="act-analysis">' + analysisFor(a) + '</div></div>';
+    }).join('');
   }
 
   function editStepsToday() {
@@ -293,8 +251,9 @@ button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
     const activities = todaysActivities();
     const activityMin = activities.reduce((s, a) => s + (a.durationMin || 0), 0);
     const vo2max = loadVo2max();
+    renderActivitiesAnalysis(activities);
 
-    let calories = null, strain = null, recovery = null, hrZoneMinTotal = null, hrZoneWeighted = null;
+    let calories = null, strain = null, recovery = null, hrZoneMinTotal = null, hrZoneWeighted = null, hrZoneLow = null, hrZoneHigh = null;
     const tokens = loadWhoopTokens();
     if (tokens && tokens.access) {
       document.getElementById('whoopHint').innerHTML = '';
@@ -306,28 +265,23 @@ button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
           whoopFetch('/recovery?limit=1', t).catch(() => null),
         ]);
         const c = cycle && cycle.records && cycle.records[0] && cycle.records[0].score;
-        if (c) {
-          strain = c.strain;
-          if (c.kilojoule != null) calories = c.kilojoule * 0.239006;
-        }
+        if (c) { strain = c.strain; if (c.kilojoule != null) calories = c.kilojoule * 0.239006; }
         const r = rec && rec.records && rec.records[0] && rec.records[0].score;
         if (r && r.recovery_score != null) recovery = r.recovery_score;
       } catch (e) { /* offline / expired — score just falls back to local data */ }
     } else {
-      document.getElementById('whoopHint').innerHTML = 'WHOOP auf der <a href="health.html">Gesundheit-Seite</a> verbinden für Kalorien, Strain, Erholung &amp; Herzfrequenzzonen.';
+      document.getElementById('whoopHint').innerHTML = 'WHOOP auf der <a href="wellness.html">Gesundheit-Seite</a> verbinden für Kalorien, Strain, Erholung &amp; Herzfrequenzzonen.';
     }
 
-    // Zone-weighted HR score: zone 3/4/5 minutes count 1x/2x/3x, so real
-    // 100% requires genuine time in the *high* zones, not just any
-    // elevated heart rate. hrZoneMinTotal (unweighted, all zones) is kept
-    // separately purely for the human-readable stat card.
     const whoopActivitiesToday = activities.filter((a) => a.source === 'whoop' && a.zoneMin);
     if (whoopActivitiesToday.length) {
-      hrZoneMinTotal = 0; hrZoneWeighted = 0;
+      hrZoneMinTotal = 0; hrZoneWeighted = 0; hrZoneLow = 0; hrZoneHigh = 0;
       whoopActivitiesToday.forEach((a) => {
         const z = a.zoneMin || {};
         hrZoneMinTotal += (z[1] || 0) + (z[2] || 0) + (z[3] || 0) + (z[4] || 0) + (z[5] || 0);
         hrZoneWeighted += (z[3] || 0) * 1 + (z[4] || 0) * 2 + (z[5] || 0) * 3;
+        hrZoneLow += (z[1] || 0) + (z[2] || 0) + (z[3] || 0);
+        hrZoneHigh += (z[4] || 0) + (z[5] || 0);
       });
     }
 
@@ -349,14 +303,13 @@ button.stat-card:hover { border-color: rgba(255,255,255,0.18); }
     }
 
     document.getElementById('statGrid').innerHTML =
-      statCard('Schritte', steps != null ? steps.toLocaleString('de-DE') : '—', steps != null ? Math.round(steps / TARGETS.steps * 100) + '% Ziel · antippen' : 'antippen zum Erfassen', 'stepsCard') +
-      statCard('Kalorien', calories != null ? Math.round(calories) : '—', 'gesamt, kcal') +
-      statCard('Strain', strain != null ? strain.toFixed(1) : '—', 'WHOOP') +
-      statCard('Erholung', recovery != null ? Math.round(recovery) + '%' : '—', 'WHOOP') +
-      statCard('Aktivität', fmtMin(activityMin), activities.length + ' heute') +
-      statCard('HF-Zonen', hrZoneMinTotal != null ? fmtMin(hrZoneMinTotal) : '—', 'Zone 1–5') +
-      statCard('VO₂max', vo2max ? vo2max.value.toFixed(1) : '—', vo2max ? 'Apple Health · ' + vo2max.date : 'noch nicht verfügbar');
-    document.getElementById('stepsCard').addEventListener('click', editStepsToday);
+      statCard('Strain', strain != null ? strain.toFixed(1) : '—') +
+      statCard('Schritte', steps != null ? steps.toLocaleString('de-DE') : '—') +
+      statCard('HF-Zonen 1–3', hrZoneLow != null ? fmtMin(hrZoneLow) : '—') +
+      statCard('HF-Zonen 4–5', hrZoneHigh != null ? fmtMin(hrZoneHigh) : '—') +
+      statCard('Kalorien', calories != null ? Math.round(calories) + ' kcal' : '—') +
+      statCard('Trainingsdauer', fmtMin(activityMin)) +
+      statCard('VO₂max', vo2max ? vo2max.value.toFixed(1) : '—');
   }
 
   boot();
