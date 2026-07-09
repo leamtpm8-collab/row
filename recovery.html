@@ -30,8 +30,12 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .hd h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
 .hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
 
-.trend-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 16px 18px; margin-bottom: 16px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
-.trend-h { font-family: var(--font-serif); font-style: italic; font-size: 16px; font-weight: 700; color: var(--text-1); margin-bottom: 10px; }
+.trend-card {
+  background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 20px;
+  padding: 16px 18px; margin-bottom: 16px; box-shadow: 0 8px 26px rgba(0,0,0,0.3);
+  backdrop-filter: blur(24px) saturate(1.2); -webkit-backdrop-filter: blur(24px) saturate(1.2);
+}
+.trend-h { font-size: 16px; font-weight: 700; color: var(--text-1); margin-bottom: 10px; }
 .trend-line { display: flex; align-items: center; gap: 8px; font-size: 13px; padding: 5px 0; }
 .trend-line .arrow { font-size: 14px; }
 .trend-line.up { color: var(--good); } .trend-line.down { color: var(--bad); } .trend-line.flat { color: var(--text-3); }
@@ -39,7 +43,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 
 .group-h { font-size: 13px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-mono); margin: 20px 0 10px; }
 .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-.stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px; padding: 14px 14px; }
+.stat-card { background: var(--bg-card-2); border-radius: 18px; padding: 14px 14px; }
 .stat-label { font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
 .stat-val { font-size: 19px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
 .connect-note { text-align: center; color: var(--text-3); font-size: 13px; padding: 40px 0; }

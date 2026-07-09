@@ -91,13 +91,13 @@ body::after {
 @media (max-width: 720px) { .daily-grid { grid-template-columns: 1fr; } }
 
 .daily-card {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: 18px;
   padding: 20px 20px 18px;
   backdrop-filter: blur(24px) saturate(1.2);
   -webkit-backdrop-filter: blur(24px) saturate(1.2);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  box-shadow: var(--shadow-card);
 }
 .daily-card-title {
   font-size: 10.5px;
@@ -132,7 +132,7 @@ body::after {
 .wx-hero { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
 .wx-hero-emoji { font-size: 46px; line-height: 1; }
 .wx-hero-temp { font-size: 40px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; }
-.wx-hero-desc { font-family: var(--font-serif); font-style: italic; font-size: 14px; font-weight: 700; color: var(--text-secondary); margin-top: 4px; }
+.wx-hero-desc { font-size: 14px; font-weight: 700; color: var(--text-secondary); margin-top: 4px; }
 .wx-uv {
   margin-left: auto; text-align: right; flex-shrink: 0;
 }
@@ -158,7 +158,7 @@ body::after {
 }
 .fit-score-row { display: flex; align-items: center; gap: 16px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.06); }
 .fit-score-num { font-size: 36px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; }
-.fit-score-label { font-family: var(--font-serif); font-style: italic; font-size: 14px; font-weight: 700; margin-top: 2px; }
+.fit-score-label { font-size: 14px; font-weight: 700; margin-top: 2px; }
 .fit-score-note { font-size: 11.5px; color: var(--text-tertiary); margin-left: auto; max-width: 180px; text-align: right; }
 .fit-connect-note { font-size: 12px; color: var(--text-tertiary); font-style: italic; }
 .fit-connect-note a { color: var(--info); }

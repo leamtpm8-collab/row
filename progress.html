@@ -31,6 +31,16 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; padding: 20px; margin-bottom: 14px; box-shadow: 0 8px 26px rgba(0,0,0,0.3); }
 .card-h { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
 
+/* Hero card — weight chart. Glassmorphism per the Caffeine reference; other
+   cards (body stats, photos) stay solid-fill, matching wellness.html's pattern
+   of only the single most prominent card getting the glass treatment. */
+#chartCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+}
+
 /* ---- body stats ---- */
 .body-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .body-field label { display: block; font-size: 11px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }

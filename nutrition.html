@@ -34,7 +34,11 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .overview-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 12px; margin-bottom: 14px; align-items: stretch; }
 @media (max-width: 560px) { .overview-grid { grid-template-columns: 1fr; } }
 
-.kcal-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; padding: 20px; box-shadow: 0 10px 34px rgba(0,0,0,0.4); }
+.kcal-card {
+  background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 22px; padding: 20px;
+  backdrop-filter: blur(24px) saturate(1.2); -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  box-shadow: 0 10px 34px rgba(0,0,0,0.4);
+}
 .kcal-label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
 .kcal-num { font-size: 42px; font-weight: 800; letter-spacing: -0.02em; margin-top: 8px; font-variant-numeric: tabular-nums; }
 .kcal-num .unit { font-size: 14px; color: var(--text-3); font-weight: 600; margin-left: 6px; }
@@ -42,7 +46,12 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .kcal-bar-fill { height: 100%; background: var(--good); border-radius: 5px; transition: width 0.5s ease, background 0.3s ease; }
 .kcal-foot { display: flex; justify-content: space-between; margin-top: 8px; font-size: 12px; color: var(--text-3); }
 
-.donut-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px; padding: 16px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 34px rgba(0,0,0,0.4); }
+.donut-card {
+  background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 22px; padding: 16px;
+  display: flex; flex-direction: column; align-items: center;
+  backdrop-filter: blur(24px) saturate(1.2); -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  box-shadow: 0 10px 34px rgba(0,0,0,0.4);
+}
 .donut-stage { position: relative; width: 108px; height: 108px; margin: 4px 0 8px; }
 .donut-svg { width: 108px; height: 108px; transform: rotate(-90deg); }
 .donut-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
