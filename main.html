@@ -59,690 +59,145 @@ body::after {
   100% { transform: translate3d(-22px, 14px, 0); }
 }
 
-.page {
-  max-width: 1100px;
-  margin: 0 auto;
-}
+.page { max-width: 640px; margin: 0 auto; }
 
-/* ===== Component 1: page title ===== */
-.dash-title { margin: 0 0 14px; font-size: 28px; }
-@media (max-width: 480px) { .dash-title { font-size: 22px; } }
-
-/* ===== Component 2: Goal Ticker ===== */
-.ticker-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 4px;
-  margin-bottom: 18px;
+/* ===== Header ===== */
+.dash-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+.dash-avatar {
+  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(160deg, var(--accent), #3a8f6f);
+  border: none; color: #04120c; font-weight: 800; font-size: 15px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
-.goal-ticker {
-  position: relative; overflow: hidden;
+.dash-today {
   display: flex; align-items: center; gap: 10px;
-  padding: 7px 12px;
-  border-radius: 12px;
-  background:
-    linear-gradient(180deg, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.30) 100%),
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0, rgba(255,255,255,0.025) 1px, transparent 1px, transparent 3px);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  letter-spacing: 0.16em; color: var(--text-2); text-transform: uppercase;
 }
-.goal-ticker::after {
-  content: '';
-  position: absolute; top: 0; bottom: 0;
-  width: 30%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
-  pointer-events: none;
-  animation: ticker-sweep 8s linear infinite;
-}
-@keyframes ticker-sweep {
-  0%   { left: -40%; }
-  100% { left: 110%; }
-}
-.goal-ticker-led { display: inline-flex; align-items: center; }
-.goal-ticker-led-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: #6BE3A4;
-  box-shadow: 0 0 8px rgba(107,227,164,0.7);
-  animation: led-pulse 1.6s ease-in-out infinite;
-}
-@keyframes led-pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50%      { opacity: 0.45; transform: scale(0.85); }
-}
-.goal-ticker-label {
-  font-family: var(--font-mono);
-  font-size: 9.5px; font-weight: 800;
-  letter-spacing: 0.18em;
-  color: var(--text-3);
-}
-.goal-ticker-stage {
-  position: relative; overflow: hidden;
-  flex: 1; height: 22px;
-}
-.goal-ticker-row {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; gap: 8px;
-  font-family: var(--font-mono);
-  font-size: 12.5px; font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-1);
-  white-space: nowrap;
-  opacity: 1;
-  transition: opacity 0.22s ease;
-}
-.goal-ticker-row.is-fading { opacity: 0; }
-.goal-ticker-status {
-  display: inline-flex; justify-content: center;
-  width: 18px;
-  color: var(--text-3);
-}
-.goal-ticker-status[data-status="done"]    { color: var(--accent); }
-.goal-ticker-status[data-status="pending"] { color: var(--text-3); }
-.goal-ticker-text {
-  flex: 1;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.goal-ticker-meta {
-  font-family: var(--font-mono);
-  font-size: 11px; font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
-  color: var(--text-2);
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.04);
-}
-@media (max-width: 480px) {
-  .goal-ticker { padding: 9px 12px; }
-  .goal-ticker-label { font-size: 9px; letter-spacing: 0.14em; }
-  .goal-ticker-row { font-size: 12px; }
-  .goal-ticker-meta { font-size: 10px; padding: 2px 7px; }
-}
+.dash-day-nav { background: none; border: none; color: var(--text-3); font-size: 16px; cursor: pointer; padding: 2px 6px; -webkit-tap-highlight-color: transparent; }
+.whoop-indicator { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--text-3); flex-shrink: 0; }
+.whoop-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-4); }
+.whoop-dot.on { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
 
-/* ===== Component 3: Day Ring ===== */
-.day-ring-wrap {
-  display: flex; flex-wrap: wrap;
-  align-items: center; justify-content: center;
-  gap: 26px;
-  padding: 22px;
-  margin-bottom: 22px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(24px) saturate(1.2);
-  -webkit-backdrop-filter: blur(24px) saturate(1.2);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
-}
-.day-ring {
-  position: relative;
-  width: 168px; height: 168px;
-  flex-shrink: 0;
-}
-.day-ring svg { width: 100%; height: 100%; display: block; }
-.day-ring-track { fill: none; stroke: rgba(255,255,255,0.06); stroke-width: 8; }
-.day-ring-fill {
-  fill: none;
-  stroke-width: 8;
-  stroke-linecap: round;
-  transform: rotate(-90deg);
-  transform-origin: 60px 60px;
-  transition: stroke 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-              stroke-dashoffset 0.7s cubic-bezier(0.22, 1, 0.36, 1);
-}
-.day-ring-overlay {
-  position: absolute; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
-  pointer-events: none;
-}
-.day-ring-percent {
-  font-size: 40px; font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.04em;
-  color: var(--text-1);
-  line-height: 1;
-}
-.day-ring-phase {
-  margin-top: 5px;
-  font-family: var(--font-mono);
-  font-size: 9.5px; font-weight: 800;
-  letter-spacing: 0.16em; text-transform: uppercase;
-  color: var(--text-3);
-}
-.day-ring-clock {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  color: var(--text-3);
-  margin-top: 2px;
-}
-.day-ring-text {
-  display: flex; flex-direction: column;
-  gap: 6px;
-  max-width: 280px;
-}
-.day-ring-status { font-size: 14px; font-weight: 700; color: var(--text-1); }
-.day-ring-remaining { font-family: var(--font-mono); font-size: 12px; color: var(--text-2); }
-.day-ring-hours { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
-@media (max-width: 480px) {
-  .day-ring { width: 144px; height: 144px; }
-  .day-ring-percent { font-size: 32px; }
-  .day-ring-status { font-size: 13px; }
-}
+/* ===== Three score circles ===== */
+.circle-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+.circle-card { display: flex; flex-direction: column; align-items: center; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+.circle-ring-wrap { position: relative; width: 84px; height: 84px; }
+.circle-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+.circle-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 7; }
+.circle-fill { fill: none; stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 0.8s cubic-bezier(0.22,1,0.36,1); }
+.circle-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 800; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.circle-label { margin-top: 8px; font-size: 10.5px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
 
-/* ===== Component 4: section + To Do List ===== */
-.section { margin-top: 8px; }
-.section-title {
-  font-size: 10.5px; font-weight: 700;
-  letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--text-3);
-  display: flex; align-items: center; gap: 12px;
-  margin-bottom: 12px;
-}
-.section-title::before {
-  content: ''; width: 18px; height: 1px;
-  background: var(--text-3); opacity: 0.6;
-}
-.section-title::after {
-  content: ''; flex: 1; height: 1px;
-  background: linear-gradient(90deg, rgba(255,255,255,0.08), transparent);
-}
+/* ===== Recommendation cards ===== */
+.rec-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+@media (max-width: 520px) { .rec-row { grid-template-columns: 1fr; } }
+.rec-card-icon { font-size: 17px; margin-bottom: 8px; }
+.rec-card-title { font-size: 11.5px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+.rec-card-text { font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
 
-.gm-card {
-  position: relative;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 14px;
-  backdrop-filter: blur(24px) saturate(1.2);
-  -webkit-backdrop-filter: blur(24px) saturate(1.2);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
-  transition: background 0.4s;
-  overflow: hidden;
-}
-.gm-card.gm-all-done::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: radial-gradient(circle at 50% 0%, rgba(107,227,164,0.10), transparent 60%);
-  pointer-events: none;
-}
-.gm-card.gm-all-done .gm-progress-num,
-.gm-card.gm-all-done .gm-progress-label { color: var(--accent); }
+/* ===== Peak Tracker widget ===== */
+.peak-widget-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
+.peak-widget-num { font-size: 24px; font-weight: 800; color: var(--text-1); line-height: 1; }
+.peak-widget-svg { width: 100%; height: 74px; display: block; margin-top: 4px; }
 
-.gm-header {
-  display: flex; align-items: flex-start; justify-content: space-between;
-  flex-wrap: wrap; gap: 12px;
-  margin-bottom: 14px;
-  position: relative;
-}
-.gm-header-left { display: flex; flex-direction: column; }
-.gm-eyebrow {
-  font-size: 10.5px; font-weight: 700;
-  letter-spacing: 0.18em; text-transform: uppercase;
-  color: var(--text-3);
-  margin-bottom: 6px;
-}
-.gm-progress-row { display: flex; align-items: baseline; gap: 6px; }
-.gm-progress-num {
-  font-size: 42px; font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.045em;
-  color: var(--text-1);
-  line-height: 1;
-}
-.gm-progress-total {
-  font-family: var(--font-mono);
-  font-size: 18px;
-  color: var(--text-3);
-}
-.gm-progress-label {
-  font-size: 11px; font-weight: 600;
-  letter-spacing: 0.10em; text-transform: uppercase;
-  color: var(--text-3);
-  margin-left: 4px;
-}
-.gm-tomorrow-sub { font-size: 12px; color: var(--text-3); margin-top: 4px; }
-.gm-tomorrow-count {
-  font-family: var(--font-mono);
-  font-size: 11px; font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em; text-transform: uppercase;
-  color: var(--text-3);
-}
-.gm-card-tomorrow .gm-progress-row { display: none; }
+/* ===== Täglicher Ausblick ===== */
+.outlook-card { flex-direction: row; align-items: center; gap: 14px; }
+.outlook-emoji { font-size: 32px; line-height: 1; }
+.outlook-temp { font-size: 21px; font-weight: 800; color: var(--text-1); }
+.outlook-desc { font-size: 12px; color: var(--text-3); margin-top: 2px; }
 
-.gm-streak {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
-  color: var(--text-3);
-  font-size: 11px; font-weight: 600;
-  letter-spacing: 0.10em; text-transform: uppercase;
-  transition: background 0.25s, color 0.25s, border-color 0.25s;
-}
-.gm-streak-icon { font-size: 13px; }
-.gm-streak-num {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-}
-.gm-streak.gm-streak-active {
-  background: rgba(242,192,99,0.10);
-  color: #F2C063;
-  border-color: rgba(242,192,99,0.32);
-}
-.gm-streak.gm-streak-active .gm-streak-icon {
-  filter: drop-shadow(0 0 6px rgba(242,192,99,0.6));
-}
+/* ===== Aktivitäten ===== */
+.act-item { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+.act-item + .act-item { border-top: 1px solid var(--glass-border); }
+.act-icon { width: 32px; height: 32px; border-radius: 10px; background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+.act-name { font-size: 13px; font-weight: 600; color: var(--text-1); flex: 1; min-width: 0; }
+.act-meta { font-size: 11.5px; color: var(--text-3); font-family: var(--font-mono); flex-shrink: 0; }
+.act-empty { text-align: center; font-size: 12px; font-style: italic; color: var(--text-3); padding: 10px 0; }
 
-.gm-bar {
-  display: flex; gap: 4px;
-  height: 6px;
-  margin-bottom: 16px;
-}
-.gm-bar:empty { display: none; }
-.gm-bar-seg {
-  flex: 1;
-  background: rgba(255,255,255,0.06);
-  border-radius: 3px;
-  transition: background 0.3s, box-shadow 0.3s;
-}
-.gm-bar-seg-done {
-  background: #6BE3A4;
-  box-shadow: 0 0 6px rgba(107,227,164,0.40);
-}
+.motivation-quote { text-align: center; font-size: 13px; font-style: italic; color: var(--text-3); padding: 22px 10px 0; line-height: 1.5; }
 
-.goal-list { list-style: none; margin: 0; padding: 0; }
-.empty-state {
-  text-align: center;
-  font-size: 12px; font-style: italic;
-  color: var(--text-3);
-  padding: 14px 0;
-}
-
-.gm-row {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 14px;
-  margin-bottom: 6px;
-  background: rgba(255,255,255,0.035);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 12px;
-  transition: background 0.2s, opacity 0.3s;
-  position: relative;
-}
-.gm-row:hover { background: rgba(255,255,255,0.06); }
-.gm-row.gm-row-done {
-  opacity: 0.45;
-  background: rgba(107,227,164,0.04);
-}
-.gm-row.gm-row-done .gm-text {
-  text-decoration: line-through;
-  text-decoration-color: rgba(255,255,255,0.4);
-}
-.gm-row.gm-row-queued {
-  background: rgba(242,192,99,0.10);
-  box-shadow: inset 3px 0 0 0 #F2C063;
-}
-.gm-row.gm-row-queued .gm-text { color: #FFE2A8; }
-.gm-row.is-drag-over { border-top: 2px solid #6BE3A4; }
-.gm-row.is-queue-flashing { animation: gm-queue-flash 0.48s ease-out; }
-@keyframes gm-queue-flash {
-  0%   { background: rgba(255,255,255,0.035); transform: scale(1); }
-  40%  { background: rgba(242,192,99,0.32); transform: scale(1.015); }
-  100% { background: rgba(255,255,255,0.035); transform: scale(1); }
-}
-
-.gm-handle {
-  width: 14px; flex-shrink: 0;
-  color: var(--text-3);
-  font-weight: 700; font-size: 14px;
-  letter-spacing: -2px;
-  cursor: grab;
-  opacity: 0;
-  transition: opacity 0.2s;
-  user-select: none;
-}
-.gm-row:hover .gm-handle { opacity: 1; }
-.gm-handle:active { cursor: grabbing; }
-
-.gm-check {
-  appearance: none; -webkit-appearance: none;
-  width: 22px; height: 22px; flex-shrink: 0;
-  margin: 0;
-  border: 1.5px solid rgba(255,255,255,0.18);
-  background: rgba(0,0,0,0.28);
-  border-radius: 7px;
-  position: relative;
-  cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, box-shadow 0.25s;
-}
-.gm-check:checked {
-  background: #6BE3A4;
-  border-color: #6BE3A4;
-  box-shadow: 0 0 12px rgba(107,227,164,0.40);
-}
-.gm-check:checked::after {
-  content: '';
-  position: absolute; left: 6px; top: 2px;
-  width: 6px; height: 11px;
-  border: solid #0A0A0B;
-  border-width: 0 2.5px 2.5px 0;
-  transform: rotate(45deg);
-  animation: gm-check-pop 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes gm-check-pop {
-  from { transform: rotate(45deg) scale(0); }
-  to   { transform: rotate(45deg) scale(1); }
-}
-.gm-check:disabled { cursor: not-allowed; opacity: 0.55; }
-
-.gm-text {
-  flex: 1;
-  font-size: 14px;
-  color: var(--text-1);
-  cursor: text;
-  outline: none;
-  border-radius: 4px;
-  padding: 2px 4px;
-  margin: -2px -4px;
-}
-.gm-text[contenteditable="true"] {
-  outline: 1px solid rgba(255,255,255,0.18);
-  background: rgba(0,0,0,0.28);
-}
-
-.gm-queue-btn {
-  border: 0; background: transparent;
-  color: var(--text-3);
-  font-size: 14px;
-  cursor: pointer;
-  padding: 4px 6px;
-  border-radius: 6px;
-  opacity: 0.55;
-  transition: opacity 0.2s, color 0.2s, transform 0.1s;
-}
-.gm-queue-btn:hover { opacity: 1; }
-.gm-queue-btn.gm-queue-active {
-  color: #F2C063;
-  opacity: 1;
-  filter: drop-shadow(0 0 4px rgba(242,192,99,0.65));
-}
-.gm-queue-btn:disabled { cursor: not-allowed; opacity: 0.3; }
-
-.goal-delete {
-  border: 0; background: transparent;
-  color: var(--text-3);
-  font-size: 18px;
-  cursor: pointer;
-  padding: 0 4px;
-  opacity: 0.5;
-  transition: opacity 0.2s, color 0.2s;
-}
-.gm-row:hover .goal-delete { opacity: 1; }
-.goal-delete:hover { color: var(--bad); }
-
-.gm-show-toggle {
-  width: 100%;
-  margin: 6px 0 0;
-  padding: 9px;
-  border: 1px dashed rgba(255,255,255,0.12);
-  border-radius: 10px;
-  background: transparent;
-  color: var(--text-3);
-  font-family: inherit;
-  font-size: 11px; font-weight: 600;
-  letter-spacing: 0.06em; text-transform: uppercase;
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s;
-}
-.gm-show-toggle:hover { color: var(--text-1); border-color: rgba(255,255,255,0.22); }
-
-.gm-push-btn {
-  width: 100%;
-  margin-top: 14px;
-  padding: 11px;
-  border: 1px dashed rgba(255,255,255,0.16);
-  border-radius: 12px;
-  background: transparent;
-  color: var(--text-3);
-  font-family: inherit;
-  font-size: 11px; font-weight: 700;
-  letter-spacing: 0.10em; text-transform: uppercase;
-  cursor: pointer;
-  transition: color 0.2s, border-color 0.2s, background 0.2s;
-}
-.gm-push-btn:hover {
-  color: var(--text-1);
-  border-color: rgba(255,255,255,0.30);
-  border-style: solid;
-  background: rgba(255,255,255,0.04);
-}
-
-.goal-input-wrap.gm-input-wrap {
-  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-}
-.gm-input {
-  flex: 1; min-width: 0;
-  padding: 11px 14px;
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 12px;
-  background: rgba(0,0,0,0.28);
-  color: var(--text-1);
-  font-family: inherit; font-size: 14px;
-  outline: none;
-  transition: border-color 0.2s, background 0.2s;
-}
-.gm-input::placeholder { color: var(--text-3); }
-.gm-input:focus { border-color: rgba(255,255,255,0.28); background: rgba(0,0,0,0.36); }
-
-.gm-add {
-  padding: 11px 20px;
-  border: 0; border-radius: 12px;
-  background: linear-gradient(180deg, #FFFFFF 0%, #E8E5DD 100%);
-  color: #0A0A0B;
-  font-family: inherit; font-size: 13px; font-weight: 700;
-  cursor: pointer;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.9),
-    0 2px 8px rgba(0,0,0,0.35),
-    0 8px 22px rgba(0,0,0,0.25);
-  transition: transform 0.1s, filter 0.15s;
-}
-.gm-add:hover { filter: brightness(1.06); transform: translateY(-1px); }
-.gm-add:active { transform: translateY(0); }
-
-.gm-polish {
-  padding: 11px 18px;
-  border: 1px solid rgba(255,255,255,0.10);
-  border-radius: 12px;
-  background: rgba(255,255,255,0.04);
-  color: var(--text-1);
-  font-family: inherit; font-size: 13px; font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-}
-.gm-polish:hover {
-  background: rgba(255,255,255,0.07);
-  border-color: rgba(255,255,255,0.18);
-}
-
-.gm-status {
-  flex-basis: 100%;
-  font-size: 11px;
-  color: var(--text-3);
-  min-height: 14px;
-  margin-top: 4px;
-}
-.gm-status.gm-status-error { color: var(--bad); }
-
-@media (max-width: 480px) {
-  body { padding: max(20px, env(safe-area-inset-top)) 14px 50px; }
-  .gm-card { padding: 16px; }
-  .gm-progress-num { font-size: 36px; }
-}
-
-/* ---- Notification opt-in ---- */
-.notif-card {
-  display: flex; align-items: center; gap: 14px;
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px;
-  padding: 16px 18px; margin-bottom: 18px;
-}
-.notif-icon { font-size: 22px; filter: drop-shadow(0 0 8px var(--accent-glow)); flex-shrink: 0; }
-.notif-body { flex: 1; min-width: 0; }
-.notif-title { font-size: 14.5px; font-weight: 700; color: var(--text-1); }
-.notif-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
-.notif-btn {
-  flex-shrink: 0; border: 1px solid var(--border-strong); background: var(--accent-dim); color: var(--accent-soft);
-  font-size: 12.5px; font-weight: 700; padding: 9px 14px; border-radius: 10px; cursor: pointer;
-  -webkit-tap-highlight-color: transparent; white-space: nowrap;
-}
-.notif-btn.is-active { background: transparent; color: var(--text-3); border-color: var(--border); cursor: default; }
-.notif-btn:disabled { opacity: 0.6; cursor: default; }
-
-/* ---- Tagesscore card (same dark-card system as fitness.html/wellness.html) ---- */
-.tscore-card {
-  --ts-bg-card: #111113; --ts-bg-card-2: #17171a; --ts-border: rgba(255,255,255,0.08);
-  --ts-good: #6ee7b7; --ts-warn: #fbbf24; --ts-bad: #ff8a8a;
-  text-decoration: none; color: inherit;
-  background: var(--ts-bg-card); border: 1px solid var(--ts-border); border-radius: 24px;
-  padding: 26px 20px 22px; margin-bottom: 20px;
-  box-shadow: 0 10px 34px rgba(0,0,0,0.4);
-  display: flex; flex-direction: column; align-items: center;
-  transition: transform 0.18s ease, border-color 0.18s ease;
-}
-.tscore-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.18); }
-.tscore-ring-wrap { position: relative; width: 168px; height: 168px; margin-bottom: 4px; }
-.tscore-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
-.tscore-ring-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 11; }
-.tscore-ring-fill { fill: none; stroke: var(--ts-good); stroke-width: 11; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.22,1,0.36,1), stroke 0.4s ease; }
-.tscore-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.tscore-num { font-size: 40px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: #fff; }
-.tscore-label { font-size: 11.5px; color: rgba(255,255,255,0.4); font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
-.tscore-note { font-size: 13px; color: rgba(255,255,255,0.6); text-align: center; max-width: 320px; margin-top: 6px; }
-.tscore-arrow { font-size: 12px; color: rgba(255,255,255,0.35); margin-top: 10px; font-family: ui-monospace, monospace; text-transform: uppercase; letter-spacing: 0.05em; }
+.section-card { margin-bottom: 16px; }
 </style>
 </head>
 <body>
 <div class="page">
 
-  <h1 class="dash-title rw-title">Maëls Dashboard</h1>
+  <div class="dash-header">
+    <button class="dash-avatar" id="dashAvatar" type="button" aria-label="Profil">M</button>
+    <div class="dash-today">
+      <button class="dash-day-nav" id="dayPrevBtn" type="button" aria-label="Vorheriger Tag">‹</button>
+      <span>Heute</span>
+      <button class="dash-day-nav" id="dayNextBtn" type="button" aria-label="Nächster Tag">›</button>
+    </div>
+    <div class="whoop-indicator" id="whoopIndicator"><span class="whoop-dot" id="whoopDot"></span><span id="whoopLabel">—</span></div>
+  </div>
 
-  <div class="ticker-row">
-    <div class="goal-ticker" id="goalTicker" aria-live="polite" aria-atomic="true">
-      <div class="goal-ticker-led"><span class="goal-ticker-led-dot"></span></div>
-      <div class="goal-ticker-label">ZIELE</div>
-      <div class="goal-ticker-stage" id="goalTickerStage">
-        <div class="goal-ticker-row">
-          <span class="goal-ticker-status" data-status="">—</span>
-          <span class="goal-ticker-text">Wird geladen…</span>
-        </div>
+  <div class="circle-row">
+    <a href="sleep.html" class="circle-card">
+      <div class="circle-ring-wrap">
+        <svg class="circle-ring" viewBox="0 0 90 90"><circle class="circle-track" cx="45" cy="45" r="38"></circle><circle class="circle-fill" id="sleepRingFill" cx="45" cy="45" r="38"></circle></svg>
+        <div class="circle-num" id="sleepNum">—</div>
       </div>
-      <div class="goal-ticker-meta" id="goalTickerMeta">0/0</div>
+      <div class="circle-label">Schlaf</div>
+    </a>
+    <a href="recovery.html" class="circle-card">
+      <div class="circle-ring-wrap">
+        <svg class="circle-ring" viewBox="0 0 90 90"><circle class="circle-track" cx="45" cy="45" r="38"></circle><circle class="circle-fill" id="recoveryRingFill" cx="45" cy="45" r="38"></circle></svg>
+        <div class="circle-num" id="recoveryNum">—</div>
+      </div>
+      <div class="circle-label">Erholung</div>
+    </a>
+    <a href="activities.html" class="circle-card">
+      <div class="circle-ring-wrap">
+        <svg class="circle-ring" viewBox="0 0 90 90"><circle class="circle-track" cx="45" cy="45" r="38"></circle><circle class="circle-fill" id="strainRingFill" cx="45" cy="45" r="38"></circle></svg>
+        <div class="circle-num" id="strainNum">—</div>
+      </div>
+      <div class="circle-label">Strain</div>
+    </a>
+  </div>
+
+  <div class="rec-row">
+    <div class="rw-card">
+      <div class="rec-card-icon">💚</div>
+      <div class="rec-card-title">Gesundheit</div>
+      <div class="rec-card-text" id="healthRecText">Wird berechnet…</div>
+    </div>
+    <div class="rw-card">
+      <div class="rec-card-icon">🎾</div>
+      <div class="rec-card-title">Fitness</div>
+      <div class="rec-card-text" id="fitnessRecText">Wird berechnet…</div>
     </div>
   </div>
 
-  <div class="day-ring-wrap">
-    <div class="day-ring">
-      <svg viewBox="0 0 120 120">
-        <defs>
-          <filter id="dayRingGlow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="2.4" result="b" />
-            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-        <circle class="day-ring-track" cx="60" cy="60" r="52" />
-        <circle class="day-ring-fill"  cx="60" cy="60" r="52" id="dayRingFill" filter="url(#dayRingGlow)" />
-      </svg>
-      <div class="day-ring-overlay">
-        <div class="day-ring-percent" id="dayRingPercent">—</div>
-        <div class="day-ring-phase"   id="dayRingPhase">—</div>
-        <div class="day-ring-clock"   id="dayRingClock">—</div>
+  <div class="rw-section-title">Peak Tracker</div>
+  <a href="peak-tracker.html" class="rw-card section-card">
+    <div class="peak-widget-head">
+      <div>
+        <div class="peak-widget-num" id="peakNowNum">—</div>
+        <div class="rw-eyebrow" id="peakNowWord">Jetzt gerade</div>
       </div>
+      <span class="rw-card-arrow">→</span>
     </div>
-    <div class="day-ring-text">
-      <div class="day-ring-status"    id="dayRingStatus">Wird geladen…</div>
-      <div class="day-ring-remaining" id="dayRingRemaining">—</div>
-      <div class="day-ring-hours">07:30 – 22:30 Uhr</div>
-    </div>
-  </div>
-
-  <a href="daily-score.html" class="tscore-card" id="tscoreCard">
-    <div class="tscore-ring-wrap">
-      <svg class="tscore-ring" viewBox="0 0 168 168">
-        <circle class="tscore-ring-track" cx="84" cy="84" r="74"></circle>
-        <circle class="tscore-ring-fill" id="tscoreRingFill" cx="84" cy="84" r="74"></circle>
-      </svg>
-      <div class="tscore-ring-center">
-        <div class="tscore-num" id="tscoreNum">—</div>
-        <div class="tscore-label">Tagesscore</div>
-      </div>
-    </div>
-    <div class="tscore-note" id="tscoreNote">Wird berechnet…</div>
-    <div class="tscore-arrow">Details ansehen →</div>
+    <svg class="peak-widget-svg" id="peakWidgetSvg" viewBox="0 0 600 74" preserveAspectRatio="none"></svg>
   </a>
 
-  <div class="notif-card" id="notifCard">
-    <div class="notif-icon">🔔</div>
-    <div class="notif-body">
-      <div class="notif-title">Benachrichtigungen</div>
-      <div class="notif-sub" id="notifStatus">Erinnerungen um 07:30, 15:00 &amp; 21:00 Uhr</div>
+  <div class="rw-section-title">Täglicher Ausblick</div>
+  <a href="daily.html" class="rw-card outlook-card section-card">
+    <span class="outlook-emoji" id="outlookEmoji">🌤️</span>
+    <div>
+      <div class="outlook-temp" id="outlookTemp">—</div>
+      <div class="outlook-desc" id="outlookDesc">Wird geladen…</div>
     </div>
-    <button class="notif-btn" id="notifBtn" type="button">Aktivieren</button>
+  </a>
+
+  <div class="rw-section-title">Aktivitäten</div>
+  <div class="rw-card section-card">
+    <div id="activitiesList"><div class="act-empty">Deine Aktivitäten werden hier angezeigt.</div></div>
   </div>
 
-  <div class="section">
-    <div class="section-title">Aufgabenliste</div>
-
-    <!-- TODAY -->
-    <div class="gm-card" id="gmCardToday">
-      <div class="gm-header">
-        <div class="gm-header-left">
-          <div class="gm-eyebrow" id="todayLabel">Heute —</div>
-          <div class="gm-progress-row">
-            <span class="gm-progress-num"   id="gmProgressNum">0</span>
-            <span class="gm-progress-total" id="gmProgressTotal">/ 0</span>
-            <span class="gm-progress-label" id="gmProgressLabel">noch keine Ziele</span>
-          </div>
-        </div>
-        <div class="gm-streak" id="gmStreak">
-          <span class="gm-streak-icon">⚡</span>
-          <span class="gm-streak-num" id="gmStreakNum">0</span>
-          <span>Tage in Folge</span>
-        </div>
-      </div>
-      <div class="gm-bar" id="gmBar"></div>
-      <ul id="goalList" class="goal-list gm-list"></ul>
-      <div id="emptyState" class="empty-state">Noch keine Ziele für heute — füge unten eins hinzu.</div>
-      <button type="button" id="gmPushBtn" class="gm-push-btn" style="display:none;">Rest auf morgen verschieben</button>
-      <div class="goal-input-wrap gm-input-wrap">
-        <input id="goalInput" class="gm-input" type="text" placeholder="Ziel für heute hinzufügen…" autocomplete="off">
-        <button type="button" id="goalAddBtn"    class="gm-add">+ Hinzufügen</button>
-        <button type="button" id="goalPolishBtn" class="gm-polish">✨ Verfeinern</button>
-        <div class="gm-status" id="polishStatus"></div>
-      </div>
-    </div>
-
-    <!-- PLAN TOMORROW -->
-    <div class="gm-card gm-card-tomorrow" id="gmCardTomorrow">
-      <div class="gm-header">
-        <div class="gm-header-left">
-          <div class="gm-eyebrow" id="tomorrowLabel">Morgen planen —</div>
-          <div class="gm-tomorrow-sub">Heute Abend schreiben, bis 6 Uhr gesperrt.</div>
-        </div>
-        <div class="gm-tomorrow-count" id="gmTomorrowCount">0 geplant</div>
-      </div>
-      <ul id="tomorrowList" class="goal-list gm-list"></ul>
-      <div id="tomorrowEmpty" class="empty-state">Noch nichts für morgen geplant</div>
-      <div class="goal-input-wrap gm-input-wrap">
-        <input id="tomorrowInput" class="gm-input" type="text" placeholder="Ziel für morgen hinzufügen…" autocomplete="off">
-        <button type="button" id="tomorrowAddBtn"    class="gm-add">+ Hinzufügen</button>
-        <button type="button" id="tomorrowPolishBtn" class="gm-polish">✨ Verfeinern</button>
-        <div class="gm-status" id="tomorrowStatus"></div>
-      </div>
-    </div>
-  </div>
+  <div class="motivation-quote" id="dashQuote"></div>
 
 </div>
 
@@ -750,47 +205,402 @@ body::after {
 (function () {
   'use strict';
 
-  // Paste your Anthropic key here to enable ✨ Polish. Empty = falls back to plain add.
+  const WAKE_HOUR = 7.5;
+  const SLEEP_HOUR = 22.5;
+  const WHOOP_KEY = 'whoop_tokens_v1';
+
+  function loadWhoopTokens() { try { return JSON.parse(localStorage.getItem(WHOOP_KEY)); } catch (e) { return null; } }
+  function saveWhoopTokens(t) { try { localStorage.setItem(WHOOP_KEY, JSON.stringify(t)); } catch (e) {} }
+  async function refreshWhoopToken(t) {
+    if (!t.refresh) return null;
+    try {
+      const r = await fetch('/api/whoop-refresh', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ refresh_token: t.refresh }) });
+      const j = await r.json();
+      if (j.access_token) {
+        const next = { access: j.access_token, refresh: j.refresh_token || t.refresh, expires: Date.now() + (j.expires_in || 3500) * 1000 };
+        saveWhoopTokens(next);
+        return next;
+      }
+    } catch (e) {}
+    return null;
+  }
+  async function whoopFetch(path, t) {
+    const [p, qs] = path.split('?');
+    const params = new URLSearchParams(qs || ''); params.set('path', p);
+    const r = await fetch('/api/whoop-data?' + params.toString(), { headers: { Authorization: 'Bearer ' + t.access, Accept: 'application/json' } });
+    if (r.status === 401) { const n = await refreshWhoopToken(t); if (n) return whoopFetch(path, n); throw new Error('unauthorized'); }
+    if (!r.ok) throw new Error('WHOOP ' + r.status);
+    return await r.json();
+  }
+
+  function todayKeyStr() {
+    const d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  function zoneColor(score, good, warn, bad) {
+    if (score == null) return 'rgba(255,255,255,0.3)';
+    if (score >= 67) return good;
+    if (score >= 34) return warn;
+    return bad;
+  }
+  function setRing(fillId, numId, score, color, suffix) {
+    const fill = document.getElementById(fillId);
+    const C = 2 * Math.PI * 38;
+    fill.style.strokeDasharray = C;
+    fill.style.strokeDashoffset = score != null ? C * (1 - Math.min(score, 100) / 100) : C;
+    fill.style.stroke = color;
+    document.getElementById(numId).textContent = score != null ? Math.round(score) + (suffix || '') : '—';
+  }
+
+  // ---------- Peak Tracker widget (condensed port of peak-tracker.html's model) ----------
+  function gaussian(h, center, width, height) { const d = h - center; return height * Math.exp(-(d * d) / (2 * width * width)); }
+  function baseCurveAt(h) {
+    if (h < WAKE_HOUR || h > SLEEP_HOUR) return 14;
+    const span = SLEEP_HOUR - WAKE_HOUR;
+    const t = h - WAKE_HOUR;
+    const peak1 = span * 0.28, width1 = span * 0.13;
+    const dip = span * 0.46, dipWidth = span * 0.09;
+    const peak2 = span * 0.78, width2 = span * 0.16;
+    let v = 30 + gaussian(t, peak1, width1, 34) - gaussian(t, dip, dipWidth, 20) + gaussian(t, peak2, width2, 46);
+    return Math.max(10, Math.min(100, v));
+  }
+  function buildPeakCurve(mods) {
+    const pts = [];
+    for (let h = 0; h <= 24; h += 0.5) {
+      let v = baseCurveAt(h);
+      if (h >= WAKE_HOUR && h <= SLEEP_HOUR) {
+        v *= mods.recoveryFactor; v *= mods.sleepFactor;
+        const t = h - WAKE_HOUR, span = SLEEP_HOUR - WAKE_HOUR;
+        if (t > span * 0.55) v *= mods.fatigueFactor;
+      }
+      pts.push({ h, v: Math.max(5, Math.min(100, v)) });
+    }
+    return pts;
+  }
+  function curveValueAt(curve, h) {
+    for (let i = 0; i < curve.length - 1; i++) {
+      if (h >= curve[i].h && h <= curve[i + 1].h) {
+        const f = (h - curve[i].h) / (curve[i + 1].h - curve[i].h);
+        return curve[i].v + (curve[i + 1].v - curve[i].v) * f;
+      }
+    }
+    return curve[curve.length - 1].v;
+  }
+  function moodWord(score) {
+    if (score >= 85) return 'Höchstform'; if (score >= 70) return 'Fokussiert';
+    if (score >= 50) return 'Stabil'; if (score >= 30) return 'Müde'; return 'Neblig';
+  }
+  function smoothPath(points) {
+    if (!points.length) return '';
+    let d = 'M ' + points[0].x.toFixed(2) + ' ' + points[0].y.toFixed(2);
+    for (let i = 1; i < points.length; i++) {
+      const prev = points[i - 1], curr = points[i];
+      const cx = (prev.x + curr.x) / 2;
+      d += ' Q ' + cx.toFixed(2) + ' ' + prev.y.toFixed(2) + ', ' + cx.toFixed(2) + ' ' + ((prev.y + curr.y) / 2).toFixed(2);
+      d += ' T ' + curr.x.toFixed(2) + ' ' + curr.y.toFixed(2);
+    }
+    return d;
+  }
+  function renderPeakWidget(mods) {
+    const curve = buildPeakCurve(mods);
+    const nowH = new Date().getHours() + new Date().getMinutes() / 60;
+    const nowV = curveValueAt(curve, Math.max(WAKE_HOUR, Math.min(SLEEP_HOUR, nowH)));
+    document.getElementById('peakNowNum').textContent = Math.round(nowV);
+    document.getElementById('peakNowWord').textContent = moodWord(nowV) + ' · Jetzt gerade';
+    const W = 600, H = 74, padB = 6;
+    const X = (h) => (h / 24) * W, Y = (v) => H - padB - (v / 100) * (H - padB - 6);
+    const pts = curve.map((p) => ({ x: X(p.h), y: Y(p.v) }));
+    const svg = document.getElementById('peakWidgetSvg');
+    svg.innerHTML = '<path d="' + smoothPath(pts) + '" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"></path>';
+  }
+
+  // ---------- Weather outlook (reuses daily.html's location + code map) ----------
+  const LOC_KEY = 'daily_location_v1';
+  const FALLBACK_LOCATION = { name: 'Nottensdorf, Niedersachsen', lat: 53.5667, lon: 9.6833 };
+  const WEATHER_CODES = {
+    0: ['☀️', 'Klarer Himmel'], 1: ['🌤️', 'Meist klar'], 2: ['⛅', 'Teilweise bewölkt'], 3: ['☁️', 'Bedeckt'],
+    45: ['🌫️', 'Nebel'], 48: ['🌫️', 'Nebel'],
+    51: ['🌦️', 'Leichter Nieselregen'], 53: ['🌦️', 'Nieselregen'], 55: ['🌦️', 'Starker Nieselregen'],
+    61: ['🌧️', 'Leichter Regen'], 63: ['🌧️', 'Regen'], 65: ['🌧️', 'Starker Regen'],
+    71: ['🌨️', 'Leichter Schnee'], 73: ['🌨️', 'Schnee'], 75: ['❄️', 'Starker Schnee'],
+    80: ['🌦️', 'Regenschauer'], 81: ['🌧️', 'Regenschauer'], 82: ['⛈️', 'Heftige Schauer'],
+    95: ['⛈️', 'Gewitter'], 96: ['⛈️', 'Gewitter mit Hagel'], 99: ['⛈️', 'Gewitter mit Hagel'],
+  };
+  async function renderOutlook() {
+    let loc = FALLBACK_LOCATION;
+    try { const v = JSON.parse(localStorage.getItem(LOC_KEY)); if (v && v.lat != null) loc = v; } catch (e) {}
+    try {
+      const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + loc.lat + '&longitude=' + loc.lon + '&current=temperature_2m,weather_code&timezone=auto';
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('weather failed');
+      const data = await res.json();
+      const [emoji, desc] = WEATHER_CODES[data.current.weather_code] || ['🌡️', 'Unbekannt'];
+      document.getElementById('outlookEmoji').textContent = emoji;
+      document.getElementById('outlookTemp').textContent = Math.round(data.current.temperature_2m) + '°';
+      document.getElementById('outlookDesc').textContent = desc + ' · ' + (loc.name || 'Dein Standort');
+    } catch (e) {
+      document.getElementById('outlookDesc').textContent = 'Wetter aktuell nicht verfügbar.';
+    }
+  }
+
+  // ---------- Activities list ----------
+  function fmtDurMin(mins) {
+    if (!mins) return '0min';
+    const h = Math.floor(mins / 60), m = Math.round(mins % 60);
+    return h > 0 ? h + 'h ' + m + 'min' : m + 'min';
+  }
+  const ACT_ICONS = { tennis: '🎾', gym: '🏋️', laufen: '🏃', fahrrad: '🚴', spaziergang: '🚶', stretching: '🧘', hiit: '🔥', seilspringen: '🪢' };
+  function renderActivities(sleepDurMin) {
+    const el = document.getElementById('activitiesList');
+    let acts = [];
+    try {
+      const arr = JSON.parse(localStorage.getItem('fitness_activities_v1')) || [];
+      const key = todayKeyStr();
+      acts = arr.filter((a) => (a.startTime || '').slice(0, 10) === key);
+    } catch (e) {}
+    let html = '';
+    if (sleepDurMin != null) {
+      html += '<div class="act-item"><div class="act-icon">😴</div><div class="act-name">Schlaf</div><div class="act-meta">' + fmtDurMin(sleepDurMin) + '</div></div>';
+    }
+    acts.forEach((a) => {
+      const icon = ACT_ICONS[a.type] || '💪';
+      const label = a.label || (a.type ? a.type.charAt(0).toUpperCase() + a.type.slice(1) : 'Aktivität');
+      html += '<div class="act-item"><div class="act-icon">' + icon + '</div><div class="act-name">' + label + '</div><div class="act-meta">' + fmtDurMin(a.durationMin) + '</div></div>';
+    });
+    if (!html) html = '<div class="act-empty">Deine Aktivitäten werden hier angezeigt.</div>';
+    el.innerHTML = html;
+  }
+
+  // ---------- Motivation quote (same array as topbar.js's strip; shown again here per the wireframe) ----------
+  const MOTIVATION_QUOTES = [
+    'Jeden Tag ein Punkt besser.', 'Kleine Fortschritte werden zu großen Ergebnissen.',
+    'Trainiere heute für den Spieler, der du morgen sein willst.', 'Disziplin schlägt Motivation — jeden Tag.',
+    'Der nächste Punkt zählt mehr als der letzte.', 'Form folgt Wiederholung.', 'Ruhe ist Teil des Trainings.',
+    'Konstanz schlägt Intensität.', 'Was du heute übst, spielst du morgen automatisch.',
+    'Große Ziele werden in kleinen Sessions erreicht.', 'Fokus ist eine Entscheidung, keine Stimmung.',
+    'Der Unterschied liegt in den Details.', 'Gute Gewohnheiten schlagen gute Vorsätze.', 'Heute zählt — nicht irgendwann.',
+    'Kein perfekter Tag, nur der nächste richtige Schritt.', 'Wer die Grundlagen beherrscht, gewinnt die engen Punkte.',
+    'Erholung ist die stille Hälfte des Fortschritts.', 'Ein Prozent besser ist immer noch besser.',
+  ];
+  function renderQuote() {
+    const d = new Date();
+    // +1 offset so this doesn't literally repeat topbar.js's own quote-of-the-day strip on the same page.
+    const seed = d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate() + 1;
+    document.getElementById('dashQuote').textContent = '"' + MOTIVATION_QUOTES[seed % MOTIVATION_QUOTES.length] + '"';
+  }
+
+  // ---------- Deterministic recommendation paragraphs ----------
+  function buildHealthParagraph(ctx) {
+    if (ctx.recovery == null) return 'Verbinde WHOOP auf der Gesundheit-Seite, um eine persönliche Empfehlung zu bekommen.';
+    let s = 'Deine Erholung liegt heute bei ' + ctx.recovery + ' %';
+    s += ctx.sleepPerf != null ? ' und dein Schlaf bei ' + ctx.sleepPerf + ' %. ' : '. ';
+    if (ctx.recovery >= 67) s += 'Dein Körper ist bereit für intensive Belastung. ';
+    else if (ctx.recovery >= 34) s += 'Geh es heute moderat an. ';
+    else s += 'Priorisiere heute Regeneration statt Leistung. ';
+    if (ctx.waterBehind) s += 'Trink heute noch ausreichend Wasser';
+    else s += 'Achte weiter auf Ernährung und Wasser';
+    s += ctx.recovery >= 67 ? ' und geh möglichst früh schlafen.' : '.';
+    return s;
+  }
+  function buildFitnessParagraph(ctx) {
+    if (ctx.strain == null && !ctx.hasActivity) return 'Verbinde WHOOP oder trag eine Aktivität ein, um eine persönliche Empfehlung zu bekommen.';
+    let s = '';
+    if (ctx.recovery != null && ctx.recovery >= 67 && (ctx.strain == null || ctx.strain < 10)) {
+      s = 'Deine Erholung ist hoch — heute ist ein guter Tag, um intensiv für dein Ziel (Top 80, A-Lizenz) zu trainieren.';
+    } else if (ctx.recovery != null && ctx.recovery < 34) {
+      s = 'Deine Erholung ist niedrig — heute lieber Technik statt Intensität, damit du morgen wieder voll angreifen kannst.';
+    } else if (ctx.strain != null && ctx.strain >= 14) {
+      s = 'Deine Belastung war zuletzt hoch (Strain ' + ctx.strain.toFixed(1) + ') — achte heute auf Regeneration zwischen den Einheiten.';
+    } else if (!ctx.hasActivity) {
+      s = 'Noch keine Aktivität heute erfasst — eine Tennis- oder Fitnesseinheit bringt dich näher an dein Ziel.';
+    } else {
+      s = 'Solide Grundlage heute — bleib dran, jede Einheit bringt dich näher an Top 80 und die A-Lizenz.';
+    }
+    return s;
+  }
+  function waterBehindToday() {
+    try {
+      const state = JSON.parse(localStorage.getItem('po_water_v1'));
+      if (!state) return false;
+      const done = (state.logs || {})[todayKeyStr()] || 0;
+      const p = state.profile || { weightKg: 75 };
+      const wKg = state.weightUnit === 'lb' ? (p.weightKg || 0) / 2.20462 : (p.weightKg || 0);
+      const totalMl = wKg * 35 + ((p.activityHrsPerWeek || 0) / 7) * 500;
+      const unitVol = state.unit === 'glass' ? (state.glassMl || 250) : state.unit === 'oz' ? 30 : state.unit === 'ml' ? 1 : (state.bottleMl || 500);
+      const total = Math.max(1, Math.ceil(totalMl / unitVol));
+      const h = new Date().getHours();
+      return h >= 14 && done < total * 0.5;
+    } catch (e) { return false; }
+  }
+  function hasActivityToday() {
+    try {
+      const acts = JSON.parse(localStorage.getItem('fitness_activities_v1')) || [];
+      return acts.some((a) => (a.startTime || '').slice(0, 10) === todayKeyStr());
+    } catch (e) { return false; }
+  }
+
+  async function boot() {
+    // Day-nav arrows are decorative for now — no historical dashboard view yet.
+    document.getElementById('dayPrevBtn').disabled = true;
+    document.getElementById('dayNextBtn').disabled = true;
+
+    renderOutlook();
+    renderQuote();
+
+    const ctx = { recovery: null, sleepPerf: null, strain: null, waterBehind: waterBehindToday(), hasActivity: hasActivityToday() };
+    let mods = { recoveryFactor: 1, sleepFactor: 1, fatigueFactor: 1 };
+    let sleepDurMin = null;
+
+    const tokens = loadWhoopTokens();
+    const dot = document.getElementById('whoopDot');
+    const label = document.getElementById('whoopLabel');
+    if (tokens && tokens.access) {
+      try {
+        let t = tokens;
+        if (t.expires && Date.now() > t.expires - 60000) { const n = await refreshWhoopToken(t); if (n) t = n; }
+        const [rec, sleep, cycle] = await Promise.all([
+          whoopFetch('/recovery?limit=1', t).catch(() => null),
+          whoopFetch('/activity/sleep?limit=1', t).catch(() => null),
+          whoopFetch('/cycle?limit=1', t).catch(() => null),
+        ]);
+        const r = rec && rec.records && rec.records[0] && rec.records[0].score;
+        const s = sleep && sleep.records && sleep.records[0] && sleep.records[0].score;
+        const c = cycle && cycle.records && cycle.records[0] && cycle.records[0].score;
+
+        if (r && r.recovery_score != null) ctx.recovery = Math.round(r.recovery_score);
+        if (s && s.sleep_performance_percentage != null) ctx.sleepPerf = Math.round(s.sleep_performance_percentage);
+        if (s && s.stage_summary) {
+          const ss = s.stage_summary;
+          sleepDurMin = ((ss.total_in_bed_time_milli || 0) - (ss.total_awake_time_milli || 0)) / 60000;
+        }
+        if (c && c.strain != null) ctx.strain = c.strain;
+
+        setRing('sleepRingFill', 'sleepNum', ctx.sleepPerf, '#9aa0a6', '%');
+        setRing('recoveryRingFill', 'recoveryNum', ctx.recovery, zoneColor(ctx.recovery, 'var(--accent)', 'var(--warn)', 'var(--bad)'), '%');
+        setRing('strainRingFill', 'strainNum', ctx.strain != null ? (ctx.strain / 21) * 100 : null, '#7DD3FC', '');
+        if (ctx.strain != null) document.getElementById('strainNum').textContent = ctx.strain.toFixed(1);
+
+        if (ctx.recovery != null) mods.recoveryFactor = 0.72 + 0.56 * (ctx.recovery / 100);
+        if (ctx.sleepPerf != null) mods.sleepFactor = 0.78 + 0.44 * (ctx.sleepPerf / 100);
+
+        dot.classList.add('on');
+        label.textContent = 'WHOOP';
+      } catch (e) {
+        label.textContent = 'Offline';
+      }
+    } else {
+      label.textContent = 'Nicht verbunden';
+    }
+
+    document.getElementById('healthRecText').textContent = buildHealthParagraph(ctx);
+    document.getElementById('fitnessRecText').textContent = buildFitnessParagraph(ctx);
+    renderPeakWidget(mods);
+    renderActivities(sleepDurMin);
+  }
+
+  document.getElementById('dashAvatar').addEventListener('click', () => { window.location.href = 'index.html'; });
+
+  boot();
+})();
+</script>
+
+<script>
+// Preserved push-notification opt-in logic (built earlier this session).
+// The opt-in card isn't part of the new dashboard wireframe, but this
+// script is already self-guarding (no-ops cleanly if its elements don't
+// exist), so it's kept as-is rather than deleted — safe to re-surface
+// on any page later by adding the #notifBtn/#notifStatus markup back.
+(function () {
+  'use strict';
+  const VAPID_PUBLIC_KEY = 'BKnAHdygL9KmQ2QfT1mA5_oIG3jlxscSyf5WlvTtHzlpEFimv2DbsYBvreJQMPo9PDk9EHiMdeGswrbqSazFXec';
+
+  function urlBase64ToUint8Array(base64) {
+    const padding = '='.repeat((4 - (base64.length % 4)) % 4);
+    const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(b64);
+    const arr = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    return arr;
+  }
+  function isStandalone() { return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches; }
+  function isIos() { return /iphone|ipad|ipod/i.test(window.navigator.userAgent); }
+
+  const btn = document.getElementById('notifBtn');
+  const statusEl = document.getElementById('notifStatus');
+  if (!btn || !statusEl) return;
+
+  function setState(label, opts) {
+    statusEl.textContent = label;
+    btn.style.display = (opts && opts.hideBtn) ? 'none' : '';
+    btn.disabled = !!(opts && opts.disableBtn);
+    btn.classList.toggle('is-active', !!(opts && opts.active));
+    btn.textContent = (opts && opts.active) ? 'Aktiv ✓' : 'Aktivieren';
+  }
+  async function refreshState() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) { setState('In diesem Browser nicht unterstützt.', { hideBtn: true }); return; }
+    if (Notification.permission === 'denied') { setState('Blockiert — in den iPhone-Einstellungen für diese App erlauben.', { hideBtn: true }); return; }
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) { setState('Aktiv — 07:30, 15:00 & 21:00 Uhr', { active: true, disableBtn: true }); return; }
+    } catch (e) {}
+    if (isIos() && !isStandalone()) { setState('Zuerst zum Home-Bildschirm hinzufügen, dann von dort öffnen.', { hideBtn: true }); return; }
+    setState('Erinnerungen um 07:30, 15:00 & 21:00 Uhr');
+  }
+  btn.addEventListener('click', async function () {
+    btn.disabled = true;
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { await refreshState(); btn.disabled = false; return; }
+      const reg = await navigator.serviceWorker.ready;
+      let sub = await reg.pushManager.getSubscription();
+      if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) });
+      await fetch('/api/push-subscribe', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subscription: sub }) });
+    } catch (e) {}
+    await refreshState();
+    btn.disabled = false;
+  });
+  refreshState();
+})();
+</script>
+
+<script>
+// ============================================================
+// Preserved from the previous dashboard: goal list (ZIELE ticker +
+// Aufgabenliste with streak/drag-reorder/tomorrow-planning) and the
+// Tagesscore engine. Neither renders on the new dashboard (not part
+// of the wireframe), but nothing here is deleted — the Tagesscore
+// piece keeps running headless so daily-score.html (still reachable
+// directly, just unlinked from here) stays fresh, and the goal-list
+// piece is fully preserved but gated behind a DOM-presence check so
+// it can never run against elements that no longer exist.
+// ============================================================
+(function () {
+  'use strict';
+
   const ANTHROPIC_API_KEY = '';
 
-  const WAKE_HOUR  = 7.5;
-  const SLEEP_HOUR = 22.5;
-
-  // ---------- storage helpers ----------
-  function storeGet(key) {
-    try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; }
-  }
+  function storeGet(key) { try { return JSON.parse(localStorage.getItem(key)); } catch (e) { return null; } }
   function storeSet(key, value) {
     try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) {}
-    if (typeof key === 'string' && key.indexOf('goals:') === 0) {
-      window.dispatchEvent(new CustomEvent('goals-changed'));
-    }
+    if (typeof key === 'string' && key.indexOf('goals:') === 0) window.dispatchEvent(new CustomEvent('goals-changed'));
   }
   function storeDelete(key) { try { localStorage.removeItem(key); } catch (e) {} }
   function storeListKeys(prefix) {
     const out = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k && k.indexOf(prefix) === 0) out.push(k);
-    }
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.indexOf(prefix) === 0) out.push(k); }
     return out;
   }
 
-  // ---------- date helpers ----------
   function pad2(n) { return String(n).padStart(2, '0'); }
   function dateToKey(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
   function getActiveDateString() {
     const now = new Date();
-    if (now.getHours() < 6) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - 1);
-      return dateToKey(d);
-    }
+    if (now.getHours() < 6) { const d = new Date(now); d.setDate(d.getDate() - 1); return dateToKey(d); }
     return dateToKey(now);
   }
   function getTomorrowDateString() {
-    const now = new Date();
-    const d = new Date(now);
+    const now = new Date(); const d = new Date(now);
     if (now.getHours() >= 6) d.setDate(d.getDate() + 1);
     return dateToKey(d);
   }
@@ -798,568 +608,48 @@ body::after {
     const parts = yyyy_mm_dd.split('-').map(Number);
     const d = new Date(parts[0], parts[1] - 1, parts[2]);
     const wk = ['So','Mo','Di','Mi','Do','Fr','Sa'][d.getDay()];
-    const mo = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'][d.getMonth()];
     return wk + '., ' + pad2(d.getDate()) + '.' + pad2(d.getMonth() + 1) + '.';
   }
-
-  function todayKey()    { return 'goals:' + getActiveDateString(); }
+  function todayKey() { return 'goals:' + getActiveDateString(); }
   function tomorrowKey() { return 'goals:' + getTomorrowDateString(); }
-
-  function getGoals(key) {
-    const g = storeGet(key);
-    return Array.isArray(g) ? g : [];
-  }
+  function getGoals(key) { const g = storeGet(key); return Array.isArray(g) ? g : []; }
   function setGoals(key, list) { storeSet(key, list); }
 
-  // ---------- rollover: pull undone older goals into today ----------
   function rollover() {
     const todayDateStr = getActiveDateString();
     const todayK = 'goals:' + todayDateStr;
     let today = getGoals(todayK);
-    const texts = new Set(today.map(g => g.text));
-
-    storeListKeys('goals:').forEach(k => {
+    const texts = new Set(today.map((g) => g.text));
+    storeListKeys('goals:').forEach((k) => {
       const dateStr = k.slice('goals:'.length);
       if (dateStr >= todayDateStr) return;
       const old = getGoals(k);
-      old.forEach(g => {
-        if (!g.done && g.text && !texts.has(g.text)) {
-          today.push({ text: g.text, done: false });
-          texts.add(g.text);
-        }
-      });
+      old.forEach((g) => { if (!g.done && g.text && !texts.has(g.text)) { today.push({ text: g.text, done: false }); texts.add(g.text); } });
       storeDelete(k);
     });
     setGoals(todayK, today);
   }
-
-  // ---------- streak ----------
-  function loadStreak() {
-    const s = storeGet('goal_streak_v1');
-    if (s && typeof s.count === 'number') return s;
-    return { count: 0, lastProcessedDate: '' };
-  }
+  function loadStreak() { const s = storeGet('goal_streak_v1'); return (s && typeof s.count === 'number') ? s : { count: 0, lastProcessedDate: '' }; }
   function saveStreak(s) { storeSet('goal_streak_v1', s); }
-
   function processStreak() {
     const s = loadStreak();
     const todayDateStr = getActiveDateString();
-    const keys = storeListKeys('goals:')
-      .map(k => k.slice('goals:'.length))
-      .filter(d => d < todayDateStr)
-      .sort();
-    keys.forEach(dateStr => {
+    const keys = storeListKeys('goals:').map((k) => k.slice('goals:'.length)).filter((d) => d < todayDateStr).sort();
+    keys.forEach((dateStr) => {
       if (s.lastProcessedDate && dateStr <= s.lastProcessedDate) return;
       const list = getGoals('goals:' + dateStr);
       if (list.length === 0) { /* don't break the streak on empty days */ }
-      else if (list.every(g => g.done)) s.count += 1;
+      else if (list.every((g) => g.done)) s.count += 1;
       else s.count = 0;
       s.lastProcessedDate = dateStr;
     });
     saveStreak(s);
   }
 
-  // ---------- Goal Ticker ----------
-  const tickerStage = document.getElementById('goalTickerStage');
-  const tickerMeta  = document.getElementById('goalTickerMeta');
-  let cycleIdx = 0;
-  let tickerTimer = null;
-
-  function buildTickerItems() {
-    const goals = getGoals(todayKey());
-    const total = goals.length;
-    const done  = goals.filter(g => g.done).length;
-    if (total === 0) return { items: [{ status: 'empty',   text: 'Keine Ziele für heute gesetzt — füge eins hinzu, um loszulegen.' }], done, total };
-    if (done === total) return { items: [{ status: 'done', text: '✓ Alle Ziele erledigt — solider Tag.' }], done, total };
-    const items = goals.filter(g => !g.done).map(g => ({ status: 'pending', text: g.text }));
-    return { items, done, total };
-  }
-
-  function statusGlyph(status) {
-    if (status === 'done') return '✓';
-    if (status === 'pending') return '○';
-    return '·';
-  }
-
-  let firstTick = true;
-  function tick() {
-    const { items, done, total } = buildTickerItems();
-    if (cycleIdx >= items.length) cycleIdx = 0;
-    const item = items[cycleIdx];
-    cycleIdx = (cycleIdx + 1) % items.length;
-    tickerMeta.textContent = done + '/' + total;
-
-    let row = tickerStage.querySelector('.goal-ticker-row');
-    if (!row) {
-      row = document.createElement('div');
-      row.className = 'goal-ticker-row';
-      row.innerHTML =
-        '<span class="goal-ticker-status"></span>' +
-        '<span class="goal-ticker-text"></span>';
-      tickerStage.appendChild(row);
-    }
-
-    const statusEl = row.querySelector('.goal-ticker-status');
-    const textEl   = row.querySelector('.goal-ticker-text');
-
-    const apply = () => {
-      statusEl.setAttribute('data-status', item.status);
-      statusEl.textContent = statusGlyph(item.status);
-      textEl.textContent = item.text;
-      row.classList.remove('is-fading');
-    };
-
-    if (firstTick) { apply(); firstTick = false; return; }
-    row.classList.add('is-fading');
-    setTimeout(apply, 220);
-  }
-
-  function startTicker() {
-    tick();
-    if (tickerTimer) clearInterval(tickerTimer);
-    tickerTimer = setInterval(tick, 5000);
-  }
-
-  window.addEventListener('goals-changed', () => {
-    cycleIdx = 0;
-    tick();
-  });
-
-  // ---------- Day Ring ----------
-  const PALETTE = [
-    [0,    [ 88, 112, 100]],
-    [12.5, [ 92, 140, 120]],
-    [25,   [ 90, 165, 138]],
-    [37.5, [ 95, 190, 152]],
-    [50,   [102, 210, 165]],
-    [62.5, [110, 227, 180]],
-    [75,   [126, 236, 194]],
-    [87.5, [150, 244, 209]],
-    [100,  [190, 252, 226]]
-  ];
-  function lerp(a, b, t) { return a + (b - a) * t; }
-  function paletteAt(p) {
-    if (p <= PALETTE[0][0]) return PALETTE[0][1];
-    if (p >= PALETTE[PALETTE.length - 1][0]) return PALETTE[PALETTE.length - 1][1];
-    for (let i = 0; i < PALETTE.length - 1; i++) {
-      const [p0, c0] = PALETTE[i];
-      const [p1, c1] = PALETTE[i + 1];
-      if (p >= p0 && p <= p1) {
-        const t = (p - p0) / (p1 - p0);
-        return [lerp(c0[0], c1[0], t), lerp(c0[1], c1[1], t), lerp(c0[2], c1[2], t)];
-      }
-    }
-    return [255,255,255];
-  }
-  function rgb(c) { return 'rgb(' + Math.round(c[0]) + ',' + Math.round(c[1]) + ',' + Math.round(c[2]) + ')'; }
-
-  function formatClock(d) {
-    const h = d.getHours();
-    const m = d.getMinutes();
-    return pad2(h) + ':' + pad2(m);
-  }
-  function formatRemaining(totalMin) {
-    const h = Math.floor(totalMin / 60);
-    const m = Math.floor(totalMin % 60);
-    return h + 'h ' + m + 'm';
-  }
-
-  const C = 2 * Math.PI * 52;
-  const fillEl = document.getElementById('dayRingFill');
-  fillEl.setAttribute('stroke-dasharray', C);
-  fillEl.setAttribute('stroke-dashoffset', C);
-
-  function updateDayRing() {
-    const now = new Date();
-    const hours = now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
-    const percentEl   = document.getElementById('dayRingPercent');
-    const phaseEl     = document.getElementById('dayRingPhase');
-    const clockEl     = document.getElementById('dayRingClock');
-    const statusEl    = document.getElementById('dayRingStatus');
-    const remainingEl = document.getElementById('dayRingRemaining');
-
-    clockEl.textContent = formatClock(now);
-
-    if (hours < WAKE_HOUR) {
-      fillEl.setAttribute('stroke-dashoffset', C);
-      fillEl.style.stroke = '#4D4B47';
-      percentEl.textContent = '—';
-      phaseEl.textContent   = 'SCHLAFEN';
-      statusEl.textContent  = '😴 Schläft noch';
-      const minsUntil = (WAKE_HOUR - hours) * 60;
-      remainingEl.textContent = formatRemaining(minsUntil) + ' bis zum Aufwachen';
-      return;
-    }
-
-    if (hours >= SLEEP_HOUR) {
-      fillEl.setAttribute('stroke-dashoffset', 0);
-      fillEl.style.stroke = '#E25D7A';
-      percentEl.textContent = '100%';
-      phaseEl.textContent   = 'SCHLAFENSZEIT VORBEI';
-      statusEl.textContent  = '⚠️ Schlafenszeit überschritten';
-      remainingEl.textContent = 'Schlafen!';
-      return;
-    }
-
-    const span = SLEEP_HOUR - WAKE_HOUR;
-    const percent = (hours - WAKE_HOUR) / span * 100;
-    fillEl.setAttribute('stroke-dashoffset', C * (1 - percent / 100));
-    fillEl.style.stroke = rgb(paletteAt(percent));
-    percentEl.textContent = Math.floor(percent) + '%';
-
-    let phase, status;
-    if (percent < 25)      { phase = 'MORGEN';      status = '☀️ Morgen — frischer Start'; }
-    else if (percent < 50) { phase = 'MITTAG';      status = '⚡ Mittag — dranbleiben'; }
-    else if (percent < 75) { phase = 'NACHMITTAG';  status = '🔥 Nachmittag — jetzt reinhauen'; }
-    else if (percent < 90) { phase = 'ABEND';       status = '⏳ Abend — abschließen'; }
-    else                   { phase = 'BETTZEIT';    status = '🌙 Bald Schlafenszeit'; }
-    phaseEl.textContent  = phase;
-    statusEl.textContent = status;
-
-    const minsLeft = (SLEEP_HOUR - hours) * 60;
-    remainingEl.textContent = formatRemaining(minsLeft) + ' Wachzeit übrig';
-  }
-
-  // ---------- Row building ----------
-  function makeInlineEdit(textEl, goals, idx, key, reload) {
-    textEl.addEventListener('click', () => {
-      if (textEl.getAttribute('contenteditable') === 'true') return;
-      const original = textEl.textContent;
-      textEl.setAttribute('contenteditable', 'true');
-      textEl.focus();
-      const range = document.createRange();
-      range.selectNodeContents(textEl);
-      range.collapse(false);
-      const sel = window.getSelection();
-      sel.removeAllRanges(); sel.addRange(range);
-
-      function commit() {
-        const next = textEl.textContent.trim();
-        textEl.removeAttribute('contenteditable');
-        if (next && next !== original) {
-          const list = getGoals(key);
-          if (list[idx]) { list[idx].text = next; setGoals(key, list); }
-          reload();
-        } else {
-          textEl.textContent = original;
-        }
-      }
-      function cancel() {
-        textEl.removeAttribute('contenteditable');
-        textEl.textContent = original;
-      }
-      textEl.addEventListener('blur', commit, { once: true });
-      textEl.addEventListener('keydown', function onKey(e) {
-        if (e.key === 'Enter') { e.preventDefault(); textEl.removeEventListener('keydown', onKey); textEl.blur(); }
-        else if (e.key === 'Escape') { e.preventDefault(); textEl.removeEventListener('keydown', onKey); cancel(); }
-      });
-    });
-  }
-
-  function wireDragReorder(row, listEl, key, reload) {
-    row.setAttribute('draggable', 'true');
-    row.addEventListener('dragstart', (e) => {
-      e.dataTransfer.effectAllowed = 'move';
-      e.dataTransfer.setData('text/plain', row.dataset.idx);
-    });
-    row.addEventListener('dragover', (e) => {
-      e.preventDefault();
-      row.classList.add('is-drag-over');
-    });
-    row.addEventListener('dragleave', () => row.classList.remove('is-drag-over'));
-    row.addEventListener('drop', (e) => {
-      e.preventDefault();
-      row.classList.remove('is-drag-over');
-      const from = parseInt(e.dataTransfer.getData('text/plain'), 10);
-      const to   = parseInt(row.dataset.idx, 10);
-      if (isNaN(from) || isNaN(to) || from === to) return;
-      const list = getGoals(key);
-      const [moved] = list.splice(from, 1);
-      list.splice(to, 0, moved);
-      setGoals(key, list);
-      reload();
-    });
-  }
-
-  function buildGoalRow(goal, idx, key, readOnly, reload) {
-    const li = document.createElement('li');
-    li.className = 'gm-row';
-    li.dataset.idx = String(idx);
-    if (goal.done) li.classList.add('gm-row-done');
-    if (goal.queued) li.classList.add('gm-row-queued');
-
-    const handle = document.createElement('span');
-    handle.className = 'gm-handle';
-    handle.textContent = '⋮⋮';
-    li.appendChild(handle);
-
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.className = 'gm-check';
-    cb.checked = !!goal.done;
-    if (readOnly) { cb.disabled = true; cb.title = 'Wird morgen um 6 Uhr freigeschaltet'; }
-    cb.addEventListener('change', () => {
-      const list = getGoals(key);
-      if (!list[idx]) return;
-      list[idx].done = cb.checked;
-      if (cb.checked) list[idx].doneAt = Date.now();
-      else delete list[idx].doneAt;
-      setGoals(key, list);
-      reload();
-    });
-    li.appendChild(cb);
-
-    const text = document.createElement('span');
-    text.className = 'gm-text';
-    text.textContent = goal.text;
-    li.appendChild(text);
-    makeInlineEdit(text, null, idx, key, reload);
-
-    const queueBtn = document.createElement('button');
-    queueBtn.type = 'button';
-    queueBtn.className = 'gm-queue-btn' + (goal.queued ? ' gm-queue-active' : '');
-    queueBtn.textContent = '⚡';
-    queueBtn.title = 'Für Produktivitätsfenster vormerken';
-    if (readOnly) queueBtn.disabled = true;
-    queueBtn.addEventListener('click', () => {
-      const list = getGoals(key);
-      if (!list[idx]) return;
-      list[idx].queued = !list[idx].queued;
-      setGoals(key, list);
-      li.classList.add('is-queue-flashing');
-      setTimeout(reload, 480);
-    });
-    li.appendChild(queueBtn);
-
-    const del = document.createElement('button');
-    del.type = 'button';
-    del.className = 'goal-delete';
-    del.setAttribute('aria-label', 'Ziel löschen');
-    del.textContent = '×';
-    del.addEventListener('click', () => {
-      const list = getGoals(key);
-      list.splice(idx, 1);
-      setGoals(key, list);
-      reload();
-    });
-    li.appendChild(del);
-
-    wireDragReorder(li, null, key, reload);
-    return li;
-  }
-
-  // ---------- Renderers ----------
-  function renderTodayHeader() {
-    const goals = getGoals(todayKey());
-    const total = goals.length;
-    const done  = goals.filter(g => g.done).length;
-    document.getElementById('gmProgressNum').textContent   = done;
-    document.getElementById('gmProgressTotal').textContent = '/ ' + total;
-    const label = document.getElementById('gmProgressLabel');
-    if (total === 0)        label.textContent = 'noch keine Ziele';
-    else if (done === total) label.textContent = 'alles erledigt — solider Tag';
-    else                     label.textContent = 'erledigt';
-
-    document.getElementById('todayLabel').textContent =
-      'Heute — ' + formatDate(getActiveDateString());
-
-    const bar = document.getElementById('gmBar');
-    bar.innerHTML = '';
-    goals.forEach(g => {
-      const seg = document.createElement('div');
-      seg.className = 'gm-bar-seg' + (g.done ? ' gm-bar-seg-done' : '');
-      bar.appendChild(seg);
-    });
-
-    const card = document.getElementById('gmCardToday');
-    card.classList.toggle('gm-all-done', total > 0 && done === total);
-
-    const pushBtn = document.getElementById('gmPushBtn');
-    pushBtn.style.display = (total > 0 && done < total) ? 'block' : 'none';
-  }
-
-  function renderStreak() {
-    const s = loadStreak();
-    document.getElementById('gmStreakNum').textContent = s.count;
-    document.getElementById('gmStreak').classList.toggle('gm-streak-active', s.count > 0);
-  }
-
-  function renderTomorrowCount() {
-    const list = getGoals(tomorrowKey());
-    document.getElementById('gmTomorrowCount').textContent = list.length + ' geplant';
-    document.getElementById('tomorrowLabel').textContent =
-      'Morgen planen — ' + formatDate(getTomorrowDateString());
-  }
-
-  function renderListInto(goals, listEl, emptyEl, key, readOnly) {
-    listEl.innerHTML = '';
-    emptyEl.style.display = goals.length === 0 ? 'block' : 'none';
-    const reload = () => (key === todayKey() ? loadToday() : loadTomorrow());
-
-    const visible = goals.length > 5 ? goals.slice(0, 5) : goals;
-    visible.forEach((g, i) => listEl.appendChild(buildGoalRow(g, i, key, readOnly, reload)));
-
-    if (goals.length > 5) {
-      let expanded = false;
-      const toggle = document.createElement('button');
-      toggle.type = 'button';
-      toggle.className = 'gm-show-toggle';
-      const updateLabel = () => {
-        toggle.textContent = expanded ? 'Weniger anzeigen ▴' : ((goals.length - 5) + ' mehr anzeigen ▾');
-      };
-      updateLabel();
-      toggle.addEventListener('click', () => {
-        expanded = !expanded;
-        if (expanded) {
-          goals.slice(5).forEach((g, i) => {
-            const row = buildGoalRow(g, i + 5, key, readOnly, reload);
-            listEl.insertBefore(row, toggle);
-          });
-        } else {
-          Array.from(listEl.querySelectorAll('.gm-row')).slice(5).forEach(r => r.remove());
-        }
-        updateLabel();
-      });
-      listEl.appendChild(toggle);
-    }
-
-    if (key === todayKey()) renderTodayHeader();
-    else                    renderTomorrowCount();
-  }
-
-  function loadToday() {
-    const goals = getGoals(todayKey());
-    renderListInto(goals, document.getElementById('goalList'), document.getElementById('emptyState'), todayKey(), false);
-  }
-  function loadTomorrow() {
-    const goals = getGoals(tomorrowKey());
-    renderListInto(goals, document.getElementById('tomorrowList'), document.getElementById('tomorrowEmpty'), tomorrowKey(), true);
-  }
-
-  // ---------- Push remaining ----------
-  document.getElementById('gmPushBtn').addEventListener('click', () => {
-    const today    = getGoals(todayKey());
-    const remaining = today.filter(g => !g.done);
-    if (remaining.length === 0) return;
-    if (!confirm(remaining.length + (remaining.length === 1 ? ' offenes Ziel' : ' offene Ziele') + ' auf morgen verschieben?')) return;
-    const tomorrow = getGoals(tomorrowKey());
-    const seen = new Set(tomorrow.map(g => g.text));
-    remaining.forEach(g => {
-      if (!seen.has(g.text)) { tomorrow.push({ text: g.text, done: false }); seen.add(g.text); }
-    });
-    setGoals(tomorrowKey(), tomorrow);
-    setGoals(todayKey(), today.filter(g => g.done));
-    loadToday(); loadTomorrow();
-  });
-
-  // ---------- Add + Polish handlers ----------
-  function showStatus(el, message, isError) {
-    el.textContent = message;
-    el.classList.toggle('gm-status-error', !!isError);
-    clearTimeout(el._t);
-    el._t = setTimeout(() => { el.textContent = ''; el.classList.remove('gm-status-error'); }, 3500);
-  }
-
-  async function polishOne(text) {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-5',
-        max_tokens: 1000,
-        messages: [{
-          role: 'user',
-          content:
-            'Rewrite this single goal so it is concrete, action-oriented, and under 60 characters. ' +
-            'Return ONLY a JSON array with exactly one string, no preamble, no code fences.\n\nGoal: ' + text
-        }]
-      })
-    });
-    const data = await res.json();
-    const content = (data && data.content && data.content[0] && data.content[0].text) || '';
-    const arr = JSON.parse(content);
-    if (!Array.isArray(arr) || arr.length < 1 || typeof arr[0] !== 'string') throw new Error('bad response');
-    return arr[0].trim();
-  }
-
-  function makeAddHandlers(input, addBtn, polishBtn, key, statusEl, reload) {
-    function plainAdd(text) {
-      const list = getGoals(key);
-      list.push({ text, done: false });
-      setGoals(key, list);
-      input.value = '';
-      reload();
-    }
-    addBtn.addEventListener('click', () => {
-      const text = input.value.trim();
-      if (!text) return;
-      plainAdd(text);
-    });
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') { e.preventDefault(); addBtn.click(); }
-    });
-    polishBtn.addEventListener('click', async () => {
-      const text = input.value.trim();
-      if (!text) return;
-      if (!ANTHROPIC_API_KEY) {
-        plainAdd(text);
-        showStatus(statusEl, 'Verfeinern benötigt einen Anthropic-API-Schlüssel — wie eingegeben hinzugefügt.', false);
-        return;
-      }
-      polishBtn.disabled = true;
-      try {
-        const polished = await polishOne(text);
-        plainAdd(polished);
-      } catch (e) {
-        plainAdd(text);
-        showStatus(statusEl, 'Verfeinern fehlgeschlagen — wie eingegeben hinzugefügt.', true);
-      } finally {
-        polishBtn.disabled = false;
-      }
-    });
-  }
-
-  makeAddHandlers(
-    document.getElementById('goalInput'),
-    document.getElementById('goalAddBtn'),
-    document.getElementById('goalPolishBtn'),
-    todayKey(),
-    document.getElementById('polishStatus'),
-    loadToday
-  );
-  makeAddHandlers(
-    document.getElementById('tomorrowInput'),
-    document.getElementById('tomorrowAddBtn'),
-    document.getElementById('tomorrowPolishBtn'),
-    tomorrowKey(),
-    document.getElementById('tomorrowStatus'),
-    loadTomorrow
-  );
-
-  // ============================================================
-  // Tagesscore — weighted composite over recovery/sleep/steps/
-  // water/activity/goals/wellbeing, renormalized over whichever
-  // components actually have data today (same approach as the
-  // Fitness Score in fitness.html and the Energy Score in
-  // daily.html). Cached to localStorage under daily_score_v1.
-  // ============================================================
+  // ---------- Tagesscore (headless — keeps daily_score_v1 fresh for daily-score.html) ----------
   const SCORE_KEY = 'daily_score_v1';
   const WELLBEING_KEY = 'daily_wellbeing_v1';
   const WHOOP_KEY_TS = 'whoop_tokens_v1';
-
-  // Goal-oriented: "Disziplin" = the existing goals-completion ratio,
-  // "mentale Entwicklung" = the existing mood/focus quick-rates — both
-  // reframed around the user's actual goal (Tennis-Trainer-A-Lizenz,
-  // Top-80-Deutschland) rather than adding more daily manual taps.
-  // tennisTraining and nutrition are the two genuinely new inputs, both
-  // reusing data that already exists elsewhere in the app (a logged
-  // Tennis activity, nutrition.html's entries) rather than inventing
-  // yet another thing to fill in by hand.
   const SCORE_WEIGHTS = {
     recovery: 12, goals: 12, tennisTraining: 12, activity: 10, sleepQuality: 8, sleepDuration: 8,
     nutrition: 8, steps: 6, water: 6, strain: 6, mood: 5, stress: 5, focus: 2,
@@ -1389,13 +679,7 @@ body::after {
     if (!r.ok) throw new Error('WHOOP ' + r.status);
     return await r.json();
   }
-  function tsLoadWellbeing() {
-    try {
-      const v = JSON.parse(localStorage.getItem(WELLBEING_KEY));
-      if (v && v.date === getActiveDateString()) return v;
-    } catch (e) {}
-    return null;
-  }
+  function tsLoadWellbeing() { try { const v = JSON.parse(localStorage.getItem(WELLBEING_KEY)); if (v && v.date === getActiveDateString()) return v; } catch (e) {} return null; }
   function tsWaterProgress() {
     let state = null;
     try { state = JSON.parse(localStorage.getItem('po_water_v1')); } catch (e) {}
@@ -1415,19 +699,12 @@ body::after {
       return acts.filter((a) => (a.startTime || '').slice(0, 10) === key).reduce((s, a) => s + (a.durationMin || 0), 0);
     } catch (e) { return 0; }
   }
-  function tsTodaySteps() {
-    try {
-      const v = JSON.parse(localStorage.getItem('fitness_steps_today_v1'));
-      if (v && v.date === getActiveDateString()) return v.steps;
-    } catch (e) {}
-    return null;
-  }
+  function tsTodaySteps() { try { const v = JSON.parse(localStorage.getItem('fitness_steps_today_v1')); if (v && v.date === getActiveDateString()) return v.steps; } catch (e) {} return null; }
   function tsTennisMinutesToday() {
     try {
       const acts = JSON.parse(localStorage.getItem('fitness_activities_v1')) || [];
       const key = getActiveDateString();
-      return acts.filter((a) => (a.startTime || '').slice(0, 10) === key && a.type === 'tennis')
-        .reduce((s, a) => s + (a.durationMin || 0), 0);
+      return acts.filter((a) => (a.startTime || '').slice(0, 10) === key && a.type === 'tennis').reduce((s, a) => s + (a.durationMin || 0), 0);
     } catch (e) { return 0; }
   }
   function tsNutritionRatioToday() {
@@ -1445,40 +722,14 @@ body::after {
     } catch (e) { return null; }
   }
   function computeScore(inputs) {
-    let weightedSum = 0, weightTotal = 0;
-    const parts = {};
+    let weightedSum = 0, weightTotal = 0; const parts = {};
     for (const key of Object.keys(inputs)) {
-      const v = inputs[key];
-      if (v == null) continue;
+      const v = inputs[key]; if (v == null) continue;
       const ratio = Math.max(0, Math.min(v, 1));
-      weightedSum += ratio * SCORE_WEIGHTS[key];
-      weightTotal += SCORE_WEIGHTS[key];
-      parts[key] = ratio;
+      weightedSum += ratio * SCORE_WEIGHTS[key]; weightTotal += SCORE_WEIGHTS[key]; parts[key] = ratio;
     }
     const score = weightTotal > 0 ? Math.round((weightedSum / weightTotal) * 100) : null;
     return { score, parts };
-  }
-  function tsZoneColor(score) {
-    if (score == null) return 'rgba(255,255,255,0.5)';
-    if (score >= 67) return '#6ee7b7';
-    if (score >= 34) return '#fbbf24';
-    return '#ff8a8a';
-  }
-  function renderTagesscore(score) {
-    const fill = document.getElementById('tscoreRingFill');
-    if (!fill) return;
-    const C = 2 * Math.PI * 74;
-    fill.style.strokeDasharray = C;
-    fill.style.strokeDashoffset = score != null ? C * (1 - score / 100) : C;
-    fill.style.stroke = tsZoneColor(score);
-    const numEl = document.getElementById('tscoreNum');
-    numEl.textContent = score != null ? score + '%' : '—';
-    numEl.style.color = tsZoneColor(score);
-    document.getElementById('tscoreNote').textContent = score == null
-      ? 'Noch nicht genug Daten für heute — verbinde WHOOP oder trag Werte ein.'
-      : score >= 67 ? 'Sehr guter Tag bisher — weiter so.'
-      : score >= 34 ? 'Solider Tag — an ein paar Stellen ist noch Luft nach oben.'
-      : 'Noch viel Potenzial für heute.';
   }
   async function updateTagesscore() {
     const goals = getGoals(todayKey());
@@ -1487,7 +738,6 @@ body::after {
     const activityMin = tsTodayActivityMinutes();
     const steps = tsTodaySteps();
     const wellbeing = tsLoadWellbeing();
-
     const tennisMin = tsTennisMinutesToday();
     const nutritionRatio = tsNutritionRatioToday();
 
@@ -1524,33 +774,208 @@ body::after {
           inputs.sleepDuration = Math.min(durMs / 60000 / SCORE_TARGETS.sleepDurationMin, 1);
         }
         if (c && c.strain != null) inputs.strain = c.strain / SCORE_TARGETS.strainMax;
-      } catch (e) { /* offline / not connected — score falls back to local-only inputs */ }
+      } catch (e) { /* offline / not connected */ }
     }
 
     const { score, parts } = computeScore(inputs);
-    try {
-      localStorage.setItem(SCORE_KEY, JSON.stringify({ date: getActiveDateString(), score, breakdown: parts, weights: SCORE_WEIGHTS }));
-    } catch (e) {}
-    renderTagesscore(score);
+    try { localStorage.setItem(SCORE_KEY, JSON.stringify({ date: getActiveDateString(), score, breakdown: parts, weights: SCORE_WEIGHTS })); } catch (e) {}
   }
 
-  // ---------- Boot ----------
+  // ---------- Goal-list UI: fully preserved, only ever runs if its DOM exists ----------
+  if (document.getElementById('goalList')) {
+    const tickerStage = document.getElementById('goalTickerStage');
+    const tickerMeta = document.getElementById('goalTickerMeta');
+    let cycleIdx = 0, tickerTimer = null;
+
+    function buildTickerItems() {
+      const goals = getGoals(todayKey());
+      const total = goals.length, done = goals.filter((g) => g.done).length;
+      if (total === 0) return { items: [{ status: 'empty', text: 'Keine Ziele für heute gesetzt — füge eins hinzu, um loszulegen.' }], done, total };
+      if (done === total) return { items: [{ status: 'done', text: '✓ Alle Ziele erledigt — solider Tag.' }], done, total };
+      return { items: goals.filter((g) => !g.done).map((g) => ({ status: 'pending', text: g.text })), done, total };
+    }
+    function statusGlyph(status) { if (status === 'done') return '✓'; if (status === 'pending') return '○'; return '·'; }
+    let firstTick = true;
+    function tick() {
+      const { items, done, total } = buildTickerItems();
+      if (cycleIdx >= items.length) cycleIdx = 0;
+      const item = items[cycleIdx]; cycleIdx = (cycleIdx + 1) % items.length;
+      tickerMeta.textContent = done + '/' + total;
+      let row = tickerStage.querySelector('.goal-ticker-row');
+      if (!row) {
+        row = document.createElement('div'); row.className = 'goal-ticker-row';
+        row.innerHTML = '<span class="goal-ticker-status"></span><span class="goal-ticker-text"></span>';
+        tickerStage.appendChild(row);
+      }
+      const statusEl = row.querySelector('.goal-ticker-status'), textEl = row.querySelector('.goal-ticker-text');
+      const apply = () => { statusEl.setAttribute('data-status', item.status); statusEl.textContent = statusGlyph(item.status); textEl.textContent = item.text; row.classList.remove('is-fading'); };
+      if (firstTick) { apply(); firstTick = false; return; }
+      row.classList.add('is-fading'); setTimeout(apply, 220);
+    }
+    function startTicker() { tick(); if (tickerTimer) clearInterval(tickerTimer); tickerTimer = setInterval(tick, 5000); }
+    window.addEventListener('goals-changed', () => { cycleIdx = 0; tick(); });
+
+    function makeInlineEdit(textEl, goals, idx, key, reload) {
+      textEl.addEventListener('click', () => {
+        if (textEl.getAttribute('contenteditable') === 'true') return;
+        const original = textEl.textContent;
+        textEl.setAttribute('contenteditable', 'true'); textEl.focus();
+        const range = document.createRange(); range.selectNodeContents(textEl); range.collapse(false);
+        const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+        function commit() {
+          const next = textEl.textContent.trim(); textEl.removeAttribute('contenteditable');
+          if (next && next !== original) { const list = getGoals(key); if (list[idx]) { list[idx].text = next; setGoals(key, list); } reload(); }
+          else textEl.textContent = original;
+        }
+        function cancel() { textEl.removeAttribute('contenteditable'); textEl.textContent = original; }
+        textEl.addEventListener('blur', commit, { once: true });
+        textEl.addEventListener('keydown', function onKey(e) {
+          if (e.key === 'Enter') { e.preventDefault(); textEl.removeEventListener('keydown', onKey); textEl.blur(); }
+          else if (e.key === 'Escape') { e.preventDefault(); textEl.removeEventListener('keydown', onKey); cancel(); }
+        });
+      });
+    }
+    function wireDragReorder(row, listEl, key, reload) {
+      row.setAttribute('draggable', 'true');
+      row.addEventListener('dragstart', (e) => { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', row.dataset.idx); });
+      row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('is-drag-over'); });
+      row.addEventListener('dragleave', () => row.classList.remove('is-drag-over'));
+      row.addEventListener('drop', (e) => {
+        e.preventDefault(); row.classList.remove('is-drag-over');
+        const from = parseInt(e.dataTransfer.getData('text/plain'), 10), to = parseInt(row.dataset.idx, 10);
+        if (isNaN(from) || isNaN(to) || from === to) return;
+        const list = getGoals(key); const [moved] = list.splice(from, 1); list.splice(to, 0, moved);
+        setGoals(key, list); reload();
+      });
+    }
+    function buildGoalRow(goal, idx, key, readOnly, reload) {
+      const li = document.createElement('li'); li.className = 'gm-row'; li.dataset.idx = String(idx);
+      if (goal.done) li.classList.add('gm-row-done');
+      if (goal.queued) li.classList.add('gm-row-queued');
+      const handle = document.createElement('span'); handle.className = 'gm-handle'; handle.textContent = '⋮⋮'; li.appendChild(handle);
+      const cb = document.createElement('input'); cb.type = 'checkbox'; cb.className = 'gm-check'; cb.checked = !!goal.done;
+      if (readOnly) { cb.disabled = true; cb.title = 'Wird morgen um 6 Uhr freigeschaltet'; }
+      cb.addEventListener('change', () => {
+        const list = getGoals(key); if (!list[idx]) return;
+        list[idx].done = cb.checked; if (cb.checked) list[idx].doneAt = Date.now(); else delete list[idx].doneAt;
+        setGoals(key, list); reload();
+      });
+      li.appendChild(cb);
+      const text = document.createElement('span'); text.className = 'gm-text'; text.textContent = goal.text; li.appendChild(text);
+      makeInlineEdit(text, null, idx, key, reload);
+      const queueBtn = document.createElement('button'); queueBtn.type = 'button'; queueBtn.className = 'gm-queue-btn' + (goal.queued ? ' gm-queue-active' : '');
+      queueBtn.textContent = '⚡'; queueBtn.title = 'Für Produktivitätsfenster vormerken';
+      if (readOnly) queueBtn.disabled = true;
+      queueBtn.addEventListener('click', () => {
+        const list = getGoals(key); if (!list[idx]) return;
+        list[idx].queued = !list[idx].queued; setGoals(key, list);
+        li.classList.add('is-queue-flashing'); setTimeout(reload, 480);
+      });
+      li.appendChild(queueBtn);
+      const del = document.createElement('button'); del.type = 'button'; del.className = 'goal-delete'; del.setAttribute('aria-label', 'Ziel löschen'); del.textContent = '×';
+      del.addEventListener('click', () => { const list = getGoals(key); list.splice(idx, 1); setGoals(key, list); reload(); });
+      li.appendChild(del);
+      wireDragReorder(li, null, key, reload);
+      return li;
+    }
+    function renderTodayHeader() {
+      const goals = getGoals(todayKey()); const total = goals.length, done = goals.filter((g) => g.done).length;
+      document.getElementById('gmProgressNum').textContent = done;
+      document.getElementById('gmProgressTotal').textContent = '/ ' + total;
+      const label = document.getElementById('gmProgressLabel');
+      label.textContent = total === 0 ? 'noch keine Ziele' : (done === total ? 'alles erledigt — solider Tag' : 'erledigt');
+      document.getElementById('todayLabel').textContent = 'Heute — ' + formatDate(getActiveDateString());
+      const bar = document.getElementById('gmBar'); bar.innerHTML = '';
+      goals.forEach((g) => { const seg = document.createElement('div'); seg.className = 'gm-bar-seg' + (g.done ? ' gm-bar-seg-done' : ''); bar.appendChild(seg); });
+      document.getElementById('gmCardToday').classList.toggle('gm-all-done', total > 0 && done === total);
+      document.getElementById('gmPushBtn').style.display = (total > 0 && done < total) ? 'block' : 'none';
+    }
+    function renderStreak() {
+      const s = loadStreak();
+      document.getElementById('gmStreakNum').textContent = s.count;
+      document.getElementById('gmStreak').classList.toggle('gm-streak-active', s.count > 0);
+    }
+    function renderTomorrowCount() {
+      const list = getGoals(tomorrowKey());
+      document.getElementById('gmTomorrowCount').textContent = list.length + ' geplant';
+      document.getElementById('tomorrowLabel').textContent = 'Morgen planen — ' + formatDate(getTomorrowDateString());
+    }
+    function renderListInto(goals, listEl, emptyEl, key, readOnly) {
+      listEl.innerHTML = ''; emptyEl.style.display = goals.length === 0 ? 'block' : 'none';
+      const reload = () => (key === todayKey() ? loadToday() : loadTomorrow());
+      const visible = goals.length > 5 ? goals.slice(0, 5) : goals;
+      visible.forEach((g, i) => listEl.appendChild(buildGoalRow(g, i, key, readOnly, reload)));
+      if (goals.length > 5) {
+        let expanded = false;
+        const toggle = document.createElement('button'); toggle.type = 'button'; toggle.className = 'gm-show-toggle';
+        const updateLabel = () => { toggle.textContent = expanded ? 'Weniger anzeigen ▴' : ((goals.length - 5) + ' mehr anzeigen ▾'); };
+        updateLabel();
+        toggle.addEventListener('click', () => {
+          expanded = !expanded;
+          if (expanded) goals.slice(5).forEach((g, i) => listEl.insertBefore(buildGoalRow(g, i + 5, key, readOnly, reload), toggle));
+          else Array.from(listEl.querySelectorAll('.gm-row')).slice(5).forEach((r) => r.remove());
+          updateLabel();
+        });
+        listEl.appendChild(toggle);
+      }
+      if (key === todayKey()) renderTodayHeader(); else renderTomorrowCount();
+    }
+    function loadToday() { renderListInto(getGoals(todayKey()), document.getElementById('goalList'), document.getElementById('emptyState'), todayKey(), false); }
+    function loadTomorrow() { renderListInto(getGoals(tomorrowKey()), document.getElementById('tomorrowList'), document.getElementById('tomorrowEmpty'), tomorrowKey(), true); }
+
+    document.getElementById('gmPushBtn').addEventListener('click', () => {
+      const today = getGoals(todayKey()); const remaining = today.filter((g) => !g.done);
+      if (remaining.length === 0) return;
+      if (!confirm(remaining.length + (remaining.length === 1 ? ' offenes Ziel' : ' offene Ziele') + ' auf morgen verschieben?')) return;
+      const tomorrow = getGoals(tomorrowKey()); const seen = new Set(tomorrow.map((g) => g.text));
+      remaining.forEach((g) => { if (!seen.has(g.text)) { tomorrow.push({ text: g.text, done: false }); seen.add(g.text); } });
+      setGoals(tomorrowKey(), tomorrow); setGoals(todayKey(), today.filter((g) => g.done));
+      loadToday(); loadTomorrow();
+    });
+
+    function showStatus(el, message, isError) {
+      el.textContent = message; el.classList.toggle('gm-status-error', !!isError);
+      clearTimeout(el._t); el._t = setTimeout(() => { el.textContent = ''; el.classList.remove('gm-status-error'); }, 3500);
+    }
+    async function polishOne(text) {
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model: 'claude-sonnet-4-5', max_tokens: 1000, messages: [{ role: 'user', content: 'Rewrite this single goal so it is concrete, action-oriented, and under 60 characters. Return ONLY a JSON array with exactly one string, no preamble, no code fences.\n\nGoal: ' + text }] }),
+      });
+      const data = await res.json();
+      const content = (data && data.content && data.content[0] && data.content[0].text) || '';
+      const arr = JSON.parse(content);
+      if (!Array.isArray(arr) || arr.length < 1 || typeof arr[0] !== 'string') throw new Error('bad response');
+      return arr[0].trim();
+    }
+    function makeAddHandlers(input, addBtn, polishBtn, key, statusEl, reload) {
+      function plainAdd(text) { const list = getGoals(key); list.push({ text, done: false }); setGoals(key, list); input.value = ''; reload(); }
+      addBtn.addEventListener('click', () => { const text = input.value.trim(); if (text) plainAdd(text); });
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addBtn.click(); } });
+      polishBtn.addEventListener('click', async () => {
+        const text = input.value.trim(); if (!text) return;
+        if (!ANTHROPIC_API_KEY) { plainAdd(text); showStatus(statusEl, 'Verfeinern benötigt einen Anthropic-API-Schlüssel — wie eingegeben hinzugefügt.', false); return; }
+        polishBtn.disabled = true;
+        try { const polished = await polishOne(text); plainAdd(polished); }
+        catch (e) { plainAdd(text); showStatus(statusEl, 'Verfeinern fehlgeschlagen — wie eingegeben hinzugefügt.', true); }
+        finally { polishBtn.disabled = false; }
+      });
+    }
+    makeAddHandlers(document.getElementById('goalInput'), document.getElementById('goalAddBtn'), document.getElementById('goalPolishBtn'), todayKey(), document.getElementById('polishStatus'), loadToday);
+    makeAddHandlers(document.getElementById('tomorrowInput'), document.getElementById('tomorrowAddBtn'), document.getElementById('tomorrowPolishBtn'), tomorrowKey(), document.getElementById('tomorrowStatus'), loadTomorrow);
+
+    loadToday(); loadTomorrow(); renderStreak(); startTicker();
+    window.addEventListener('storage', () => { loadToday(); loadTomorrow(); renderStreak(); });
+  }
+
+  // ---------- Boot: data maintenance that should keep running regardless of UI ----------
   rollover();
   processStreak();
-  loadToday();
-  loadTomorrow();
-  renderStreak();
-  updateDayRing();
-  setInterval(updateDayRing, 60 * 1000);
   updateTagesscore();
   setInterval(updateTagesscore, 5 * 60 * 1000);
   window.addEventListener('goals-changed', updateTagesscore);
-  startTicker();
-
-  // Re-render when storage changes from another tab (or our bridged parent).
-  window.addEventListener('storage', () => {
-    loadToday(); loadTomorrow(); renderStreak(); updateTagesscore();
-  });
+  window.addEventListener('storage', updateTagesscore);
 })();
 </script>
 <script>
@@ -1565,88 +990,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 });
-</script>
-<script>
-(function () {
-  'use strict';
-  const VAPID_PUBLIC_KEY = 'BKnAHdygL9KmQ2QfT1mA5_oIG3jlxscSyf5WlvTtHzlpEFimv2DbsYBvreJQMPo9PDk9EHiMdeGswrbqSazFXec';
-
-  function urlBase64ToUint8Array(base64) {
-    const padding = '='.repeat((4 - (base64.length % 4)) % 4);
-    const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const raw = atob(b64);
-    const arr = new Uint8Array(raw.length);
-    for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
-    return arr;
-  }
-  function isStandalone() {
-    return window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-  }
-  function isIos() {
-    return /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-  }
-
-  const btn = document.getElementById('notifBtn');
-  const statusEl = document.getElementById('notifStatus');
-  if (!btn || !statusEl) return;
-
-  function setState(label, opts) {
-    statusEl.textContent = label;
-    btn.style.display = (opts && opts.hideBtn) ? 'none' : '';
-    btn.disabled = !!(opts && opts.disableBtn);
-    btn.classList.toggle('is-active', !!(opts && opts.active));
-    btn.textContent = (opts && opts.active) ? 'Aktiv ✓' : 'Aktivieren';
-  }
-
-  async function refreshState() {
-    if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
-      setState('In diesem Browser nicht unterstützt.', { hideBtn: true });
-      return;
-    }
-    if (Notification.permission === 'denied') {
-      setState('Blockiert — in den iPhone-Einstellungen für diese App erlauben.', { hideBtn: true });
-      return;
-    }
-    try {
-      const reg = await navigator.serviceWorker.ready;
-      const sub = await reg.pushManager.getSubscription();
-      if (sub) {
-        setState('Aktiv — 07:30, 15:00 & 21:00 Uhr', { active: true, disableBtn: true });
-        return;
-      }
-    } catch (e) {}
-    if (isIos() && !isStandalone()) {
-      setState('Zuerst zum Home-Bildschirm hinzufügen, dann von dort öffnen.', { hideBtn: true });
-      return;
-    }
-    setState('Erinnerungen um 07:30, 15:00 & 21:00 Uhr');
-  }
-
-  btn.addEventListener('click', async function () {
-    btn.disabled = true;
-    try {
-      const perm = await Notification.requestPermission();
-      if (perm !== 'granted') { await refreshState(); btn.disabled = false; return; }
-      const reg = await navigator.serviceWorker.ready;
-      let sub = await reg.pushManager.getSubscription();
-      if (!sub) {
-        sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-        });
-      }
-      await fetch('/api/push-subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subscription: sub }),
-      });
-    } catch (e) {}
-    await refreshState();
-    btn.disabled = false;
-  });
-
-  refreshState();
-})();
 </script>
 </body>
 </html>
