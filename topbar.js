@@ -215,6 +215,9 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     <button class="topbar-water-add" id="topbarWaterAdd" aria-label="Ein Getränk erfassen" type="button">+</button>
   </div>
   <div class="topbar-icons">
+    <a href="roger.html" class="topbar-finance-btn" id="topbarRoger" aria-label="Roger, dein Mentor">
+      <span class="topbar-finance-icon">🎾</span>
+    </a>
     <a href="finance.html" class="topbar-finance-btn" id="topbarFinance" aria-label="Finanzen">
       <span class="topbar-finance-icon">📊</span>
     </a>
