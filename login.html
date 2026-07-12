@@ -58,7 +58,7 @@ h1 {
   letter-spacing: -0.01em;
 }
 label { display: block; font-size: 13px; color: var(--text-3); margin-bottom: 6px; }
-input[type="password"] {
+input[type="password"], input[type="email"] {
   width: 100%;
   padding: 12px 14px;
   border-radius: 12px;
@@ -69,7 +69,8 @@ input[type="password"] {
   font-size: 15px;
   outline: none;
 }
-input[type="password"]:focus { border-color: var(--accent-glow); }
+input[type="password"]:focus, input[type="email"]:focus { border-color: var(--accent-glow); }
+label.field-gap { margin-top: 16px; }
 .remember {
   display: flex; align-items: center; gap: 8px;
   margin: 16px 0 20px;
@@ -103,8 +104,10 @@ button.submit:disabled { opacity: 0.6; cursor: default; }
   <div class="card-content">
   <h1 class="rw-title">Anmelden</h1>
   <form id="loginForm" autocomplete="on">
-    <label for="password">Passwort</label>
-    <input type="password" id="password" name="password" autocomplete="current-password" autofocus required>
+    <label for="email">E-Mail</label>
+    <input type="email" id="email" name="email" autocomplete="username" autofocus required>
+    <label class="field-gap" for="password">Passwort</label>
+    <input type="password" id="password" name="password" autocomplete="current-password" required>
     <label class="remember" for="remember">
       <input type="checkbox" id="remember" name="remember">
       Angemeldet bleiben
@@ -118,6 +121,7 @@ button.submit:disabled { opacity: 0.6; cursor: default; }
 (function () {
   'use strict';
   var form = document.getElementById('loginForm');
+  var emailEl = document.getElementById('email');
   var passwordEl = document.getElementById('password');
   var rememberEl = document.getElementById('remember');
   var errorEl = document.getElementById('error');
@@ -130,15 +134,19 @@ button.submit:disabled { opacity: 0.6; cursor: default; }
     fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: passwordEl.value, remember: rememberEl.checked })
+      body: JSON.stringify({ email: emailEl.value, password: passwordEl.value, remember: rememberEl.checked })
     }).then(function (res) {
       if (res.ok) {
         window.location.href = '/main.html';
         return;
       }
       submitBtn.disabled = false;
-      errorEl.textContent = 'Falsches Passwort.';
       passwordEl.value = '';
+      if (res.status === 403) {
+        errorEl.textContent = 'Zu viele Fehlversuche — dieses Gerät ist dauerhaft gesperrt.';
+        return;
+      }
+      errorEl.textContent = 'Falsches Passwort.';
       passwordEl.focus();
     }).catch(function () {
       submitBtn.disabled = false;
