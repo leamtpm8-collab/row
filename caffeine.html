@@ -124,7 +124,7 @@ body { color: var(--text-2); font-family: var(--font); -webkit-font-smoothing: a
     <div class="sub rw-eyebrow" id="cafDateLabel">—</div>
   </div>
 
-  <div class="rw-card card">
+  <div class="rw-card card rw-card-photo rw-card-photo--coffee">
     <div class="energy-head">
       <div class="ring">
         <svg viewBox="0 0 92 92"><circle class="ring-track" cx="46" cy="46" r="40"></circle><circle class="ring-fill" id="ringFill" cx="46" cy="46" r="40"></circle></svg>
@@ -430,7 +430,7 @@ body { color: var(--text-2); font-family: var(--font); -webkit-font-smoothing: a
     const pct = Math.min(100, (total / limit) * 100);
     const fill = $('dailyFill'); fill.style.width = pct + '%';
     fill.style.background = total >= limit ? 'linear-gradient(90deg,#FF6B6B,#F2807A)' : total >= target ? 'linear-gradient(90deg,#F2C063,#F2A65A)' : 'linear-gradient(90deg,#6ee7b7,#A7F3D0)';
-    const msg = $('dailyMsg'); msg.className = 'daily-msg';
+    const msg = $('dailyMsg'); msg.className = 'daily-msg rw-quote';
     if (total === 0) { msg.classList.add('good'); msg.textContent = 'Noch nichts protokolliert heute.'; }
     else if (total >= limit) { msg.classList.add('bad'); msg.textContent = '⚠️ Das liegt über deiner Tagesgrenze — heute nichts mehr.'; }
     else if (total >= target) { msg.classList.add('warn'); msg.textContent = 'Wird viel. Noch ' + (limit - total) + ' mg bis zur Grenze.'; }

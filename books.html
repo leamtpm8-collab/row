@@ -47,30 +47,6 @@ body {
   overflow-x: hidden;
   padding: max(28px, env(safe-area-inset-top)) 20px 60px;
 }
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background:
-    radial-gradient(circle at 82% 14%, rgba(110, 231, 183, 0.16), transparent 45%),
-    radial-gradient(circle at 18% 90%, rgba(180, 180, 200, 0.06), transparent 50%);
-  filter: blur(40px);
-  pointer-events: none;
-  z-index: -2;
-  animation: drift 36s ease-in-out infinite alternate;
-}
-body::after {
-  content: '';
-  position: fixed; inset: 0;
-  background-image: radial-gradient(rgba(255,255,255,0.014) 1px, transparent 1px);
-  background-size: 3px 3px;
-  pointer-events: none;
-  z-index: -1;
-}
-@keyframes drift {
-  0%   { transform: translate3d(0,0,0); }
-  100% { transform: translate3d(-22px, 14px, 0); }
-}
-
 .page { max-width: 1100px; margin: 0 auto; }
 
 .books-head {
@@ -127,9 +103,9 @@ body::after {
 }
 .book-filter-btn:hover { color: var(--text-primary); }
 .book-filter-btn.active {
-  background: rgba(255,255,255,0.10);
-  border-color: rgba(255,255,255,0.22);
-  color: var(--text-primary);
+  background: var(--glass-bg);
+  border-color: var(--border-strong);
+  color: var(--accent);
 }
 
 /* ===== The shelf ===== */
@@ -283,7 +259,6 @@ body::after {
 
 /* ===== Detail modal ===== */
 .book-detail-modal h3 {
-  font-family: var(--font-serif); font-style: italic;
   margin: 0 0 4px;
   writing-mode: initial;
   transform: none;
@@ -348,7 +323,7 @@ body::after {
     <button class="book-filter-btn" data-filter="dropped">Abgebrochen</button>
   </div>
 
-  <div class="shelf-outer" id="shelfOuter"></div>
+  <div class="shelf-outer rw-card-photo rw-card-photo--sky" id="shelfOuter"></div>
 
 </div>
 
@@ -383,7 +358,7 @@ body::after {
 <!-- Detail modal -->
 <div class="book-modal-bg" id="bookDetailBg">
   <div class="book-modal book-detail-modal">
-    <h3 id="bookDetailTitle"></h3>
+    <h3 id="bookDetailTitle" class="rw-quote"></h3>
     <div class="book-detail-row">
       <span class="book-detail-label">Status</span>
       <span id="bookDetailStatus"></span>

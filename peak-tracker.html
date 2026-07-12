@@ -38,8 +38,9 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .sleep-bar .sb-note { font-size: 11px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
 
 .now-card {
+  position: relative; overflow: hidden;
   display: flex; align-items: center; gap: 16px;
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 18px; margin-bottom: 14px; box-shadow: 0 10px 34px rgba(0,0,0,0.4);
 }
 .now-ring-wrap { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
@@ -53,7 +54,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .now-hint { font-size: 12px; color: var(--text-3); margin-top: 4px; }
 
 .chart-card {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 18px 16px 14px; margin-bottom: 14px; box-shadow: 0 10px 34px rgba(0,0,0,0.4);
 }
 .chart-hd { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
@@ -72,7 +73,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .chart-tip .tip-time { color: var(--text-3); font-size: 10px; font-family: var(--font-mono); }
 
 .why-card {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 18px; margin-bottom: 14px; box-shadow: 0 10px 34px rgba(0,0,0,0.4);
 }
 .why-title { font-family: var(--font-serif); font-style: italic; font-size: 18px; font-weight: 700; margin-bottom: 10px; }
@@ -95,8 +96,8 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .window-peak { text-align: right; }
 .window-peak-num { font-size: 16px; font-weight: 800; color: var(--good); font-variant-numeric: tabular-nums; }
 .window-peak-lbl { font-size: 9.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
-.block-btn { border: 1px solid var(--border); background: var(--bg-card-2); color: var(--text-1); font-size: 12px; font-weight: 700; padding: 8px 12px; border-radius: 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; white-space: nowrap; }
-.block-btn:hover { border-color: rgba(110,231,183,0.4); }
+.block-btn { border: none; background: var(--accent-soft); color: #06210f; font-size: 12px; font-weight: 700; padding: 9px 16px; border-radius: 999px; cursor: pointer; -webkit-tap-highlight-color: transparent; white-space: nowrap; }
+.block-btn:hover { filter: brightness(1.06); }
 
 .plan-strip { background: var(--bg-card); border: 1px dashed var(--border); border-radius: 16px; padding: 14px 16px; margin-bottom: 14px; }
 .plan-empty { font-size: 12.5px; color: var(--text-3); text-align: center; }
@@ -106,7 +107,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .plan-remove:hover { color: var(--bad); }
 
 .feel-card {
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 22px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 16px; box-shadow: 0 10px 34px rgba(0,0,0,0.4);
 }
 .feel-title { font-size: 13px; font-weight: 700; margin-bottom: 12px; }
@@ -114,7 +115,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .feel-chip { border: 1px solid var(--border); background: var(--bg-card-2); border-radius: 14px; padding: 10px 4px; text-align: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .feel-chip .dot { width: 8px; height: 8px; border-radius: 50%; margin: 0 auto 6px; }
 .feel-chip .lbl { font-size: 10px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.03em; }
-.feel-chip.selected { border-color: rgba(110,231,183,0.5); background: rgba(110,231,183,0.08); }
+.feel-chip.selected { border-color: var(--border-strong); background: var(--accent-dim); }
 .feel-chip.selected .lbl { color: var(--text-1); }
 
 .connect-note { text-align: center; color: var(--text-3); font-size: 13px; padding: 8px 0 4px; }
@@ -134,7 +135,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     <span class="sb-note">Dein Fenster</span>
   </div>
 
-  <div class="now-card">
+  <div class="now-card rw-card-photo rw-card-photo--forest">
     <div class="now-ring-wrap">
       <svg class="now-ring" viewBox="0 0 90 90">
         <circle class="now-ring-track" cx="45" cy="45" r="38"></circle>
@@ -143,7 +144,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
       <div class="now-ring-num" id="ptRingNum">—</div>
     </div>
     <div class="now-body">
-      <div class="now-mood" id="ptMood">—</div>
+      <div class="now-mood rw-quote" id="ptMood">—</div>
       <div class="now-sub" id="ptNowSub">JETZT GERADE</div>
       <div class="now-hint" id="ptHint">Kurve wird berechnet …</div>
     </div>
@@ -171,7 +172,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
   </div>
 
   <div class="why-card" id="ptWhyCard" style="display:none">
-    <div class="why-title" id="ptWhyTitle">—</div>
+    <div class="why-title rw-quote" id="ptWhyTitle">—</div>
     <ul class="why-list" id="ptWhyList"></ul>
   </div>
 

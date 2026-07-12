@@ -33,8 +33,9 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .group-h:first-of-type { margin-top: 0; }
 
 .tip-card {
+  position: relative; overflow: hidden;
   display: flex; align-items: flex-start; gap: 14px;
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 18px; margin-bottom: 12px; box-shadow: 0 8px 26px rgba(0,0,0,0.3);
 }
 .tip-icon { width: 44px; height: 44px; border-radius: 14px; background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 21px; flex-shrink: 0; }
@@ -43,7 +44,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 
 .delta-card {
   display: flex; align-items: center; gap: 14px;
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 16px 18px; margin-bottom: 10px; box-shadow: 0 8px 26px rgba(0,0,0,0.3);
 }
 .delta-icon { width: 40px; height: 40px; border-radius: 12px; background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 19px; flex-shrink: 0; }
@@ -139,8 +140,10 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     return h > 0 ? h + 'h ' + m + 'min' : m + 'min';
   }
 
-  function tipCard(icon, title, reason) {
-    return '<div class="tip-card"><div class="tip-icon">' + icon + '</div><div><div class="tip-title">' + title + '</div><div class="tip-reason">' + reason + '</div></div></div>';
+  function tipCard(icon, title, reason, hero) {
+    var heroCls = hero ? ' rw-card-photo rw-card-photo--forest' : '';
+    var titleCls = hero ? ' rw-quote' : '';
+    return '<div class="tip-card' + heroCls + '"><div class="tip-icon">' + icon + '</div><div><div class="tip-title' + titleCls + '">' + title + '</div><div class="tip-reason">' + reason + '</div></div></div>';
   }
 
   // Fixed-order, condition-gated candidate pool — same deterministic
@@ -217,7 +220,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 
     const ctx = { steps, activities, activityMin, calories, strain, recovery, hrZoneWeighted };
     const tips = buildTips(ctx);
-    document.getElementById('tipsBody').innerHTML = tips.map((t) => tipCard(t.icon, t.title, t.reason)).join('');
+    document.getElementById('tipsBody').innerHTML = tips.map((t, i) => tipCard(t.icon, t.title, t.reason, i === 0)).join('');
     if (!tokens || !tokens.access) {
       document.getElementById('tipsBody').insertAdjacentHTML('beforeend', '<div class="connect-note">WHOOP auf der <a href="health.html">Gesundheit-Seite</a> verbinden für individuellere Empfehlungen.</div>');
     }

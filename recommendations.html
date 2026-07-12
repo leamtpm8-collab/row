@@ -30,14 +30,15 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
 
 .tip-card {
+  position: relative; overflow: hidden;
   display: flex; align-items: flex-start; gap: 14px;
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
   padding: 18px; margin-bottom: 12px; box-shadow: 0 8px 26px rgba(0,0,0,0.3);
 }
 .tip-icon { width: 44px; height: 44px; border-radius: 14px; background: var(--bg-card-2); display: flex; align-items: center; justify-content: center; font-size: 21px; flex-shrink: 0; }
 .tip-title { font-size: 15px; font-weight: 700; }
 .tip-reason { font-size: 12.5px; color: var(--text-3); margin-top: 3px; }
-.basis-card { margin-top: 22px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 16px 18px; }
+.basis-card { margin-top: 22px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
 .basis-h { font-size: 12px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-mono); margin-bottom: 8px; }
 .basis-row { font-size: 13px; color: var(--text-2); padding: 3px 0; }
 .connect-note { text-align: center; color: var(--text-3); font-size: 13px; padding: 20px 0 30px; }
@@ -123,8 +124,10 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     } catch (e) { return false; }
   }
 
-  function tipCard(icon, title, reason) {
-    return '<div class="tip-card"><div class="tip-icon">' + icon + '</div><div><div class="tip-title">' + title + '</div><div class="tip-reason">' + reason + '</div></div></div>';
+  function tipCard(icon, title, reason, hero) {
+    var heroCls = hero ? ' rw-card-photo rw-card-photo--forest' : '';
+    var titleCls = hero ? ' rw-quote' : '';
+    return '<div class="tip-card' + heroCls + '"><div class="tip-icon">' + icon + '</div><div><div class="tip-title' + titleCls + '">' + title + '</div><div class="tip-reason">' + reason + '</div></div></div>';
   }
 
   // Fixed-order candidate pool, each gated by a real condition computed
@@ -250,7 +253,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     }
 
     const tips = buildTips(ctx);
-    document.getElementById('tipsBody').innerHTML = tips.map((t) => tipCard(t.icon, t.title, t.reason)).join('');
+    document.getElementById('tipsBody').innerHTML = tips.map((t, i) => tipCard(t.icon, t.title, t.reason, i === 0)).join('');
 
     if (ctx.score != null) {
       document.getElementById('basisCard').style.display = '';

@@ -28,7 +28,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .hd h1 { margin: 0; font-size: 24px; }
 .hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
 
-.score-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 26px; padding: 26px 20px 22px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 34px rgba(0,0,0,0.4); margin-bottom: 16px; }
+.score-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 26px 20px 22px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 34px rgba(0,0,0,0.4); margin-bottom: 16px; }
 .score-ring-wrap { position: relative; width: 168px; height: 168px; margin-bottom: 4px; }
 .score-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
 .score-ring-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 11; }
@@ -133,7 +133,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
       const sleepHist = await whoopFetch('/activity/sleep?limit=1', t).catch(() => null);
       const rec = sleepHist && sleepHist.records && sleepHist.records[0];
       if (!rec || !rec.score) {
-        body.innerHTML = '<div class="score-card"><div class="score-ring-wrap"><svg class="score-ring" viewBox="0 0 168 168"><circle class="score-ring-track" cx="84" cy="84" r="74"></circle><circle class="score-ring-fill" id="slRingFill" cx="84" cy="84" r="74"></circle></svg><div class="score-ring-center"><div class="score-num" id="slNum">—</div><div class="score-label">Schlaf</div></div></div></div>'
+        body.innerHTML = '<div class="score-card rw-card-photo rw-card-photo--sky"><div class="score-ring-wrap"><svg class="score-ring" viewBox="0 0 168 168"><circle class="score-ring-track" cx="84" cy="84" r="74"></circle><circle class="score-ring-fill" id="slRingFill" cx="84" cy="84" r="74"></circle></svg><div class="score-ring-center"><div class="score-num" id="slNum">—</div><div class="score-label">Schlaf</div></div></div></div>'
           + '<div class="connect-note">Noch keine Schlafdaten von WHOOP verfügbar.</div>';
         renderRing(null);
         return;
@@ -144,7 +144,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
       const need = score.sleep_needed || {};
       const needTotal = (need.baseline_milli || 0) + (need.need_from_sleep_debt_milli || 0) + (need.need_from_recent_strain_milli || 0) - (need.need_from_recent_nap_milli || 0);
 
-      let html = '<div class="score-card"><div class="score-ring-wrap"><svg class="score-ring" viewBox="0 0 168 168"><circle class="score-ring-track" cx="84" cy="84" r="74"></circle><circle class="score-ring-fill" id="slRingFill" cx="84" cy="84" r="74"></circle></svg><div class="score-ring-center"><div class="score-num" id="slNum">—</div><div class="score-label">Schlaf</div></div></div></div>';
+      let html = '<div class="score-card rw-card-photo rw-card-photo--sky"><div class="score-ring-wrap"><svg class="score-ring" viewBox="0 0 168 168"><circle class="score-ring-track" cx="84" cy="84" r="74"></circle><circle class="score-ring-fill" id="slRingFill" cx="84" cy="84" r="74"></circle></svg><div class="score-ring-center"><div class="score-num" id="slNum">—</div><div class="score-label">Schlaf</div></div></div></div>';
 
       // Timeline bar: awake/light/deep/REM proportions
       const segs = [
