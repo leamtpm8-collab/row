@@ -34,78 +34,18 @@ body {
   overflow-x: hidden;
   padding: max(28px, env(safe-area-inset-top)) 20px 60px;
 }
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background:
-    radial-gradient(circle at 82% 14%, rgba(110, 231, 183, 0.14), transparent 45%),
-    radial-gradient(circle at 18% 90%, rgba(110, 231, 183, 0.06), transparent 50%);
-  filter: blur(40px);
-  pointer-events: none;
-  z-index: -2;
-  animation: drift 36s ease-in-out infinite alternate;
-}
-body::after {
-  content: '';
-  position: fixed; inset: 0;
-  background-image: radial-gradient(rgba(255,255,255,0.014) 1px, transparent 1px);
-  background-size: 3px 3px;
-  pointer-events: none;
-  z-index: -1;
-}
-@keyframes drift {
-  0%   { transform: translate3d(0,0,0); }
-  100% { transform: translate3d(-22px, 14px, 0); }
-}
 
 .page { max-width: 640px; margin: 0 auto; }
+.dash-greet { font-size: 22px; font-weight: 700; color: var(--text-1); margin: 0 0 16px; }
 
-/* ===== Header ===== */
-.dash-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
-.dash-avatar {
-  width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
-  background: linear-gradient(160deg, var(--accent), #3a8f6f);
-  border: none; color: #04120c; font-weight: 800; font-size: 15px;
-  display: flex; align-items: center; justify-content: center; cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-}
-.dash-today {
-  display: flex; align-items: center; gap: 10px;
-  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
-  letter-spacing: 0.16em; color: var(--text-2); text-transform: uppercase;
-}
-.dash-day-nav { background: none; border: none; color: var(--text-3); font-size: 16px; cursor: pointer; padding: 2px 6px; -webkit-tap-highlight-color: transparent; }
-.whoop-indicator { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--text-3); flex-shrink: 0; }
-.whoop-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-4); }
-.whoop-dot.on { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+/* ===== B: 3 metric cards ===== */
+.metric-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
 
-/* ===== Three score circles ===== */
-.circle-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
-.circle-card { display: flex; flex-direction: column; align-items: center; text-decoration: none; -webkit-tap-highlight-color: transparent; }
-.circle-ring-wrap { position: relative; width: 84px; height: 84px; }
-.circle-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
-.circle-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 7; }
-.circle-fill { fill: none; stroke-width: 7; stroke-linecap: round; transition: stroke-dashoffset 0.8s cubic-bezier(0.22,1,0.36,1); }
-.circle-num { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 19px; font-weight: 800; color: var(--text-1); font-variant-numeric: tabular-nums; }
-.circle-label { margin-top: 8px; font-size: 10.5px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.06em; }
+/* ===== C: icon-tile pair ===== */
+.tile-row { margin-bottom: 16px; }
 
-/* ===== Recommendation cards ===== */
-.rec-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-@media (max-width: 520px) { .rec-row { grid-template-columns: 1fr; } }
-.rec-card-icon { font-size: 17px; margin-bottom: 8px; }
-.rec-card-title { font-size: 11.5px; font-weight: 700; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
-.rec-card-text { font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
-
-/* ===== Peak Tracker widget ===== */
-.peak-widget-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
-.peak-widget-num { font-size: 24px; font-weight: 800; color: var(--text-1); line-height: 1; }
-.peak-widget-svg { width: 100%; height: 74px; display: block; margin-top: 4px; }
-
-/* ===== Täglicher Ausblick ===== */
-.outlook-card { flex-direction: row; align-items: center; gap: 14px; }
-.outlook-emoji { font-size: 32px; line-height: 1; }
-.outlook-temp { font-size: 21px; font-weight: 800; color: var(--text-1); }
-.outlook-desc { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+/* ===== Peak Tracker / Täglicher Ausblick title cards ===== */
+.title-card-row { display: flex; flex-direction: column; gap: 12px; margin-bottom: 16px; }
 
 /* ===== Aktivitäten ===== */
 .act-item { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
@@ -115,88 +55,93 @@ body::after {
 .act-meta { font-size: 11.5px; color: var(--text-3); font-family: var(--font-mono); flex-shrink: 0; }
 .act-empty { text-align: center; font-size: 12px; font-style: italic; color: var(--text-3); padding: 10px 0; }
 
-.motivation-quote { text-align: center; font-size: 13px; font-style: italic; color: var(--text-3); padding: 22px 10px 0; line-height: 1.5; }
+.motivation-quote { text-align: center; padding: 22px 10px 0; font-size: 13px; }
 
 .section-card { margin-bottom: 16px; }
+
+/* ===== Life Maxing splash ===== */
+.splash {
+  position: fixed; inset: 0; z-index: 500;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 40px;
+  background: var(--bg);
+  transition: opacity 0.5s ease;
+}
+.splash.hide { opacity: 0; pointer-events: none; }
+.splash-title {
+  font-family: var(--font-serif); font-style: italic; font-weight: 700; font-size: 40px;
+  color: var(--text-1); text-align: center; position: relative; padding-bottom: 18px;
+}
+.splash-title::after {
+  content: ''; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 64px; height: 2px; background: var(--accent);
+}
+.splash-sub { font-family: var(--font-serif); font-style: italic; font-size: 16px; color: var(--text-2); text-align: center; line-height: 1.5; }
 </style>
 </head>
 <body>
+<div class="splash" id="splash">
+  <div class="splash-title">Life Maxing</div>
+  <div class="splash-sub">There is no<br>Tomorrow</div>
+</div>
+<script>
+(function () {
+  var splash = document.getElementById('splash');
+  if (sessionStorage.getItem('splash_shown_v1')) {
+    splash.style.display = 'none';
+    return;
+  }
+  sessionStorage.setItem('splash_shown_v1', '1');
+  setTimeout(function () {
+    splash.classList.add('hide');
+    setTimeout(function () { splash.style.display = 'none'; }, 520);
+  }, 1200);
+})();
+</script>
 <div class="page">
 
-  <div class="dash-header">
-    <button class="dash-avatar" id="dashAvatar" type="button" aria-label="Profil">M</button>
-    <div class="dash-today">
-      <button class="dash-day-nav" id="dayPrevBtn" type="button" aria-label="Vorheriger Tag">‹</button>
-      <span>Heute</span>
-      <button class="dash-day-nav" id="dayNextBtn" type="button" aria-label="Nächster Tag">›</button>
-    </div>
-    <div class="whoop-indicator" id="whoopIndicator"><span class="whoop-dot" id="whoopDot"></span><span id="whoopLabel">—</span></div>
-  </div>
+  <h1 class="dash-greet">Guten Morgen Maël</h1>
 
-  <div class="circle-row">
-    <a href="sleep.html" class="circle-card">
-      <div class="circle-ring-wrap">
-        <svg class="circle-ring" viewBox="0 0 90 90"><circle class="circle-track" cx="45" cy="45" r="38"></circle><circle class="circle-fill" id="sleepRingFill" cx="45" cy="45" r="38"></circle></svg>
-        <div class="circle-num" id="sleepNum">—</div>
-      </div>
-      <div class="circle-label">Schlaf</div>
+  <div class="metric-row">
+    <a href="sleep.html" class="rw-card rw-metric">
+      <div class="rw-metric-val is-blue" id="sleepNum">—</div>
+      <div class="rw-metric-bar is-blue"><span id="sleepBar" style="width:0%"></span></div>
     </a>
-    <a href="recovery.html" class="circle-card">
-      <div class="circle-ring-wrap">
-        <svg class="circle-ring" viewBox="0 0 90 90"><circle class="circle-track" cx="45" cy="45" r="38"></circle><circle class="circle-fill" id="recoveryRingFill" cx="45" cy="45" r="38"></circle></svg>
-        <div class="circle-num" id="recoveryNum">—</div>
-      </div>
-      <div class="circle-label">Erholung</div>
+    <a href="recovery.html" class="rw-card rw-metric">
+      <div class="rw-metric-val" id="recoveryNum">—</div>
+      <div class="rw-metric-bar"><span id="recoveryBar" style="width:0%"></span></div>
     </a>
-    <a href="activities.html" class="circle-card">
-      <div class="circle-ring-wrap">
-        <svg class="circle-ring" viewBox="0 0 90 90"><circle class="circle-track" cx="45" cy="45" r="38"></circle><circle class="circle-fill" id="strainRingFill" cx="45" cy="45" r="38"></circle></svg>
-        <div class="circle-num" id="strainNum">—</div>
-      </div>
-      <div class="circle-label">Strain</div>
+    <a href="activities.html" class="rw-card rw-metric">
+      <div class="rw-metric-val" id="strainNum">—</div>
+      <div class="rw-metric-bar"><span id="strainBar" style="width:0%"></span></div>
     </a>
   </div>
 
-  <div class="rec-row">
-    <div class="rw-card">
-      <div class="rec-card-icon">💚</div>
-      <div class="rec-card-title">Gesundheit</div>
-      <div class="rec-card-text" id="healthRecText">Wird berechnet…</div>
-    </div>
-    <div class="rw-card">
-      <div class="rec-card-icon">🎾</div>
-      <div class="rec-card-title">Fitness</div>
-      <div class="rec-card-text" id="fitnessRecText">Wird berechnet…</div>
-    </div>
+  <div class="tile-row rw-tile-row">
+    <a href="recommendations.html" class="rw-card rw-tile">
+      <div class="rw-tile-icon">💚</div>
+      <div class="rw-tile-title">Gesundheits<br>Empfehlung</div>
+    </a>
+    <a href="fitness-recommendations.html" class="rw-card rw-tile">
+      <div class="rw-tile-icon">🏋️</div>
+      <div class="rw-tile-title">Fitness<br>Empfehlung</div>
+    </a>
   </div>
 
-  <div class="rw-section-title">Peak Tracker</div>
-  <a href="peak-tracker.html" class="rw-card section-card">
-    <div class="peak-widget-head">
-      <div>
-        <div class="peak-widget-num" id="peakNowNum">—</div>
-        <div class="rw-eyebrow" id="peakNowWord">Jetzt gerade</div>
-      </div>
-      <span class="rw-card-arrow">→</span>
-    </div>
-    <svg class="peak-widget-svg" id="peakWidgetSvg" viewBox="0 0 600 74" preserveAspectRatio="none"></svg>
-  </a>
+  <div class="title-card-row">
+    <a href="peak-tracker.html" class="rw-card rw-title-card rw-card-photo rw-card-photo--forest">
+      <div class="rw-title-card-t">⛰️ Peak Tracker</div>
+    </a>
+    <a href="daily.html" class="rw-card rw-title-card rw-card-photo rw-card-photo--sky">
+      <div class="rw-title-card-t">🌤️ Täglicher Ausblick</div>
+    </a>
+  </div>
 
-  <div class="rw-section-title">Täglicher Ausblick</div>
-  <a href="daily.html" class="rw-card outlook-card section-card">
-    <span class="outlook-emoji" id="outlookEmoji">🌤️</span>
-    <div>
-      <div class="outlook-temp" id="outlookTemp">—</div>
-      <div class="outlook-desc" id="outlookDesc">Wird geladen…</div>
-    </div>
-  </a>
-
-  <div class="rw-section-title">Aktivitäten</div>
+  <div class="rw-section-title">Heutige Aktivitäten</div>
   <div class="rw-card section-card">
     <div id="activitiesList"><div class="act-empty">Deine Aktivitäten werden hier angezeigt.</div></div>
   </div>
 
-  <div class="motivation-quote" id="dashQuote"></div>
+  <div class="motivation-quote rw-quote" id="dashQuote"></div>
 
 </div>
 
@@ -242,75 +187,11 @@ body::after {
     if (score >= 34) return warn;
     return bad;
   }
-  function setRing(fillId, numId, score, color, suffix) {
-    const fill = document.getElementById(fillId);
-    const C = 2 * Math.PI * 38;
-    fill.style.strokeDasharray = C;
-    fill.style.strokeDashoffset = score != null ? C * (1 - Math.min(score, 100) / 100) : C;
-    fill.style.stroke = color;
-    document.getElementById(numId).textContent = score != null ? Math.round(score) + (suffix || '') : '—';
-  }
-
-  // ---------- Peak Tracker widget (condensed port of peak-tracker.html's model) ----------
-  function gaussian(h, center, width, height) { const d = h - center; return height * Math.exp(-(d * d) / (2 * width * width)); }
-  function baseCurveAt(h) {
-    if (h < WAKE_HOUR || h > SLEEP_HOUR) return 14;
-    const span = SLEEP_HOUR - WAKE_HOUR;
-    const t = h - WAKE_HOUR;
-    const peak1 = span * 0.28, width1 = span * 0.13;
-    const dip = span * 0.46, dipWidth = span * 0.09;
-    const peak2 = span * 0.78, width2 = span * 0.16;
-    let v = 30 + gaussian(t, peak1, width1, 34) - gaussian(t, dip, dipWidth, 20) + gaussian(t, peak2, width2, 46);
-    return Math.max(10, Math.min(100, v));
-  }
-  function buildPeakCurve(mods) {
-    const pts = [];
-    for (let h = 0; h <= 24; h += 0.5) {
-      let v = baseCurveAt(h);
-      if (h >= WAKE_HOUR && h <= SLEEP_HOUR) {
-        v *= mods.recoveryFactor; v *= mods.sleepFactor;
-        const t = h - WAKE_HOUR, span = SLEEP_HOUR - WAKE_HOUR;
-        if (t > span * 0.55) v *= mods.fatigueFactor;
-      }
-      pts.push({ h, v: Math.max(5, Math.min(100, v)) });
-    }
-    return pts;
-  }
-  function curveValueAt(curve, h) {
-    for (let i = 0; i < curve.length - 1; i++) {
-      if (h >= curve[i].h && h <= curve[i + 1].h) {
-        const f = (h - curve[i].h) / (curve[i + 1].h - curve[i].h);
-        return curve[i].v + (curve[i + 1].v - curve[i].v) * f;
-      }
-    }
-    return curve[curve.length - 1].v;
-  }
-  function moodWord(score) {
-    if (score >= 85) return 'Höchstform'; if (score >= 70) return 'Fokussiert';
-    if (score >= 50) return 'Stabil'; if (score >= 30) return 'Müde'; return 'Neblig';
-  }
-  function smoothPath(points) {
-    if (!points.length) return '';
-    let d = 'M ' + points[0].x.toFixed(2) + ' ' + points[0].y.toFixed(2);
-    for (let i = 1; i < points.length; i++) {
-      const prev = points[i - 1], curr = points[i];
-      const cx = (prev.x + curr.x) / 2;
-      d += ' Q ' + cx.toFixed(2) + ' ' + prev.y.toFixed(2) + ', ' + cx.toFixed(2) + ' ' + ((prev.y + curr.y) / 2).toFixed(2);
-      d += ' T ' + curr.x.toFixed(2) + ' ' + curr.y.toFixed(2);
-    }
-    return d;
-  }
-  function renderPeakWidget(mods) {
-    const curve = buildPeakCurve(mods);
-    const nowH = new Date().getHours() + new Date().getMinutes() / 60;
-    const nowV = curveValueAt(curve, Math.max(WAKE_HOUR, Math.min(SLEEP_HOUR, nowH)));
-    document.getElementById('peakNowNum').textContent = Math.round(nowV);
-    document.getElementById('peakNowWord').textContent = moodWord(nowV) + ' · Jetzt gerade';
-    const W = 600, H = 74, padB = 6;
-    const X = (h) => (h / 24) * W, Y = (v) => H - padB - (v / 100) * (H - padB - 6);
-    const pts = curve.map((p) => ({ x: X(p.h), y: Y(p.v) }));
-    const svg = document.getElementById('peakWidgetSvg');
-    svg.innerHTML = '<path d="' + smoothPath(pts) + '" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"></path>';
+  function setMetric(valId, barId, score, suffix, max) {
+    const cap = max || 100;
+    document.getElementById(valId).textContent = score != null ? (suffix === '' ? score.toFixed(1) : Math.round(score) + (suffix || '')) : '—';
+    const bar = document.getElementById(barId);
+    if (bar) bar.style.width = score != null ? Math.max(0, Math.min(100, (score / cap) * 100)) + '%' : '0%';
   }
 
   // ---------- Weather outlook (reuses daily.html's location + code map) ----------
@@ -388,71 +269,13 @@ body::after {
     document.getElementById('dashQuote').textContent = '"' + MOTIVATION_QUOTES[seed % MOTIVATION_QUOTES.length] + '"';
   }
 
-  // ---------- Deterministic recommendation paragraphs ----------
-  function buildHealthParagraph(ctx) {
-    if (ctx.recovery == null) return 'Verbinde WHOOP auf der Gesundheit-Seite, um eine persönliche Empfehlung zu bekommen.';
-    let s = 'Deine Erholung liegt heute bei ' + ctx.recovery + ' %';
-    s += ctx.sleepPerf != null ? ' und dein Schlaf bei ' + ctx.sleepPerf + ' %. ' : '. ';
-    if (ctx.recovery >= 67) s += 'Dein Körper ist bereit für intensive Belastung. ';
-    else if (ctx.recovery >= 34) s += 'Geh es heute moderat an. ';
-    else s += 'Priorisiere heute Regeneration statt Leistung. ';
-    if (ctx.waterBehind) s += 'Trink heute noch ausreichend Wasser';
-    else s += 'Achte weiter auf Ernährung und Wasser';
-    s += ctx.recovery >= 67 ? ' und geh möglichst früh schlafen.' : '.';
-    return s;
-  }
-  function buildFitnessParagraph(ctx) {
-    if (ctx.strain == null && !ctx.hasActivity) return 'Verbinde WHOOP oder trag eine Aktivität ein, um eine persönliche Empfehlung zu bekommen.';
-    let s = '';
-    if (ctx.recovery != null && ctx.recovery >= 67 && (ctx.strain == null || ctx.strain < 10)) {
-      s = 'Deine Erholung ist hoch — heute ist ein guter Tag, um intensiv für dein Ziel (Top 80, A-Lizenz) zu trainieren.';
-    } else if (ctx.recovery != null && ctx.recovery < 34) {
-      s = 'Deine Erholung ist niedrig — heute lieber Technik statt Intensität, damit du morgen wieder voll angreifen kannst.';
-    } else if (ctx.strain != null && ctx.strain >= 14) {
-      s = 'Deine Belastung war zuletzt hoch (Strain ' + ctx.strain.toFixed(1) + ') — achte heute auf Regeneration zwischen den Einheiten.';
-    } else if (!ctx.hasActivity) {
-      s = 'Noch keine Aktivität heute erfasst — eine Tennis- oder Fitnesseinheit bringt dich näher an dein Ziel.';
-    } else {
-      s = 'Solide Grundlage heute — bleib dran, jede Einheit bringt dich näher an Top 80 und die A-Lizenz.';
-    }
-    return s;
-  }
-  function waterBehindToday() {
-    try {
-      const state = JSON.parse(localStorage.getItem('po_water_v1'));
-      if (!state) return false;
-      const done = (state.logs || {})[todayKeyStr()] || 0;
-      const p = state.profile || { weightKg: 75 };
-      const wKg = state.weightUnit === 'lb' ? (p.weightKg || 0) / 2.20462 : (p.weightKg || 0);
-      const totalMl = wKg * 35 + ((p.activityHrsPerWeek || 0) / 7) * 500;
-      const unitVol = state.unit === 'glass' ? (state.glassMl || 250) : state.unit === 'oz' ? 30 : state.unit === 'ml' ? 1 : (state.bottleMl || 500);
-      const total = Math.max(1, Math.ceil(totalMl / unitVol));
-      const h = new Date().getHours();
-      return h >= 14 && done < total * 0.5;
-    } catch (e) { return false; }
-  }
-  function hasActivityToday() {
-    try {
-      const acts = JSON.parse(localStorage.getItem('fitness_activities_v1')) || [];
-      return acts.some((a) => (a.startTime || '').slice(0, 10) === todayKeyStr());
-    } catch (e) { return false; }
-  }
-
   async function boot() {
-    // Day-nav arrows are decorative for now — no historical dashboard view yet.
-    document.getElementById('dayPrevBtn').disabled = true;
-    document.getElementById('dayNextBtn').disabled = true;
-
     renderOutlook();
     renderQuote();
 
-    const ctx = { recovery: null, sleepPerf: null, strain: null, waterBehind: waterBehindToday(), hasActivity: hasActivityToday() };
-    let mods = { recoveryFactor: 1, sleepFactor: 1, fatigueFactor: 1 };
     let sleepDurMin = null;
 
     const tokens = loadWhoopTokens();
-    const dot = document.getElementById('whoopDot');
-    const label = document.getElementById('whoopLabel');
     if (tokens && tokens.access) {
       try {
         let t = tokens;
@@ -466,38 +289,22 @@ body::after {
         const s = sleep && sleep.records && sleep.records[0] && sleep.records[0].score;
         const c = cycle && cycle.records && cycle.records[0] && cycle.records[0].score;
 
-        if (r && r.recovery_score != null) ctx.recovery = Math.round(r.recovery_score);
-        if (s && s.sleep_performance_percentage != null) ctx.sleepPerf = Math.round(s.sleep_performance_percentage);
+        const sleepPerf = s && s.sleep_performance_percentage != null ? Math.round(s.sleep_performance_percentage) : null;
+        const recovery = r && r.recovery_score != null ? Math.round(r.recovery_score) : null;
+        const strain = c && c.strain != null ? c.strain : null;
         if (s && s.stage_summary) {
           const ss = s.stage_summary;
           sleepDurMin = ((ss.total_in_bed_time_milli || 0) - (ss.total_awake_time_milli || 0)) / 60000;
         }
-        if (c && c.strain != null) ctx.strain = c.strain;
 
-        setRing('sleepRingFill', 'sleepNum', ctx.sleepPerf, '#9aa0a6', '%');
-        setRing('recoveryRingFill', 'recoveryNum', ctx.recovery, zoneColor(ctx.recovery, 'var(--accent)', 'var(--warn)', 'var(--bad)'), '%');
-        setRing('strainRingFill', 'strainNum', ctx.strain != null ? (ctx.strain / 21) * 100 : null, '#7DD3FC', '');
-        if (ctx.strain != null) document.getElementById('strainNum').textContent = ctx.strain.toFixed(1);
-
-        if (ctx.recovery != null) mods.recoveryFactor = 0.72 + 0.56 * (ctx.recovery / 100);
-        if (ctx.sleepPerf != null) mods.sleepFactor = 0.78 + 0.44 * (ctx.sleepPerf / 100);
-
-        dot.classList.add('on');
-        label.textContent = 'WHOOP';
-      } catch (e) {
-        label.textContent = 'Offline';
-      }
-    } else {
-      label.textContent = 'Nicht verbunden';
+        setMetric('sleepNum', 'sleepBar', sleepPerf, '%', 100);
+        setMetric('recoveryNum', 'recoveryBar', recovery, '%', 100);
+        setMetric('strainNum', 'strainBar', strain, '', 21);
+      } catch (e) {}
     }
 
-    document.getElementById('healthRecText').textContent = buildHealthParagraph(ctx);
-    document.getElementById('fitnessRecText').textContent = buildFitnessParagraph(ctx);
-    renderPeakWidget(mods);
     renderActivities(sleepDurMin);
   }
-
-  document.getElementById('dashAvatar').addEventListener('click', () => { window.location.href = 'index.html'; });
 
   boot();
 })();

@@ -2,10 +2,11 @@
 // Persistent dashboard top bar + bottom tab bar.
 // Drop this on any page with:
 //     <script src="topbar.js" defer></script>
-// It self-injects HTML + CSS, reads progress from localStorage,
-// and renders the water +1 button in the top bar plus the
-// Main/Health/Fitness bottom tabs. Skips chrome on finance.html
-// and inside iframes (so the water tracker can embed cleanly).
+// It self-injects HTML + CSS: a header (avatar w/ Roger+Logout menu,
+// HEUTE/calendar pill, water quick-add, Bücher link) and a bottom
+// nav pill (Start/Gesundheit/Fitness + a second avatar circle).
+// Skips chrome on finance.html and inside iframes (so the water
+// tracker can embed cleanly).
 // =============================================================
 (function () {
   'use strict';
@@ -14,76 +15,79 @@
   const css = `
 .topbar {
   position: sticky; top: 0; z-index: 40;
-  display: flex; justify-content: flex-end; align-items: center;
-  gap: 8px;
-  padding: max(10px, env(safe-area-inset-top)) 14px 8px;
-  background: #0a0a0b;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 10px;
+  padding: max(12px, env(safe-area-inset-top)) 14px 10px;
   font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
 }
-.topbar-water-wrap { display: flex; align-items: stretch; }
-.topbar-water-pill {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 9px 14px;
-  background: rgba(110, 231, 183, 0.08);
-  border: 1px solid rgba(110, 231, 183, 0.18);
-  border-right: none;
-  border-radius: 12px 0 0 12px;
-  text-decoration: none; color: #FAFAFA;
+.tb-avatar-wrap { position: relative; flex-shrink: 0; }
+.tb-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1.5px solid var(--accent, #4ADE80);
+  background: rgba(255,255,255,0.05);
+  color: #FAFAFA; font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+}
+.tb-avatar-menu {
+  display: none; position: absolute; top: calc(100% + 8px); left: 0; z-index: 60;
+  min-width: 160px; padding: 6px;
+  background: rgba(14,14,16,0.92);
+  border: 1px solid var(--glass-border, rgba(255,255,255,0.08));
+  border-radius: 16px;
+  backdrop-filter: blur(24px) saturate(1.2); -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+}
+.tb-bottom-wrap .tb-avatar-menu { top: auto; bottom: calc(100% + 8px); left: auto; right: 0; }
+.tb-avatar-menu.open { display: block; }
+.tb-avatar-menu-item {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 10px 12px; border: none; background: transparent;
+  color: var(--text-1, #FAFAFA); font-size: 13.5px; font-weight: 600;
+  border-radius: 10px; text-decoration: none; cursor: pointer; text-align: left;
   -webkit-tap-highlight-color: transparent;
 }
-.topbar-water-pill .topbar-pill-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--accent, #6ee7b7); flex-shrink: 0;
+.tb-avatar-menu-item:hover { background: rgba(255,255,255,0.06); }
+.tb-today-pill {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 14px;
+  background: var(--glass-bg, rgba(255,255,255,0.04));
+  border: 1px solid var(--glass-border, rgba(255,255,255,0.08));
+  border-radius: 999px;
+  backdrop-filter: blur(20px) saturate(1.2); -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  color: var(--text-1, #FAFAFA); font-family: inherit;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
 }
-.topbar-water-pill.warn .topbar-pill-dot { background: #fbbf24; }
-.topbar-water-pill.miss .topbar-pill-dot {
-  background: #ff8a8a;
-  animation: topbar-miss-pulse 1.6s ease-in-out infinite;
-}
-@keyframes topbar-miss-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
-  50%      { box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
-}
-.topbar-pill-count {
+.tb-today-label {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  font-size: 13px; font-weight: 700; color: #FAFAFA;
-  font-variant-numeric: tabular-nums; white-space: nowrap;
+  font-size: 11.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
 }
-.topbar-water-add {
-  width: 44px;
-  border: 1px solid rgba(110, 231, 183, 0.18);
-  background: linear-gradient(180deg, rgba(110, 231, 183, 0.34), rgba(110, 231, 183, 0.18));
-  color: #FFFFFF; font-family: inherit;
-  font-size: 20px; font-weight: 700; line-height: 1;
-  cursor: pointer; border-radius: 0 12px 12px 0;
+.tb-today-arrow { font-size: 13px; color: var(--text-3, rgba(255,255,255,0.4)); line-height: 1; }
+.tb-today-cal { font-size: 13px; line-height: 1; }
+.tb-icons { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.tb-icon-circle {
+  position: relative;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; flex-shrink: 0;
+  border: 1px solid var(--glass-border, rgba(255,255,255,0.08));
+  background: var(--glass-bg, rgba(255,255,255,0.04));
+  border-radius: 50%; text-decoration: none;
+  backdrop-filter: blur(20px) saturate(1.2); -webkit-backdrop-filter: blur(20px) saturate(1.2);
   -webkit-tap-highlight-color: transparent;
   transition: background 0.15s, transform 0.10s;
 }
-.topbar-water-add:active { transform: scale(0.94); }
-.topbar-water-add.flash {
-  background: linear-gradient(180deg, rgba(110, 231, 183, 0.75), rgba(110, 231, 183, 0.5));
+.tb-icon-circle:active { transform: scale(0.94); }
+.tb-icon-circle.flash { background: var(--accent-dim, rgba(74,222,128,0.18)); border-color: var(--border-strong, rgba(74,222,128,0.3)); }
+.tb-icon-glyph { font-size: 16px; line-height: 1; }
+.tb-icon-circle .tb-water-dot {
+  position: absolute; top: 3px; right: 3px; width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent, #4ADE80); border: 1.5px solid #08090a;
 }
-.topbar-icons {
-  display: flex; align-items: stretch; gap: 8px;
-  overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none;
-  -webkit-overflow-scrolling: touch;
-}
-.topbar-icons::-webkit-scrollbar { display: none; }
-.topbar-finance-btn {
-  display: inline-flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  width: 44px; height: 42px;
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 12px; text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
-  transition: background 0.15s;
-}
-.topbar-finance-btn:hover { background: rgba(255, 255, 255, 0.08); }
-.topbar-finance-icon {
-  font-size: 20px; line-height: 1;
-  filter: grayscale(100%) brightness(1.4); opacity: 0.85;
+.tb-icon-circle .tb-water-dot.warn { background: #fbbf24; }
+.tb-icon-circle .tb-water-dot.miss { background: #F87171; animation: topbar-miss-pulse 1.6s ease-in-out infinite; }
+@keyframes topbar-miss-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.5); }
+  50%      { box-shadow: 0 0 0 5px rgba(248, 113, 113, 0); }
 }
 .topbar-quote {
   padding: 9px 16px 0;
@@ -139,44 +143,43 @@
   border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
-.bottombar {
+.tb-bottom-wrap {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
-  display: flex; justify-content: space-around; align-items: stretch;
-  padding: 6px 0 calc(6px + env(safe-area-inset-bottom));
-  background: #0a0a0b;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+}
+.bottombar {
+  display: flex; align-items: stretch;
+  padding: 6px; gap: 2px;
+  background: var(--glass-bg, rgba(255,255,255,0.05));
+  border: 1px solid var(--glass-border, rgba(255,255,255,0.08));
+  border-radius: 999px;
+  backdrop-filter: blur(24px) saturate(1.2); -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  box-shadow: 0 12px 34px rgba(0,0,0,0.4);
   font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
 }
 .bottombar-tab {
-  flex: 1;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 3px; padding: 6px 0 4px; text-decoration: none;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 16px; text-decoration: none; border-radius: 999px;
   color: rgba(255, 255, 255, 0.45);
-  font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.01em;
   -webkit-tap-highlight-color: transparent; transition: color 0.15s;
 }
-.bottombar-tab-icon {
-  font-size: 24px; line-height: 1;
-  filter: grayscale(100%) brightness(1.2); opacity: 0.55;
-  transition: opacity 0.15s, filter 0.15s, transform 0.10s;
-}
-.bottombar-tab.active { color: #FAFAFA; }
-.bottombar-tab.active .bottombar-tab-icon {
-  filter: grayscale(100%) brightness(1.6) drop-shadow(0 0 6px var(--accent-glow, rgba(110,231,183,0.6))); opacity: 1;
-}
+.bottombar-tab-icon { font-size: 17px; line-height: 1; opacity: 0.6; transition: opacity 0.15s, transform 0.10s; }
+.bottombar-tab.active { color: var(--accent, #4ADE80); }
+.bottombar-tab.active .bottombar-tab-icon { opacity: 1; filter: drop-shadow(0 0 6px var(--accent-glow, rgba(74,222,128,0.5))); }
 .bottombar-tab:active .bottombar-tab-icon { transform: scale(0.92); }
+.tb-bottom-wrap .tb-avatar { width: 46px; height: 46px; flex-shrink: 0; }
 body.has-bottombar {
-  padding-bottom: calc(72px + env(safe-area-inset-bottom)) !important;
+  padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important;
 }
 @media (max-width: 480px) {
   .topbar { padding-left: 10px; padding-right: 10px; gap: 6px; }
-  .topbar-water-pill { padding: 8px 11px; gap: 6px; }
-  .topbar-pill-count { font-size: 12px; }
-  .topbar-water-add { width: 40px; font-size: 18px; }
-  .topbar-finance-btn { width: 40px; height: 38px; }
-  .topbar-finance-icon { font-size: 18px; }
-  .bottombar-tab-icon { font-size: 22px; }
-  .bottombar-tab { font-size: 10px; }
+  .tb-today-label { font-size: 10.5px; }
+  .tb-avatar { width: 34px; height: 34px; font-size: 12px; }
+  .tb-icon-circle { width: 34px; height: 34px; }
+  .bottombar-tab { padding: 9px 12px; font-size: 11px; }
+  .bottombar-tab-icon { font-size: 16px; }
 }
 html, body { -webkit-text-size-adjust: 100%; }
 @media (max-width: 768px) {
@@ -205,31 +208,33 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
 }
 `;
 
+  function avatarMenuHtml(idSuffix) {
+    return `<div class="tb-avatar-menu" id="tbAvatarMenu${idSuffix}">
+      <a href="roger.html" class="tb-avatar-menu-item">🎾 Roger</a>
+      <button class="tb-avatar-menu-item" data-logout type="button">🚪 Abmelden</button>
+    </div>`;
+  }
+
   const topbarHtml = `
-<header class="topbar" id="topbar" role="navigation" aria-label="Schnellzugriff">
-  <div class="topbar-water-wrap">
-    <a href="health.html#water" class="topbar-water-pill" id="topbarWater" aria-label="Wasser-Fortschritt">
-      <span class="topbar-pill-dot"></span>
-      <span class="topbar-pill-count" id="topbarWaterCount">0/0</span>
-    </a>
-    <button class="topbar-water-add" id="topbarWaterAdd" aria-label="Ein Getränk erfassen" type="button">+</button>
+<header class="topbar" id="topbar" role="navigation" aria-label="Kopfzeile">
+  <div class="tb-avatar-wrap">
+    <button class="tb-avatar" id="tbAvatarBtnTop" type="button" aria-label="Profil">M</button>
+    ${avatarMenuHtml('Top')}
   </div>
-  <div class="topbar-icons">
-    <a href="roger.html" class="topbar-finance-btn" id="topbarRoger" aria-label="Roger, dein Mentor">
-      <span class="topbar-finance-icon">🎾</span>
-    </a>
-    <a href="finance.html" class="topbar-finance-btn" id="topbarFinance" aria-label="Finanzen">
-      <span class="topbar-finance-icon">📊</span>
-    </a>
-    <a href="index.html" class="topbar-finance-btn" id="topbarHome" aria-label="Zurück zur Übersicht">
-      <span class="topbar-finance-icon">🧭</span>
-    </a>
-    <button class="topbar-finance-btn" id="topbarCalendar" aria-label="Kalender" type="button">
-      <span class="topbar-finance-icon">📅</span>
+  <button class="tb-today-pill" id="topbarCalendar" type="button" aria-label="Kalender öffnen">
+    <span class="tb-today-arrow">‹</span>
+    <span class="tb-today-label">HEUTE</span>
+    <span class="tb-today-cal">📅</span>
+    <span class="tb-today-arrow">›</span>
+  </button>
+  <div class="tb-icons">
+    <button class="tb-icon-circle" id="topbarWater" type="button" aria-label="Ein Getränk erfassen">
+      <span class="tb-icon-glyph">💧</span>
+      <span class="tb-water-dot" id="topbarWaterDot"></span>
     </button>
-    <button class="topbar-finance-btn" id="topbarLogout" aria-label="Abmelden" type="button">
-      <span class="topbar-finance-icon">🚪</span>
-    </button>
+    <a href="books.html" class="tb-icon-circle" aria-label="Bücher">
+      <span class="tb-icon-glyph">📚</span>
+    </a>
   </div>
 </header>
 <div class="topbar-quote" id="topbarQuote"></div>
@@ -249,17 +254,23 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
 </div>`;
 
   const bottombarHtml = `
-<nav class="bottombar" id="bottombar" role="navigation" aria-label="Hauptbereiche">
-  <a href="main.html" class="bottombar-tab" data-page="main">
-    <span class="bottombar-tab-icon">🏠</span><span>Start</span>
-  </a>
-  <a href="wellness.html" class="bottombar-tab" data-page="health">
-    <span class="bottombar-tab-icon">💊</span><span>Gesundheit</span>
-  </a>
-  <a href="fitness.html" class="bottombar-tab" data-page="fitness">
-    <span class="bottombar-tab-icon">💪</span><span>Fitness</span>
-  </a>
-</nav>`;
+<div class="tb-bottom-wrap" id="bottombar">
+  <nav class="bottombar" role="navigation" aria-label="Hauptbereiche">
+    <a href="main.html" class="bottombar-tab" data-page="main">
+      <span class="bottombar-tab-icon">🏠</span><span>Start</span>
+    </a>
+    <a href="wellness.html" class="bottombar-tab" data-page="health">
+      <span class="bottombar-tab-icon">💊</span><span>Gesundheit</span>
+    </a>
+    <a href="fitness.html" class="bottombar-tab" data-page="fitness">
+      <span class="bottombar-tab-icon">💪</span><span>Fitness</span>
+    </a>
+  </nav>
+  <div class="tb-avatar-wrap">
+    <button class="tb-avatar" id="tbAvatarBtnBottom" type="button" aria-label="Profil">M</button>
+    ${avatarMenuHtml('Bottom')}
+  </div>
+</div>`;
 
   function isFinancePage() {
     const p = (window.location.pathname || '').toLowerCase();
@@ -354,17 +365,15 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     if (h >= 18 && done < total * 0.5) return 'miss';
     return 'warn';
   }
-  function setPillStatus(pillEl, status) {
-    pillEl.classList.remove('good', 'warn', 'miss');
-    if (status === 'warn' || status === 'miss') pillEl.classList.add(status);
+  function setDotStatus(dotEl, status) {
+    dotEl.classList.remove('warn', 'miss');
+    if (status === 'warn' || status === 'miss') dotEl.classList.add(status);
   }
   function render() {
-    const waterEl = document.getElementById('topbarWater');
-    if (!waterEl) return;
+    const dotEl = document.getElementById('topbarWaterDot');
+    if (!dotEl) return;
     const w = getWaterProgress();
-    const countEl = document.getElementById('topbarWaterCount');
-    if (countEl) countEl.textContent = w.total ? w.done + '/' + w.total : '0/0';
-    setPillStatus(waterEl, classifyStatus(w.done, w.total));
+    setDotStatus(dotEl, classifyStatus(w.done, w.total));
   }
 
   function defaultWaterState() {
@@ -464,7 +473,7 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     state.logs[k] = (state.logs[k] || 0) + 1;
     try { localStorage.setItem('po_water_v1', JSON.stringify(state)); } catch (e) {}
     render();
-    const btn = document.getElementById('topbarWaterAdd');
+    const btn = document.getElementById('topbarWater');
     if (btn) { btn.classList.add('flash'); setTimeout(() => btn.classList.remove('flash'), 220); }
     pushWaterMergedToSupabase(state);
   }
@@ -605,13 +614,36 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
     el.textContent = '"' + MOTIVATION_QUOTES[seed % MOTIVATION_QUOTES.length] + '"';
   }
 
+  function initAvatarMenus() {
+    const pairs = [
+      ['tbAvatarBtnTop', 'tbAvatarMenuTop'],
+      ['tbAvatarBtnBottom', 'tbAvatarMenuBottom'],
+    ];
+    const menus = [];
+    pairs.forEach(([btnId, menuId]) => {
+      const btn = document.getElementById(btnId);
+      const menu = document.getElementById(menuId);
+      if (!btn || !menu) return;
+      menus.push(menu);
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const willOpen = !menu.classList.contains('open');
+        menus.forEach((m) => m.classList.remove('open'));
+        if (willOpen) menu.classList.add('open');
+      });
+      menu.querySelectorAll('[data-logout]').forEach((el) => {
+        el.addEventListener('click', (e) => { e.preventDefault(); logout(); });
+      });
+    });
+    document.addEventListener('click', () => menus.forEach((m) => m.classList.remove('open')));
+  }
+
   function boot() {
     injectStyleAndHTML();
     registerServiceWorker();
-    const btn = document.getElementById('topbarWaterAdd');
+    const btn = document.getElementById('topbarWater');
     if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); addWater(); });
-    const logoutBtn = document.getElementById('topbarLogout');
-    if (logoutBtn) logoutBtn.addEventListener('click', (e) => { e.preventDefault(); logout(); });
+    initAvatarMenus();
     render();
     lockGestures();
     startModalLock();

@@ -27,34 +27,7 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .hd h1 { margin: 0; font-size: 26px; }
 .hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
 
-.score-card {
-  background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 26px;
-  backdrop-filter: blur(24px) saturate(1.2); -webkit-backdrop-filter: blur(24px) saturate(1.2);
-  padding: 28px 20px 24px; display: flex; flex-direction: column; align-items: center;
-  box-shadow: var(--shadow-card); margin-bottom: 16px; text-decoration: none; color: inherit;
-}
-.score-ring-wrap { position: relative; width: 190px; height: 190px; margin-bottom: 6px; }
-.score-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
-.score-ring-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 12; }
-.score-ring-fill { fill: none; stroke: var(--good); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.22,1,0.36,1), stroke 0.4s ease; }
-.score-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.score-num { font-size: 46px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.score-label { font-size: 12px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
-.score-note { font-size: 13px; color: var(--text-2); text-align: center; max-width: 320px; margin-top: 8px; }
-
-.tile-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-.tile-icon { font-size: 22px; margin-bottom: 26px; }
-
-.caf-widget-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
-.caf-widget-num { font-size: 24px; font-weight: 800; color: var(--text-1); line-height: 1; }
-.caf-widget-bar-track { height: 8px; background: rgba(255,255,255,0.07); border-radius: 5px; margin-top: 10px; overflow: hidden; }
-.caf-widget-bar-fill { height: 100%; border-radius: 5px; background: var(--good); transition: width 0.5s ease; }
-
-.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-.stat-card { background: var(--bg-card-2); border-radius: 14px; padding: 12px; text-align: left; }
-.stat-label { font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
-.stat-val { font-size: 18px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
-
+.tile-row { margin-bottom: 16px; }
 .section-card { margin-bottom: 16px; }
 .stack-hint { margin-top: 4px; font-size: 12.5px; color: var(--text-3); text-align: center; }
 .stack-hint a { color: var(--text-2); }
@@ -67,49 +40,29 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     <div class="sub rw-eyebrow" id="wellDateLabel">—</div>
   </div>
 
-  <a href="recovery.html" class="score-card">
-    <div class="score-ring-wrap">
-      <svg class="score-ring" viewBox="0 0 190 190">
-        <circle class="score-ring-track" cx="95" cy="95" r="82"></circle>
-        <circle class="score-ring-fill" id="scoreRingFill" cx="95" cy="95" r="82"></circle>
-      </svg>
-      <div class="score-ring-center">
-        <div class="score-num" id="scoreNum">—</div>
-        <div class="score-label">Erholung</div>
-      </div>
-    </div>
-    <div class="score-note" id="scoreNote">Verbinde WHOOP auf dieser Seite, um deinen Erholungswert zu sehen.</div>
+  <a href="recovery.html" class="rw-card rw-tracker rw-card-photo rw-card-photo--forest section-card">
+    <div class="rw-tracker-title">Erholung</div>
+    <div class="rw-tracker-val" id="scoreNum">—</div>
+    <div class="rw-tracker-bar"><span id="scoreBar" style="width:0%"></span></div>
   </a>
 
-  <div class="tile-row">
-    <a href="nutrition.html" class="rw-card">
-      <div class="tile-icon">🍎</div>
-      <div class="rw-card-title">Essen</div>
-      <div class="rw-card-sub">Kalorien &amp; Makros</div>
+  <div class="tile-row rw-tile-row">
+    <a href="nutrition.html" class="rw-card rw-tile">
+      <div class="rw-tile-icon">🍎</div>
+      <div class="rw-tile-title">Essen</div>
     </a>
-    <a href="po-water.html" class="rw-card">
-      <div class="tile-icon">💧</div>
-      <div class="rw-card-title">Wasser</div>
-      <div class="rw-card-sub">Flüssigkeitszufuhr</div>
+    <a href="po-water.html" class="rw-card rw-tile">
+      <div class="rw-tile-icon">💧</div>
+      <div class="rw-tile-title">Wasser</div>
     </a>
   </div>
 
-  <div class="rw-section-title">Kaffee Tracker</div>
-  <a href="caffeine.html" class="rw-card section-card">
-    <div class="caf-widget-head">
-      <div>
-        <div class="caf-widget-num" id="cafNum">0 <span style="font-size:13px;color:var(--text-3);font-weight:600">/ 100 mg</span></div>
-        <div class="rw-eyebrow">Heute</div>
-      </div>
-      <span class="rw-card-arrow">→</span>
-    </div>
-    <div class="caf-widget-bar-track"><div class="caf-widget-bar-fill" id="cafBar" style="width:0%"></div></div>
+  <a href="caffeine.html" class="rw-card rw-title-card rw-card-photo rw-card-photo--coffee section-card">
+    <div class="rw-title-card-t">☕ Kaffee Tracker</div>
   </a>
 
-  <div class="rw-section-title">WHOOP-Gesundheitsdaten</div>
-  <div class="rw-card section-card">
-    <div class="stat-grid" id="statGrid"></div>
-  </div>
+  <div class="rw-section-title">WHOOP Erholungsdaten</div>
+  <div class="rw-card rw-multistat section-card" style="--cols:4" id="statGrid"></div>
 
   <div class="stack-hint" id="stackHint">Nahrungsergänzung verwalten? Auf der <a href="health.html">Daily-Stack-Seite</a>.</div>
 </div>
@@ -149,32 +102,16 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     if (score >= 34) return 'var(--warn)';
     return 'var(--bad)';
   }
-  function renderRing(score) {
-    const fill = document.getElementById('scoreRingFill');
-    const C = 2 * Math.PI * 82;
-    fill.style.strokeDasharray = C;
-    fill.style.strokeDashoffset = score != null ? C * (1 - score / 100) : C;
-    fill.style.stroke = zoneColor(score);
+  function renderTracker(score) {
     const numEl = document.getElementById('scoreNum');
     numEl.textContent = score != null ? score + '%' : '—';
     numEl.style.color = zoneColor(score);
+    const bar = document.getElementById('scoreBar');
+    bar.style.width = score != null ? score + '%' : '0%';
+    bar.style.background = zoneColor(score);
   }
-  function statCard(label, val) {
-    return '<div class="stat-card"><div class="stat-label">' + label + '</div><div class="stat-val">' + val + '</div></div>';
-  }
-
-  // ---------- Kaffee Tracker widget preview (same age-adjusted limit as caffeine.html) ----------
-  function renderCaffeineWidget() {
-    try {
-      const logs = JSON.parse(localStorage.getItem('caf:logs')) || [];
-      const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
-      const total = Math.round(logs.filter((l) => l.ts >= midnight.getTime()).reduce((s, l) => s + l.mg, 0));
-      const limit = 100;
-      document.getElementById('cafNum').innerHTML = total + ' <span style="font-size:13px;color:var(--text-3);font-weight:600">/ ' + limit + ' mg</span>';
-      const bar = document.getElementById('cafBar');
-      bar.style.width = Math.min(100, (total / limit) * 100) + '%';
-      bar.style.background = total >= limit ? 'var(--bad)' : total >= 75 ? 'var(--warn)' : 'var(--good)';
-    } catch (e) {}
+  function statCol(icon, label, val) {
+    return '<div class="rw-multistat-col"><div class="rw-multistat-icon">' + icon + '</div><div class="rw-multistat-val">' + val + '</div><div class="rw-multistat-label">' + label + '</div></div>';
   }
 
   async function boot() {
@@ -184,15 +121,12 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     const now = new Date();
     dLabel.textContent = days[now.getDay()] + ', ' + now.getDate() + '. ' + mons[now.getMonth()];
 
-    renderCaffeineWidget();
-
     const tokens = loadWhoopTokens();
     if (!tokens || !tokens.access) {
       document.getElementById('statGrid').innerHTML =
-        statCard('Atemfrequenz', '—') + statCard('Ø-Herzfrequenz', '—') +
-        statCard('Ruhepuls', '—') + statCard('HRV', '—') +
-        statCard('Hauttemperatur', '—') + statCard('Blutsauerstoff', '—');
-      renderRing(null);
+        statCol('😴', 'Schlaf', '—') + statCol('🔥', 'Strain', '—') +
+        statCol('💚', 'HRV', '—') + statCol('❤️', 'Ruhepuls', '—');
+      renderTracker(null);
       return;
     }
 
@@ -205,27 +139,24 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
         whoopFetch('/cycle?limit=1', t).catch(() => null),
       ]);
       const r = rec && rec.records && rec.records[0] && rec.records[0].score;
-      const s = sleep && sleep.records && sleep.records[0];
+      const s = sleep && sleep.records && sleep.records[0] && sleep.records[0].score;
       const c = cycle && cycle.records && cycle.records[0] && cycle.records[0].score;
 
       const score = r ? Math.round(r.recovery_score) : null;
-      renderRing(score);
-      document.getElementById('scoreNote').textContent = score != null
-        ? (score >= 67 ? 'Sehr gute Erholung — dein Körper ist bereit für Belastung.' : score >= 34 ? 'Durchschnittliche Erholung — geh es heute moderat an.' : 'Niedrige Erholung — priorisiere heute Regeneration.')
-        : 'Noch keine Recovery-Daten von WHOOP verfügbar.';
+      renderTracker(score);
 
-      const respRate = s && s.score ? s.score.respiratory_rate : null;
+      const sleepPerf = s && s.sleep_performance_percentage != null ? Math.round(s.sleep_performance_percentage) : null;
+      const strain = c && c.strain != null ? c.strain.toFixed(1) : null;
+      const hrv = r && r.hrv_rmssd_milli != null ? Math.round(r.hrv_rmssd_milli) : null;
+      const rhr = r && r.resting_heart_rate != null ? Math.round(r.resting_heart_rate) : null;
 
       document.getElementById('statGrid').innerHTML =
-        statCard('Atemfrequenz', respRate != null ? respRate.toFixed(1) + '/min' : '—') +
-        statCard('Ø-Herzfrequenz', c && c.average_heart_rate != null ? Math.round(c.average_heart_rate) + ' bpm' : '—') +
-        statCard('Ruhepuls', r && r.resting_heart_rate != null ? Math.round(r.resting_heart_rate) + ' bpm' : '—') +
-        statCard('HRV', r && r.hrv_rmssd_milli != null ? Math.round(r.hrv_rmssd_milli) + ' ms' : '—') +
-        statCard('Hauttemperatur', r && r.skin_temp_celsius != null ? r.skin_temp_celsius.toFixed(1) + ' °C' : '—') +
-        statCard('Blutsauerstoff', r && r.spo2_percentage != null ? r.spo2_percentage.toFixed(1) + '%' : '—');
+        statCol('😴', 'Schlaf', sleepPerf != null ? sleepPerf + '%' : '—') +
+        statCol('🔥', 'Strain', strain != null ? strain : '—') +
+        statCol('💚', 'HRV', hrv != null ? hrv + ' ms' : '—') +
+        statCol('❤️', 'Ruhepuls', rhr != null ? rhr + ' bpm' : '—');
     } catch (e) {
-      renderRing(null);
-      document.getElementById('scoreNote').textContent = 'WHOOP-Daten aktuell nicht erreichbar.';
+      renderTracker(null);
     }
   }
 

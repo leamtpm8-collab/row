@@ -133,7 +133,7 @@ button.submit:disabled { opacity: 0.6; cursor: default; }
       body: JSON.stringify({ password: passwordEl.value, remember: rememberEl.checked })
     }).then(function (res) {
       if (res.ok) {
-        window.location.href = '/index.html';
+        window.location.href = '/main.html';
         return;
       }
       submitBtn.disabled = false;

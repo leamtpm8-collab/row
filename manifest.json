@@ -2,7 +2,7 @@
   "name": "Maëls Übersicht",
   "short_name": "Übersicht",
   "description": "Persönliches Dashboard für Ziele, Gesundheit, Fitness, Finanzen und mehr.",
-  "start_url": "/index.html",
+  "start_url": "/main.html",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",

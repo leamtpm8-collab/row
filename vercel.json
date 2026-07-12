@@ -1,5 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "redirects": [
+    { "source": "/", "destination": "/main.html", "permanent": false }
+  ],
   "crons": [
     { "path": "/api/push-send", "schedule": "30 6 * * *" },
     { "path": "/api/push-send", "schedule": "30 5 * * *" },

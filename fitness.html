@@ -27,21 +27,8 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .hd h1 { margin: 0; font-size: 26px; }
 .hd .sub { margin-top: 4px; font-size: 13px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
 
-.score-card { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 26px; backdrop-filter: blur(24px) saturate(1.2); -webkit-backdrop-filter: blur(24px) saturate(1.2); padding: 28px 20px 24px; display: flex; flex-direction: column; align-items: center; box-shadow: var(--shadow-card); margin-bottom: 16px; }
-.score-ring-wrap { position: relative; width: 190px; height: 190px; margin-bottom: 6px; }
-.score-ring { width: 100%; height: 100%; transform: rotate(-90deg); }
-.score-ring-track { fill: none; stroke: rgba(255,255,255,0.07); stroke-width: 12; }
-.score-ring-fill { fill: none; stroke: var(--accent); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 1s cubic-bezier(0.22,1,0.36,1); }
-.score-ring-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.score-num { font-size: 46px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.score-label { font-size: 12px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
-.score-note { font-size: 13px; color: var(--text-2); text-align: center; max-width: 320px; margin-top: 8px; }
-
-.tile-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-.tile-icon { font-size: 22px; margin-bottom: 10px; }
-
+.tile-row { margin-bottom: 16px; }
 .section-card { margin-bottom: 16px; }
-.act-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
 .act-add-btn { border: 1px solid var(--glass-border); background: var(--bg-card-2); color: var(--text-1); width: 30px; height: 30px; border-radius: 9px; font-size: 16px; cursor: pointer; -webkit-tap-highlight-color: transparent; text-decoration: none; display: flex; align-items: center; justify-content: center; }
 .act-item { padding: 11px 0; }
 .act-item + .act-item { border-top: 1px solid var(--glass-border); }
@@ -51,11 +38,6 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
 .act-meta { font-size: 11.5px; color: var(--text-3); font-family: var(--font-mono); flex-shrink: 0; }
 .act-analysis { font-size: 12px; color: var(--text-3); margin-top: 5px; margin-left: 44px; line-height: 1.4; }
 .act-empty { text-align: center; font-size: 12.5px; font-style: italic; color: var(--text-3); padding: 10px 0; }
-
-.stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-.stat-card { background: var(--bg-card-2); border-radius: 14px; padding: 12px; text-align: left; }
-.stat-label { font-size: 10.5px; color: var(--text-3); font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.05em; }
-.stat-val { font-size: 18px; font-weight: 700; margin-top: 6px; font-variant-numeric: tabular-nums; }
 
 .whoop-hint { margin-top: 4px; font-size: 12.5px; color: var(--text-3); text-align: center; }
 .whoop-hint a { color: var(--text-2); }
@@ -68,48 +50,39 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     <div class="sub rw-eyebrow" id="fitDateLabel">—</div>
   </div>
 
-  <div class="score-card">
-    <div class="score-ring-wrap">
-      <svg class="score-ring" viewBox="0 0 190 190">
-        <circle class="score-ring-track" cx="95" cy="95" r="82"></circle>
-        <circle class="score-ring-fill" id="scoreRingFill" cx="95" cy="95" r="82"></circle>
-      </svg>
-      <div class="score-ring-center">
-        <div class="score-num" id="scoreNum">—</div>
-        <div class="score-label">Fitness-Tagesscore</div>
-      </div>
-    </div>
-    <div class="score-note" id="scoreNote">Verbinde WHOOP oder trag deine Schritte ein, um deinen Score zu berechnen.</div>
-  </div>
+  <a href="fitness-recommendations.html" class="rw-card rw-tracker rw-card-photo rw-card-photo--forest section-card" style="display:block;text-decoration:none;color:inherit">
+    <div class="rw-tracker-title">Tages Fitnessscore</div>
+    <div class="rw-tracker-val" id="scoreNum">—</div>
+    <div class="rw-tracker-bar"><span id="scoreBar" style="width:0%"></span></div>
+  </a>
 
-  <div class="tile-row">
-    <a href="fitness-recommendations.html" class="rw-card">
-      <div class="tile-icon">💡</div>
-      <div class="rw-card-title">Tipps</div>
-      <div class="rw-card-sub">Zum Tagesscore</div>
+  <div class="tile-row rw-tile-row">
+    <a href="fitness-recommendations.html" class="rw-card rw-tile">
+      <div class="rw-tile-icon">💡</div>
+      <div class="rw-tile-title">Tipps zum<br>Steigern des<br>Tagesscores</div>
     </a>
-    <a href="progress.html" class="rw-card">
-      <div class="tile-icon">📈</div>
-      <div class="rw-card-title">Gewicht</div>
-      <div class="rw-card-sub">&amp; Progress</div>
+    <a href="progress.html" class="rw-card rw-tile">
+      <div class="rw-tile-icon">📈</div>
+      <div class="rw-tile-title">Gewicht und<br>Progress</div>
     </a>
   </div>
 
-  <div class="rw-section-title">Aktivitäten mit Analysen</div>
-  <div class="rw-card section-card">
-    <div class="act-head">
-      <span class="rw-eyebrow">Heute</span>
-      <a href="start-activity.html" class="act-add-btn" aria-label="Aktivität starten">+</a>
+  <div class="rw-card rw-week section-card">
+    <div class="rw-week-head">
+      <div class="rw-week-title">Wochen Tracker</div>
+      <div class="rw-week-count"><b id="weekDoneNum">0</b>/<span id="weekGoalNum">5</span> Trainings</div>
     </div>
-    <div id="actAnalysisList"></div>
+    <div class="rw-week-days" id="weekDays"></div>
   </div>
 
-  <div class="rw-section-title">WHOOP-Fitnessdaten</div>
-  <div class="rw-card section-card">
-    <div class="stat-grid" id="statGrid"></div>
-  </div>
+  <div class="rw-section-title">WHOOP Fitness Daten</div>
+  <div class="rw-card rw-multistat section-card" style="--cols:3" id="statGrid"></div>
+
+  <a href="start-activity.html" class="rw-btn-primary section-card" style="width:100%">+ Aktivität starten</a>
 
   <div class="whoop-hint" id="whoopHint"></div>
+
+  <div style="display:none"><div id="actAnalysisList"></div></div>
 </div>
 
 <script>
@@ -198,14 +171,37 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     if (score == null) return 'rgba(255,255,255,0.5)';
     if (score >= 67) return 'var(--good)'; if (score >= 34) return 'var(--warn)'; return 'var(--bad)';
   }
-  function renderRing(score) {
-    const fill = document.getElementById('scoreRingFill');
-    const C = 2 * Math.PI * 82;
-    fill.style.strokeDasharray = C;
-    fill.style.strokeDashoffset = score != null ? C * (1 - score / 100) : C;
+  function renderTracker(score) {
     document.getElementById('scoreNum').textContent = score != null ? score + '%' : '—';
+    document.getElementById('scoreNum').style.color = zoneColor(score);
+    const bar = document.getElementById('scoreBar');
+    bar.style.width = score != null ? score + '%' : '0%';
+    bar.style.background = zoneColor(score);
   }
-  function statCard(label, val) { return '<div class="stat-card"><div class="stat-label">' + label + '</div><div class="stat-val">' + val + '</div></div>'; }
+  function statCol(icon, label, val) {
+    return '<div class="rw-multistat-col"><div class="rw-multistat-icon">' + icon + '</div><div class="rw-multistat-val">' + val + '</div><div class="rw-multistat-label">' + label + '</div></div>';
+  }
+
+  const WEEK_GOAL = 5;
+  const DAY_LABELS = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+  function renderWeekTracker() {
+    const now = new Date();
+    const dow = (now.getDay() + 6) % 7; // 0=Mo..6=So
+    const monday = new Date(now); monday.setDate(now.getDate() - dow); monday.setHours(0, 0, 0, 0);
+    const acts = loadActivities();
+    const doneDays = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(monday); d.setDate(monday.getDate() + i);
+      const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      doneDays.push(acts.some((a) => (a.startTime || '').slice(0, 10) === key));
+    }
+    const doneCount = doneDays.filter(Boolean).length;
+    document.getElementById('weekDoneNum').textContent = doneCount;
+    document.getElementById('weekGoalNum').textContent = WEEK_GOAL;
+    document.getElementById('weekDays').innerHTML = DAY_LABELS.map((label, i) =>
+      '<div class="rw-week-day"><div class="rw-week-day-label">' + label + '</div><div class="rw-week-dot' + (doneDays[i] ? ' is-done' : '') + '">' + (doneDays[i] ? '✓' : '') + '</div></div>'
+    ).join('');
+  }
 
   // One computed sentence per activity on its contribution to the score —
   // same spirit as the point-delta engine in fitness-recommendations.html,
@@ -293,22 +289,15 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
       recovery: recovery != null ? recovery / 100 : null,
     });
 
-    renderRing(score);
-    document.getElementById('scoreNum').style.color = zoneColor(score);
-    if (score != null) {
-      document.getElementById('scoreNote').textContent = 'Basierend auf ' +
-        [steps != null ? 'Schritten' : null, calories != null ? 'Kalorien' : null, strain != null ? 'Strain' : null, recovery != null ? 'Erholung' : null, hrZoneWeighted != null ? 'Herzfrequenzzonen' : null, activities.length ? 'Aktivitäten' : null]
-          .filter(Boolean).join(', ') + ' von heute.';
-    }
+    renderTracker(score);
+    renderWeekTracker();
 
+    const intensityPct = strain != null ? Math.round((strain / TARGETS.strain) * 100) : null;
+    const intensityWord = intensityPct == null ? '—' : intensityPct >= 67 ? 'Hoch' : intensityPct >= 34 ? 'Mittel' : 'Niedrig';
     document.getElementById('statGrid').innerHTML =
-      statCard('Strain', strain != null ? strain.toFixed(1) : '—') +
-      statCard('Schritte', steps != null ? steps.toLocaleString('de-DE') : '—') +
-      statCard('HF-Zonen 1–3', hrZoneLow != null ? fmtMin(hrZoneLow) : '—') +
-      statCard('HF-Zonen 4–5', hrZoneHigh != null ? fmtMin(hrZoneHigh) : '—') +
-      statCard('Kalorien', calories != null ? Math.round(calories) + ' kcal' : '—') +
-      statCard('Trainingsdauer', fmtMin(activityMin)) +
-      statCard('VO₂max', vo2max ? vo2max.value.toFixed(1) : '—');
+      statCol('🏋️', 'Strain', strain != null ? strain.toFixed(1) : '—') +
+      statCol('🔥', 'Kalorien', calories != null ? Math.round(calories) + ' kcal' : '—') +
+      statCol('📈', 'Trainingsintensität', intensityWord);
   }
 
   boot();
