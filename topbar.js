@@ -10,10 +10,6 @@
 (function () {
   'use strict';
 
-  // -------- Supabase config (same project as the rest of the dashboard) --------
-  const TOPBAR_SUPABASE_URL = 'https://pwklhcijhzlsggwrpcfn.supabase.co';
-  const TOPBAR_SUPABASE_KEY = 'sb_publishable_JOCItyLAFHHpUM5ogSX2vw_miQ9_ig9';
-
   // -------- CSS --------
   const css = `
 .topbar {
@@ -378,18 +374,16 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
   async function pushWaterMergedToSupabase(localWater) {
     if (window.location.pathname.endsWith('/health.html') ||
         window.location.pathname.endsWith('health.html')) return;
-    if (!window.supabase || !TOPBAR_SUPABASE_URL || !TOPBAR_SUPABASE_KEY) return;
-    if (TOPBAR_SUPABASE_URL.indexOf('PASTE-') === 0) return;
     try {
-      const supa = window.supabase.createClient(TOPBAR_SUPABASE_URL, TOPBAR_SUPABASE_KEY);
-      const { data } = await supa
-        .from('app_state').select('data').eq('key', 'health').maybeSingle();
-      const current = (data && data.data) || {};
+      const r = await fetch('/api/app-state?key=health');
+      const json = r.ok ? await r.json() : null;
+      const current = (json && json.data) || {};
       const merged = Object.assign({}, current, { po_water_v1: localWater });
-      await supa.from('app_state').upsert(
-        { key: 'health', data: merged, updated_at: new Date().toISOString() },
-        { onConflict: 'key' }
-      );
+      await fetch('/api/app-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'health', data: merged }),
+      });
     } catch (e) {}
   }
 
@@ -405,63 +399,50 @@ body.topbar-modal-open { overflow: hidden; touch-action: none; }
   }
 
   function initWhoopSync() {
-    if (!window.supabase || !TOPBAR_SUPABASE_URL || !TOPBAR_SUPABASE_KEY) return;
-    if (TOPBAR_SUPABASE_URL.indexOf('PASTE-') === 0) return;
-    let supa;
-    try { supa = window.supabase.createClient(TOPBAR_SUPABASE_URL, TOPBAR_SUPABASE_KEY); } catch (e) { return; }
     let lastSyncedJson = null;
+    const POLL_MS = 5000;
 
     async function pushWhoopTokens(tokens) {
       const json = JSON.stringify(tokens);
       if (json === lastSyncedJson) return;
       try {
-        await supa.from('app_state').upsert(
-          { key: WHOOP_SYNC_ROW_KEY, data: { whoop_tokens_v1: tokens }, updated_at: new Date().toISOString() },
-          { onConflict: 'key' }
-        );
+        await fetch('/api/app-state', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: WHOOP_SYNC_ROW_KEY, data: { whoop_tokens_v1: tokens } }),
+        });
         lastSyncedJson = json;
       } catch (e) {}
     }
 
-    (async function pull() {
+    async function pull() {
       try {
-        const { data } = await supa.from('app_state').select('data').eq('key', WHOOP_SYNC_ROW_KEY).maybeSingle();
-        const remote = data && data.data && data.data[WHOOP_TOKENS_KEY];
+        const r = await fetch('/api/app-state?key=' + WHOOP_SYNC_ROW_KEY);
+        const json = r.ok ? await r.json() : null;
+        const remote = json && json.data && json.data[WHOOP_TOKENS_KEY];
         const local = loadWhoopTokensLocal();
         if (remote && remote.access) {
+          const remoteJson = JSON.stringify(remote);
           if (!local || !local.access) {
-            lastSyncedJson = JSON.stringify(remote);
-            localStorage.setItem(WHOOP_TOKENS_KEY, lastSyncedJson);
-            location.reload();
+            if (remoteJson !== lastSyncedJson) {
+              lastSyncedJson = remoteJson;
+              localStorage.setItem(WHOOP_TOKENS_KEY, remoteJson);
+              location.reload();
+            }
             return;
           }
-          if ((remote.expires || 0) > (local.expires || 0) && JSON.stringify(remote) !== JSON.stringify(local)) {
-            lastSyncedJson = JSON.stringify(remote);
-            localStorage.setItem(WHOOP_TOKENS_KEY, lastSyncedJson);
+          if ((remote.expires || 0) > (local.expires || 0) && remoteJson !== JSON.stringify(local)) {
+            lastSyncedJson = remoteJson;
+            localStorage.setItem(WHOOP_TOKENS_KEY, remoteJson);
             return;
           }
         }
         if (local && local.access) pushWhoopTokens(local);
       } catch (e) {}
-    })();
+    }
 
-    try {
-      supa.channel('app_state_' + WHOOP_SYNC_ROW_KEY)
-        .on('postgres_changes', {
-          event: '*', schema: 'public', table: 'app_state', filter: 'key=eq.' + WHOOP_SYNC_ROW_KEY,
-        }, (payload) => {
-          const remote = payload.new && payload.new.data && payload.new.data[WHOOP_TOKENS_KEY];
-          if (!remote || !remote.access) return;
-          const json = JSON.stringify(remote);
-          if (json === lastSyncedJson) return;
-          const local = loadWhoopTokensLocal();
-          if (!local || !local.access || (remote.expires || 0) > (local.expires || 0)) {
-            lastSyncedJson = json;
-            localStorage.setItem(WHOOP_TOKENS_KEY, json);
-          }
-        })
-        .subscribe();
-    } catch (e) {}
+    pull();
+    setInterval(() => { if (document.visibilityState === 'visible') pull(); }, POLL_MS);
 
     const origSet = localStorage.setItem.bind(localStorage);
     localStorage.setItem = function (k, v) {

@@ -7,8 +7,6 @@
 // and only sends when it truly matches a slot, once per day per slot.
 import webpush from 'web-push';
 
-const SUPABASE_URL = 'https://pwklhcijhzlsggwrpcfn.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_JOCItyLAFHHpUM5ogSX2vw_miQ9_ig9';
 const APP_STATE_KEY = 'push';
 
 const SLOTS = {
@@ -33,6 +31,10 @@ export default async function handler(req, res) {
   const secret = process.env.CRON_SECRET;
   const auth = req.headers.authorization || '';
   if (!secret || auth !== 'Bearer ' + secret) return res.status(401).json({ error: 'unauthorized' });
+
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SUPABASE_URL || !SUPABASE_KEY) return res.status(500).json({ error: 'server not configured' });
 
   const vapidPublic = process.env.VAPID_PUBLIC_KEY;
   const vapidPrivate = process.env.VAPID_PRIVATE_KEY;

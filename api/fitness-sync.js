@@ -8,8 +8,6 @@
 // Body: { "date": "YYYY-MM-DD", "steps": 8500, "vo2max": 47.2 }
 // (vo2max is optional — not every device estimates it)
 
-const SUPABASE_URL = 'https://pwklhcijhzlsggwrpcfn.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_JOCItyLAFHHpUM5ogSX2vw_miQ9_ig9';
 const APP_STATE_KEY = 'fitness';
 const STEPS_KEY = 'fitness_steps_today_v1';
 const VO2MAX_KEY = 'fitness_vo2max_v1';
@@ -22,6 +20,10 @@ export default async function handler(req, res) {
   const auth = req.headers.authorization || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
   if (token !== secret) return res.status(401).json({ error: 'unauthorized' });
+
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SUPABASE_URL || !SUPABASE_KEY) return res.status(500).json({ error: 'server not configured' });
 
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = {}; } }

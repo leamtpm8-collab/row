@@ -7,8 +7,6 @@
 // Headers: Authorization: Bearer <NUTRITION_SYNC_SECRET>
 // Body: { "date": "YYYY-MM-DD", "kcal": 2200, "protein": 150, "carbs": 220, "fat": 70 }
 
-const SUPABASE_URL = 'https://pwklhcijhzlsggwrpcfn.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_JOCItyLAFHHpUM5ogSX2vw_miQ9_ig9';
 const APP_STATE_KEY = 'nutrition';
 const NUT_KEY = 'nutrition_v1';
 const APPLE_HEALTH_ENTRY_ID = 'apple-health-sync';
@@ -21,6 +19,10 @@ export default async function handler(req, res) {
   const auth = req.headers.authorization || '';
   const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
   if (token !== secret) return res.status(401).json({ error: 'unauthorized' });
+
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SUPABASE_URL || !SUPABASE_KEY) return res.status(500).json({ error: 'server not configured' });
 
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = {}; } }

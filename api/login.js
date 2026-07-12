@@ -3,14 +3,50 @@ import crypto from 'crypto';
 const ONE_YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 const PBKDF2_ITERATIONS = 210000;
 
+// Simple in-memory lockout: module scope survives across warm invocations
+// of the same serverless instance (not guaranteed across cold starts or
+// multiple concurrent instances, but a real deterrent for a private,
+// single-user app fronting this as the only unauthenticated endpoint).
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_WINDOW_MS = 10 * 60 * 1000;
+const attempts = new Map();
+
+function clientIp(req) {
+  const fwd = req.headers['x-forwarded-for'];
+  if (typeof fwd === 'string' && fwd) return fwd.split(',')[0].trim();
+  return req.socket && req.socket.remoteAddress || 'unknown';
+}
+
+function isLocked(ip) {
+  const rec = attempts.get(ip);
+  if (!rec) return false;
+  if (Date.now() > rec.resetAt) { attempts.delete(ip); return false; }
+  return rec.count >= MAX_ATTEMPTS;
+}
+
+function recordFailure(ip) {
+  const rec = attempts.get(ip);
+  if (!rec || Date.now() > rec.resetAt) {
+    attempts.set(ip, { count: 1, resetAt: Date.now() + LOCKOUT_WINDOW_MS });
+  } else {
+    rec.count += 1;
+  }
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
+
+  const ip = clientIp(req);
+  if (isLocked(ip)) {
+    return res.status(429).json({ error: 'too many attempts, try again later' });
+  }
 
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = {}; } }
   const password = body && body.password;
   const remember = !!(body && body.remember);
   if (typeof password !== 'string' || !password) {
+    recordFailure(ip);
     return res.status(401).json({ error: 'invalid credentials' });
   }
 
@@ -21,9 +57,11 @@ export default async function handler(req, res) {
   }
 
   if (!verifyPassword(password, storedHash)) {
+    recordFailure(ip);
     return res.status(401).json({ error: 'invalid credentials' });
   }
 
+  attempts.delete(ip);
   const exp = Date.now() + ONE_YEAR_MS;
   const token = sign(JSON.stringify({ exp }), secret);
 

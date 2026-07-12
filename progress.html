@@ -14,7 +14,6 @@
 <link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png">
 <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
 <title>Gewicht &amp; Progress</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="sync.js" defer></script>
 <script src="topbar.js" defer></script>
 <link rel="stylesheet" href="theme.css">
@@ -593,11 +592,10 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
   // merge below), so this block mirrors gym.html's exactly. New
   // fitness_body_v1 rides the generic initCloudSync instead.
   // ============================================================
-  const SUPABASE_URL = 'https://pwklhcijhzlsggwrpcfn.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_JOCItyLAFHHpUM5ogSX2vw_miQ9_ig9';
   const APP_KEY = 'po-coach';
   const PG_SYNCED_KEYS = ['po_coach_weights', 'po_coach_photos'];
-  let pgSupa = null, pgPushTimer = null, pgSuppressSync = false, pgLastSyncedJson = null;
+  const PG_POLL_MS = 5000;
+  let pgPushTimer = null, pgSuppressSync = false, pgLastSyncedJson = null, pgDisabled = false;
 
   function pgCollectState() {
     const out = {};
@@ -633,13 +631,18 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     renderWeight(); photosRender();
   }
   async function pgPushNow() {
-    if (!pgSupa) return;
+    if (pgDisabled) return;
     const state = pgCollectState();
     const json = JSON.stringify(state);
     if (json === pgLastSyncedJson) return;
     try {
-      const { error } = await pgSupa.from('app_state').upsert({ key: APP_KEY, data: state, updated_at: new Date().toISOString() }, { onConflict: 'key' });
-      if (!error) pgLastSyncedJson = json;
+      const r = await fetch('/api/app-state', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: APP_KEY, data: state }),
+      });
+      if (r.status === 500) { pgDisabled = true; return; }
+      if (r.ok) pgLastSyncedJson = json;
     } catch (e) {}
   }
   function pgSchedulePush() { clearTimeout(pgPushTimer); pgPushTimer = setTimeout(pgPushNow, 250); }
@@ -650,35 +653,36 @@ body { color: var(--text-1); font-family: var(--font); -webkit-font-smoothing: a
     try { if (!pgSuppressSync && PG_SYNCED_KEYS.indexOf(k) !== -1) pgSchedulePush(); } catch (e) {}
   };
 
-  (async function initSupa() {
-    if (!window.supabase || SUPABASE_URL.indexOf('PASTE-') === 0) return;
-    pgSupa = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  async function pgPullNow() {
+    if (pgDisabled) return;
     try {
-      const { data, error } = await pgSupa.from('app_state').select('data').eq('key', APP_KEY).maybeSingle();
-      if (!error && data && data.data) {
-        pgLastSyncedJson = JSON.stringify(data.data);
-        if (!pgIsUserEditing()) pgApplyRemoteState(data.data);
-      }
+      const r = await fetch('/api/app-state?key=' + APP_KEY);
+      if (r.status === 500) { pgDisabled = true; return; }
+      if (!r.ok) return;
+      const json = await r.json();
+      const data = json && json.data;
+      if (!data || Object.keys(data).length === 0) return;
+      const incoming = JSON.stringify(data);
+      if (incoming === pgLastSyncedJson) return;
+      pgLastSyncedJson = incoming;
+      if (!pgIsUserEditing()) pgApplyRemoteState(data);
     } catch (e) {}
-    pgSupa.channel('app_state_' + APP_KEY)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'app_state', filter: 'key=eq.' + APP_KEY }, (payload) => {
-        if (!payload.new || !payload.new.data) return;
-        const incoming = JSON.stringify(payload.new.data);
-        if (incoming === pgLastSyncedJson) return;
-        pgLastSyncedJson = incoming;
-        if (!pgIsUserEditing()) pgApplyRemoteState(payload.new.data);
-      })
-      .subscribe();
+  }
+
+  (async function initSync() {
+    await pgPullNow();
+    setInterval(() => { if (document.visibilityState === 'visible') pgPullNow(); }, PG_POLL_MS);
   })();
   window.addEventListener('beforeunload', () => {
+    if (pgDisabled) return;
     const state = pgCollectState();
     const json = JSON.stringify(state);
     if (json === pgLastSyncedJson) return;
     try {
-      fetch(SUPABASE_URL + '/rest/v1/app_state?on_conflict=key', {
+      fetch('/api/app-state', {
         method: 'POST',
-        headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'resolution=merge-duplicates' },
-        body: JSON.stringify({ key: APP_KEY, data: state, updated_at: new Date().toISOString() }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: APP_KEY, data: state }),
         keepalive: true,
       }).catch(() => {});
     } catch (e) {}

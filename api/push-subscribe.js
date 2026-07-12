@@ -2,12 +2,14 @@
 // after the browser creates a PushSubscription. Stores it in the shared
 // Supabase app_state row so api/push-send.js can find it later.
 
-const SUPABASE_URL = 'https://pwklhcijhzlsggwrpcfn.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_JOCItyLAFHHpUM5ogSX2vw_miQ9_ig9';
 const APP_STATE_KEY = 'push';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'method not allowed' });
+
+  const SUPABASE_URL = process.env.SUPABASE_URL;
+  const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!SUPABASE_URL || !SUPABASE_KEY) return res.status(500).json({ error: 'server not configured' });
 
   let body = req.body;
   if (typeof body === 'string') { try { body = JSON.parse(body); } catch { body = {}; } }

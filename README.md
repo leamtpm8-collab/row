@@ -28,7 +28,21 @@ Each app stores its own state in browser `localStorage`. No accounts, no server.
 
 ## Supabase setup (optional cloud sync)
 
-Cross-device sync (goals, stack, water, finance, and gym state) relies on a `public.app_state` table with RLS policies allowing anon select/insert/update, keyed by page. Set that up first via the Supabase SQL Editor, then paste your project URL + publishable key into `topbar.js`, `gym.html`, and `sync.js`.
+Cross-device sync (goals, stack, water, finance, and gym state) relies on a `public.app_state` table, keyed by page. The browser never talks to Supabase directly or holds a Supabase key — all reads/writes go through `api/app-state.js`, which is gated by the normal login cookie and uses a server-only `service_role` key. Set it up via the Supabase SQL Editor:
+
+```sql
+create table if not exists public.app_state (
+  key text primary key,
+  data jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+alter table public.app_state enable row level security;
+revoke all on public.app_state from anon, authenticated;
+-- No policies added on purpose: anon/authenticated get zero access.
+-- service_role (used only by api/app-state.js, server-side) bypasses RLS regardless.
+```
+
+Then in Vercel → Project Settings → Environment Variables, set `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` (Settings → API → `service_role` secret key in your Supabase project — **not** the publishable/anon key).
 
 Gym progress photos additionally sync via Supabase Storage (instead of embedding base64 images in the `app_state` row). Run this in the SQL Editor to create the bucket and its access policies:
 
